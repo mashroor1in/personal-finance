@@ -10,12 +10,24 @@ export async function onRequestPost(context) {
   const currentPassword = String(body.currentPassword || "").trim();
   const confirmPassword = String(body.confirmPassword || "").trim();
   const resetConfirm = String(body.resetConfirm || "").trim();
+  const turnstileToken = String(body.turnstileToken || "").trim();
 
   if (!["register", "login", "changepassword", "resetaccount"].includes(mode)) {
     return json({ ok: false, error: "Invalid auth mode." }, { status: 400 });
   }
 
   const badPassword = () => json({ ok: false, error: "Password must be at least 6 characters." }, { status: 400 });
+
+  if (mode === "register" || mode === "login") {
+    const turnstileValid = await verifyTurnstile({
+      secret: env.TURNSTILE_SECRET,
+      token: turnstileToken,
+      ip: request.headers.get("CF-Connecting-IP") || "",
+    });
+    if (!turnstileValid) {
+      return json({ ok: false, error: "Please complete human verification." }, { status: 400 });
+    }
+  }
 
   if (mode === "register") {
     if (!isValidUsername(username)) {
@@ -158,4 +170,28 @@ async function issueSessionAndRespond(env, userID) {
     { ok: true, authenticated: true, userID, username: userID, passwordUpdatedAt: updated?.updated_at || null },
     { headers: { "Set-Cookie": sessionCookie(token) } }
   );
+}
+
+async function verifyTurnstile({ secret, token, ip }) {
+  if (!secret) return true;
+  if (!token) return false;
+
+  try {
+    const form = new URLSearchParams();
+    form.set("secret", secret);
+    form.set("response", token);
+    if (ip) form.set("remoteip", ip);
+
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!data?.success;
+  } catch {
+    return false;
+  }
 }

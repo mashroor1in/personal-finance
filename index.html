@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -1215,7 +1216,8 @@
       <div class="controls-bar">
         <label for="monthPicker" class="sr-only">Select month</label>
         <input id="monthPicker" type="month" aria-label="Select planning month" />
-        <button id="changePinBtn" class="btn" title="Change Password">🔑 Change Password</button>
+        <button id="logoutBtn" class="btn" title="Log out">🚪 Log out</button>
+        <button id="changePasswordBtn" class="btn" title="Change Password">🔑 Change Password</button>
         <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
         <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
         <button id="themeToggle" class="btn" aria-pressed="false">🌙 Dark</button>
@@ -1337,11 +1339,12 @@
         <h3 id="securityTitle">Security Settings</h3>
         <div class="security-meta">
           <span id="securitySessionChip" class="security-chip">Session: Locked</span>
-          <span id="securityPinUpdatedChip" class="security-chip">Password: Not set</span>
+          <span id="securityPasswordUpdatedChip" class="security-chip">Password: Not set</span>
         </div>
       </div>
       <div class="security-actions">
-        <button id="securityChangePinBtn" class="btn" type="button">🔑 Change Password</button>
+        <button id="securityLogoutBtn" class="btn" type="button">🚪 Log out</button>
+        <button id="securityChangePasswordBtn" class="btn" type="button">🔑 Change Password</button>
         <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Account Data</button>
       </div>
     </section>
@@ -1423,6 +1426,11 @@
           <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
         </div>
 
+        <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:6px;">
+          <div id="authTurnstile"></div>
+          <p class="auth-note" style="text-align:left;">Human verification required for sign in and sign up.</p>
+        </div>
+
         <label class="auth-inline-check" for="authShowPassword">
           <input id="authShowPassword" type="checkbox" />
           Show password fields
@@ -1446,7 +1454,6 @@
     const UI_KEY_THEME = "pf_ui_theme";
     const UI_KEY_PRIVACY = "pf_ui_privacy";
     const UI_KEY_VIEW = "pf_ui_view";
-    const AUTH_KEY = "pf_auth_v1";
     const AUTH_SESSION_KEY = "pf_auth_session_v1";
 
     const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
@@ -1533,12 +1540,14 @@
     let paidDirty = false;
 
     const monthPicker = document.getElementById("monthPicker");
-    const changePinBtn = document.getElementById("changePinBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
     const resetAppBtn = document.getElementById("resetAppBtn");
-    const securityChangePinBtn = document.getElementById("securityChangePinBtn");
+    const securityLogoutBtn = document.getElementById("securityLogoutBtn");
+    const securityChangePasswordBtn = document.getElementById("securityChangePasswordBtn");
     const securityResetBtn = document.getElementById("securityResetBtn");
     const securitySessionChip = document.getElementById("securitySessionChip");
-    const securityPinUpdatedChip = document.getElementById("securityPinUpdatedChip");
+    const securityPasswordUpdatedChip = document.getElementById("securityPasswordUpdatedChip");
     const salaryInput = document.getElementById("salaryInput");
     const saveMonthBtn = document.getElementById("saveMonthBtn");
     const autosaveBadge = document.getElementById("autosaveBadge");
@@ -1586,6 +1595,8 @@
     const authConfirmWrap = document.getElementById("authConfirmWrap");
     const authResetWrap = document.getElementById("authResetWrap");
     const authResetConfirm = document.getElementById("authResetConfirm");
+    const authTurnstileWrap = document.getElementById("authTurnstileWrap");
+    const authTurnstile = document.getElementById("authTurnstile");
     const authShowPassword = document.getElementById("authShowPassword");
     const authSubmitBtn = document.getElementById("authSubmitBtn");
     const authSwitchWrap = document.getElementById("authSwitchWrap");
@@ -1597,6 +1608,10 @@
     let cloudHasUsers = null;
     const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
     let cloudProfile = null;
+    let turnstileEnabled = false;
+    let turnstileSiteKey = null;
+    let turnstileWidgetID = null;
+    let turnstileToken = "";
 
     init();
 
@@ -1620,7 +1635,8 @@
         recalc();
       });
       saveMonthBtn.addEventListener("click", saveCurrentMonth);
-      changePinBtn.addEventListener("click", () => {
+      logoutBtn.addEventListener("click", logoutUser);
+      changePasswordBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
         showAuthOverlay("changepassword");
       });
@@ -1628,7 +1644,7 @@
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
       });
-      securityChangePinBtn.addEventListener("click", () => {
+      securityChangePasswordBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
         showAuthOverlay("changepassword");
       });
@@ -1636,6 +1652,7 @@
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
       });
+      securityLogoutBtn.addEventListener("click", logoutUser);
       themeToggle.addEventListener("click", toggleTheme);
       incognitoBtn.addEventListener("click", togglePrivacy);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
@@ -1648,6 +1665,9 @@
       backupJsonBtn.addEventListener("click", exportBackup);
       restoreJsonBtn.addEventListener("click", () => jsonFileInput.click());
       jsonFileInput.addEventListener("change", importBackup);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") ensureSessionAlive();
+      });
 
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
@@ -1680,8 +1700,6 @@
       authUsername.addEventListener("input", updateAuthLiveFeedback);
       authPin.addEventListener("input", updateAuthLiveFeedback);
       authPinConfirm.addEventListener("input", updateAuthLiveFeedback);
-
-      authForm.addEventListener("submit", onAuthSubmit);
     }
 
     function restorePreferences() {
@@ -1698,29 +1716,8 @@
       syncAriaStates();
     }
 
-    function setupAuthState() {
-      // If session is still valid, keep app unlocked
-      if (isAuthenticated()) {
-        unlockApp();
-      } else {
-        lockApp(true);
-      }
-    }
-
     function isAuthenticated() {
       return sessionStorage.getItem(AUTH_SESSION_KEY) === "1";
-    }
-
-    function getAuthConfig() {
-      try {
-        const raw = localStorage.getItem(AUTH_KEY);
-        if (!raw) return null;
-        const cfg = JSON.parse(raw);
-        if (!cfg?.salt || !cfg?.hash) return null;
-        return cfg;
-      } catch {
-        return null;
-      }
     }
 
     function lockApp(silent = false) {
@@ -1736,10 +1733,63 @@
       sessionStorage.setItem(AUTH_SESSION_KEY, "1");
       document.body.classList.remove("app-locked");
       authOverlay.classList.add("hidden");
-      authError.textContent = "";
+      setAuthError("");
       authForm.reset();
       authPin.blur();
       updateSecurityCard();
+    }
+
+    async function logoutUser(options = {}) {
+      const { quiet = false, reason = "Logged out" } = options;
+      try {
+        await api("/api/auth/logout", { method: "POST" });
+      } catch {}
+
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      cloudProfile = null;
+      lockApp(true);
+      if (!quiet) showToast(reason);
+    }
+
+    function ensureTurnstileRendered() {
+      if (!turnstileEnabled || !turnstileSiteKey) return;
+      if (!window.turnstile?.render || !authTurnstile) return;
+      if (turnstileWidgetID !== null) return;
+
+      turnstileWidgetID = window.turnstile.render("#authTurnstile", {
+        sitekey: turnstileSiteKey,
+        theme: document.body.classList.contains("dark-theme") ? "dark" : "light",
+        callback: (token) => {
+          turnstileToken = token || "";
+        },
+        "expired-callback": () => {
+          turnstileToken = "";
+        },
+        "error-callback": () => {
+          turnstileToken = "";
+        },
+      });
+    }
+
+    function resetTurnstile() {
+      turnstileToken = "";
+      if (turnstileWidgetID !== null && window.turnstile?.reset) {
+        window.turnstile.reset(turnstileWidgetID);
+      }
+    }
+
+    function updateTurnstileVisibility() {
+      const needsTurnstile = turnstileEnabled && (authMode === "login" || authMode === "register");
+      authTurnstileWrap.classList.toggle("hidden", !needsTurnstile);
+      if (!needsTurnstile) {
+        turnstileToken = "";
+        return;
+      }
+      ensureTurnstileRendered();
+      if (turnstileWidgetID === null) {
+        setTimeout(() => ensureTurnstileRendered(), 250);
+      }
+      resetTurnstile();
     }
 
     function showAuthOverlay(mode) {
@@ -1770,6 +1820,7 @@
       authModeLoginBtn.classList.toggle("active", mode === "login");
       authModeRegisterBtn.classList.toggle("active", mode === "register");
       authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
+      updateTurnstileVisibility();
 
       if (mode === "register") {
         authTitle.textContent = "Create account";
@@ -1880,108 +1931,6 @@
       }
     }
 
-    async function onAuthSubmit(e) {
-      e.preventDefault();
-      authError.textContent = "";
-      const pin = (authPin.value || "").trim();
-
-      if (!/^\d{4,}$/.test(pin)) {
-        authError.textContent = "PIN must be at least 4 digits.";
-        return;
-      }
-
-      if (authMode === "setup") {
-        const confirmPin = (authPinConfirm.value || "").trim();
-        if (pin !== confirmPin) {
-          authError.textContent = "PIN confirmation does not match.";
-          return;
-        }
-
-        const salt = makeSalt();
-        const hash = await hashPin(pin, salt);
-        localStorage.setItem(AUTH_KEY, JSON.stringify({ salt, hash, updatedAt: Date.now() }));
-        unlockApp();
-        render();
-        showToast("PIN created successfully");
-        return;
-      }
-
-      if (authMode === "changepin") {
-        const cfg = getAuthConfig();
-        if (!cfg) {
-          showAuthOverlay("setup");
-          return;
-        }
-        const currentPin = (authCurrentPin.value || "").trim();
-        const confirmPin = (authPinConfirm.value || "").trim();
-        if (pin !== confirmPin) {
-          authError.textContent = "New PIN confirmation does not match.";
-          return;
-        }
-        const currentHash = await hashPin(currentPin, cfg.salt);
-        if (currentHash !== cfg.hash) {
-          authError.textContent = "Current PIN is incorrect.";
-          return;
-        }
-        const newSalt = makeSalt();
-        const newHash = await hashPin(pin, newSalt);
-        localStorage.setItem(AUTH_KEY, JSON.stringify({ salt: newSalt, hash: newHash, updatedAt: Date.now() }));
-        unlockApp();
-        render();
-        showToast("PIN updated successfully");
-        return;
-      }
-
-      if (authMode === "reset") {
-        const cfg = getAuthConfig();
-        if (!cfg) {
-          showAuthOverlay("setup");
-          return;
-        }
-        const confirmWord = (authResetConfirm.value || "").trim();
-        if (confirmWord !== "DELETE") {
-          authError.textContent = "Type DELETE exactly to confirm reset.";
-          return;
-        }
-        const currentHash = await hashPin(pin, cfg.salt);
-        if (currentHash !== cfg.hash) {
-          authError.textContent = "Current PIN is incorrect.";
-          return;
-        }
-        wipePlannerData();
-        showAuthOverlay("setup");
-        showToast("Planner reset complete. Set a new PIN.");
-        return;
-      }
-
-      const cfg = getAuthConfig();
-      if (!cfg) {
-        showAuthOverlay("setup");
-        return;
-      }
-
-      const hash = await hashPin(pin, cfg.salt);
-      if (hash !== cfg.hash) {
-        authError.textContent = "Incorrect PIN. Try again.";
-        return;
-      }
-
-      unlockApp();
-      render();
-      showToast("Welcome back");
-    }
-
-    function makeSalt() {
-      const bytes = new Uint8Array(16);
-      crypto.getRandomValues(bytes);
-      return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
-    }
-
-    async function hashPin(pin, salt) {
-      const enc = new TextEncoder().encode(`${salt}:${pin}`);
-      const digest = await crypto.subtle.digest("SHA-256", enc);
-      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
-    }
 
     function wipePlannerData() {
       data = {};
@@ -1989,7 +1938,6 @@
       collapsedState = {};
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(AUTH_KEY);
       localStorage.removeItem(UI_KEY_PRIVACY);
       localStorage.removeItem(UI_KEY_VIEW);
       document.body.classList.remove("privacy-active");
@@ -2000,7 +1948,7 @@
     }
 
     function updateSecurityCard() {
-      if (!securitySessionChip || !securityPinUpdatedChip) return;
+      if (!securitySessionChip || !securityPasswordUpdatedChip) return;
 
       const authenticated = isAuthenticated();
       securitySessionChip.textContent = `Session: ${authenticated ? "Unlocked" : "Locked"}`;
@@ -2008,11 +1956,11 @@
       if (cloudProfile?.passwordUpdatedAt) {
         const dt = new Date(cloudProfile.passwordUpdatedAt);
         const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        securityPinUpdatedChip.textContent = `Password updated: ${label}`;
+        securityPasswordUpdatedChip.textContent = `Password updated: ${label}`;
       } else if (cloudHasUsers === false) {
-        securityPinUpdatedChip.textContent = "Password: Not set";
+        securityPasswordUpdatedChip.textContent = "Password: Not set";
       } else {
-        securityPinUpdatedChip.textContent = "Password: Configured";
+        securityPasswordUpdatedChip.textContent = "Password: Configured";
       }
     }
 
@@ -2902,7 +2850,7 @@
 
       const payload = await api("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm }),
+        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm, turnstileToken }),
       });
       return payload;
     }
@@ -2928,6 +2876,9 @@
       }
       if (authMode === "resetaccount" && !password) {
         return "Current password is required.";
+      }
+      if (turnstileEnabled && (authMode === "login" || authMode === "register") && !turnstileToken) {
+        return "Please complete human verification.";
       }
       return "";
     }
@@ -2976,8 +2927,12 @@
       try {
         const res = await api("/api/auth/status");
         cloudHasUsers = !!res?.hasUsers;
+        turnstileEnabled = !!res?.turnstileEnabled;
+        turnstileSiteKey = res?.turnstileSiteKey || null;
       } catch {
         cloudHasUsers = true;
+        turnstileEnabled = false;
+        turnstileSiteKey = null;
       }
       return cloudHasUsers;
     }
@@ -2998,8 +2953,17 @@
       lockApp(true);
     }
 
+    async function ensureSessionAlive() {
+      if (!isAuthenticated()) return;
+      const me = await refreshCloudProfile();
+      if (me?.authenticated) {
+        updateSecurityCard();
+        return;
+      }
+      await logoutUser({ reason: "Session expired. Please sign in again." });
+    }
+
     // replace auth submit with cloud-backed auth
-    authForm.removeEventListener("submit", onAuthSubmit);
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       setAuthError("");
@@ -3043,6 +3007,7 @@
               : "Welcome back"
         );
       } catch (err) {
+        if (authMode === "login" || authMode === "register") resetTurnstile();
         setAuthError(err.message || "Authentication failed", true);
       } finally {
         authSubmitBtn.disabled = false;
