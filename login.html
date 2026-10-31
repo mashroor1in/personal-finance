@@ -1,4003 +1,495 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MashMind Login — Expense Planner</title>
+  <meta name="description" content="Sign in to MashMind Expense Planner.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <style>
     :root {
       --bg: #f3f7fc;
-      --card: #ffffff;
-      --card-muted: #f1f5f9;
-      --text: #0f172a;
-      --muted: #64748b;
-      --line: #e2e8f0;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --green: #10b981;
-      --green-soft: #ecfdf5;
-      --amber: #f59e0b;
-      --amber-soft: #fffbeb;
-      --red: #ef4444;
-      --red-soft: #fef2f2;
-      --purple: #8b5cf6;
-      --purple-soft: #f5f3ff;
-      --radius: 14px;
-      --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-    }
-
-    body.dark-theme {
-      --bg: #090d16;
-      --card: #111827;
-      --card-muted: #1a2234;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --line: #1e293b;
-      --accent: #3b82f6;
-      --accent-soft: #172554;
-      --green: #10b981;
-      --green-soft: #064e3b;
-      --amber: #f59e0b;
-      --amber-soft: #451a03;
-      --red: #ef4444;
-      --red-soft: #450a0a;
-      --purple: #a855f7;
-      --purple-soft: #3b0764;
-      --shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.45);
+      --card: #fff;
+      --line: #dee8f4;
+      --text: #132640;
+      --muted: #6c7f97;
+      --accent: #2f72c0;
+      --accent-soft: #eaf2ff;
+      --danger: #c53f50;
+      --danger-soft: #fff3f5;
+      --ok: #128261;
+      --shadow: 0 18px 50px rgba(34, 73, 119, .12), 0 3px 10px rgba(34, 73, 119, .05);
     }
 
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      min-height: 100vh;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       color: var(--text);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
-      white-space: nowrap;
-    }
-
-    .tnum {
-      font-family: 'JetBrains Mono', monospace;
-      font-feature-settings: "tnum" 1;
-    }
-
-    body.privacy-active .hideable-val {
-      filter: blur(6px);
-      user-select: none;
-      transition: filter 0.15s ease;
-    }
-
-    body.app-locked .planner-app {
-      visibility: hidden;
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .auth-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      background: rgba(2, 6, 23, 0.65);
-      backdrop-filter: blur(6px);
-    }
-
-    .auth-shell {
-      width: 100%;
-      max-width: 960px;
+      background:
+        radial-gradient(ellipse at 10% 8%, rgba(134, 179, 233, .25), transparent 34%),
+        radial-gradient(ellipse at 90% 92%, rgba(136, 183, 235, .2), transparent 34%),
+        var(--bg);
       display: grid;
-      grid-template-columns: 1.05fr 1fr;
-      gap: 14px;
-      align-items: stretch;
-    }
-
-    .auth-hero {
-      background: linear-gradient(140deg, #0f172a 0%, #1e293b 58%, #1d4ed8 100%);
-      color: #e2e8f0;
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      padding: 22px 20px;
-      display: grid;
-      gap: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .auth-hero::after {
-      content: "";
-      position: absolute;
-      width: 220px;
-      height: 220px;
-      right: -70px;
-      top: -85px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(59,130,246,0.36), transparent 70%);
-      pointer-events: none;
-    }
-
-    .auth-hero h3 {
-      margin: 0;
-      font-size: 24px;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      color: #fff;
-    }
-
-    .auth-hero p {
-      margin: 0;
-      font-size: 13.5px;
-      color: #bfdbfe;
-      max-width: 44ch;
-    }
-
-    .auth-hero-points {
-      display: grid;
-      gap: 8px;
-      font-size: 13px;
-      color: #dbeafe;
-    }
-
-    .auth-hero-point {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .auth-hero-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #60a5fa;
-      box-shadow: 0 0 0 4px rgba(96,165,250,0.2);
-      flex-shrink: 0;
-    }
-
-    .auth-hero-foot {
-      margin-top: auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .auth-hero-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: #dbeafe;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 999px;
-      padding: 5px 9px;
-    }
-
-    .auth-overlay.hidden {
-      display: none;
+      place-items: center;
+      padding: 20px;
     }
 
     .auth-card {
       width: 100%;
       max-width: 460px;
-      background: var(--card);
+      background: rgba(255,255,255,.94);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 20px;
       box-shadow: var(--shadow);
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
+      padding: 28px;
     }
 
-    .auth-shell .auth-card {
-      max-width: none;
-      height: 100%;
-    }
-
-    .auth-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent), #8b5cf6 60%, #10b981);
-    }
-
-    .auth-head {
-      display: grid;
-      gap: 6px;
-    }
-
-    .auth-kicker {
-      display: inline-flex;
+    .brand {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      width: fit-content;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-      background: var(--accent-soft);
-      border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
-      border-radius: 999px;
-      padding: 4px 8px;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
     }
 
-    .auth-card h2 {
+    .brand h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
       letter-spacing: -0.02em;
     }
 
-    .auth-card p {
-      margin: 6px 0 0;
+    .home-link {
       color: var(--muted);
-      font-size: 13px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    .auth-mode-tabs {
-      margin-top: 12px;
+    .home-link:hover { color: var(--accent); }
+
+    h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .sub {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tabs {
+      margin-top: 18px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-    }
-
-    .auth-mode-btn {
-      padding: 8px 10px;
-      border-radius: 11px;
+      padding: 5px;
       border: 1px solid var(--line);
-      background: var(--card-muted);
-      color: var(--text);
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.18s ease;
+      border-radius: 12px;
+      background: #f7faff;
     }
 
-    .auth-mode-btn.active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
-      box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 40%, transparent);
-    }
-
-    .auth-mode-btn:hover {
-      transform: translateY(-1px);
-      border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
-    }
-
-    .auth-form {
-      margin-top: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .auth-form .btn-primary {
-      width: 100%;
-      justify-content: center;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-    }
-
-    .auth-form label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      letter-spacing: 0.02em;
-    }
-
-    .auth-form input {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      padding: 10px 11px;
-      font-size: 13px;
-    }
-
-    .auth-form input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-    }
-
-    .auth-field-hint {
-      margin: -2px 0 2px;
-      font-size: 11px;
-      color: var(--muted);
-      min-height: 14px;
-    }
-
-    .auth-strength-wrap {
-      display: grid;
-      gap: 6px;
-      margin-top: -2px;
-    }
-
-    .auth-strength-bar {
-      height: 7px;
-      border-radius: 999px;
-      background: var(--card-muted);
-      border: 1px solid var(--line);
-      overflow: hidden;
-    }
-
-    .auth-strength-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: var(--red);
-      transition: width 0.2s ease, background 0.2s ease;
-    }
-
-    .auth-strength-text {
-      margin: 0;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .auth-card.shake {
-      animation: auth-shake 0.28s ease;
-    }
-
-    .auth-card.mode-switch .auth-form {
-      animation: auth-mode-fade 0.2s ease;
-    }
-
-    @keyframes auth-mode-fade {
-      from { opacity: 0.5; transform: translateY(3px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes auth-shake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-5px); }
-      40% { transform: translateX(5px); }
-      60% { transform: translateX(-4px); }
-      80% { transform: translateX(4px); }
-    }
-
-    .auth-switch-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 2px;
-    }
-
-    .auth-link-btn {
-      border: none;
+    .tab {
+      border: 1px solid transparent;
       background: transparent;
-      color: var(--accent);
-      font-weight: 700;
-      cursor: pointer;
-      padding: 0;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    .auth-inline-check {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 12px;
       color: var(--muted);
-      user-select: none;
+      border-radius: 9px;
+      min-height: 42px;
+      font-weight: 800;
+      cursor: pointer;
     }
 
-    .auth-inline-check input {
-      width: auto;
+    .tab.active {
+      background: #fff;
+      border-color: var(--line);
+      color: var(--accent);
+    }
+
+    form {
+      margin-top: 16px;
+      display: grid;
+      gap: 11px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4f6480;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fbff;
+      color: var(--text);
+      padding: 11px 12px;
+      font: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #6b9fd7;
+      box-shadow: 0 0 0 3px rgba(74, 136, 205, .14);
+      background: #fff;
+    }
+
+    .hidden { display: none !important; }
+
+    .note {
       margin: 0;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.5;
     }
 
-    .auth-error {
+    .error {
       min-height: 18px;
       margin: 0;
-      color: var(--red);
+      color: var(--danger);
       font-size: 12px;
-      font-weight: 600;
-    }
-
-    .auth-note {
-      margin: 0;
-      color: var(--muted);
-      font-size: 11.5px;
-      text-align: center;
-    }
-.hidden {
-      display: none !important;
-    }
-
-    .planner-app {
-      max-width: 1340px;
-      margin: 0 auto;
-      padding: 24px 20px 48px;
-    }
-
-    /* Header */
-    .top-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .title-area h1 {
-      margin: 0;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .title-area p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 13.5px;
-    }
-
-    .controls-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .btn, input, select {
-      font-family: inherit;
-      font-size: 13.5px;
-      border: 1px solid var(--line);
-      background: var(--card);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 9px;
-      outline: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .btn:hover {
-      background: var(--card-muted);
-      border-color: var(--muted);
-      transform: translateY(-1px);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn:focus-visible,
-    input:focus-visible,
-    select:focus-visible,
-    .cat-box-header:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-      font-weight: 600;
-    }
-    .btn-primary:hover {
-      opacity: 0.92;
-      background: var(--accent);
-    }
-
-    .btn-danger {
-      background: var(--red-soft);
-      border-color: color-mix(in srgb, var(--red) 28%, var(--line));
-      color: var(--red);
       font-weight: 700;
     }
-    .btn-danger:hover {
-      background: color-mix(in srgb, var(--red-soft) 65%, var(--red));
+
+    .error:not(:empty) {
+      background: var(--danger-soft);
+      border: 1px solid #f3ccd3;
+      border-radius: 9px;
+      padding: 8px 10px;
+    }
+
+    .submit {
+      min-height: 48px;
+      border: 1px solid #2f72c0;
+      border-radius: 11px;
+      background: linear-gradient(110deg, #2e70bc, #4489d5 58%, #377bc7);
       color: #fff;
-      border-color: var(--red);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
     }
 
-    .btn-active {
-      background: var(--accent-soft);
-      border-color: var(--accent);
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .btn[disabled] {
-      opacity: 0.55;
+    .submit[disabled], .tab[disabled] {
+      opacity: .65;
       cursor: not-allowed;
-      transform: none !important;
     }
 
-    .autosave-badge {
+    .footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: #8ea0b5;
       font-size: 11px;
-      color: var(--muted);
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      border-radius: 999px;
-      padding: 4px 8px;
-      opacity: 0;
-      transform: translateY(-2px);
-      transition: all 0.18s ease;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    .autosave-badge.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .autosave-badge.saving {
-      color: var(--amber);
-      border-color: color-mix(in srgb, var(--amber) 40%, var(--line));
-    }
-    .autosave-badge.saved {
-      color: var(--green);
-      border-color: color-mix(in srgb, var(--green) 40%, var(--line));
-    }
-
-    /* Top KPI Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin: 20px 0;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      box-shadow: var(--shadow);
-      transition: transform 0.16s ease, box-shadow 0.16s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 22px -6px rgba(15, 23, 42, 0.14);
-    }
-
-    .stat-card .card-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-    }
-
-    .stat-card .value {
-      font-size: 27px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin: 8px 0 2px;
-    }
-
-    .stat-card .meta {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    /* Analytics Charts Section */
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .chart-panel {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      box-shadow: var(--shadow);
-      transition: transform 0.16s ease, box-shadow 0.16s ease;
-    }
-
-    .chart-panel:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px -6px rgba(15, 23, 42, 0.12);
-    }
-
-    .chart-panel-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .chart-panel-head h2 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .chart-panel-head p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .donut-layout {
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .donut-canvas-wrap {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .breakdown-legend {
-      display: grid;
-      gap: 7px;
-      max-height: 250px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .breakdown-row {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      font-size: 12.5px;
-    }
-
-    .breakdown-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
       font-weight: 600;
-    }
-
-    .color-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* 50 / 30 / 20 Diagnostic Bar */
-    .budget-diagnostic {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .diag-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 13px;
-    }
-
-    .diag-bar {
-      height: 12px;
-      width: 100%;
-      background: var(--line);
-      border-radius: 6px;
-      overflow: hidden;
-      display: flex;
-    }
-
-    .diag-fill-needs { background: #3b82f6; transition: width 0.3s ease; }
-    .diag-fill-wants { background: #f59e0b; transition: width 0.3s ease; }
-    .diag-fill-savings { background: #10b981; transition: width 0.3s ease; }
-
-    .diag-legend {
-      display: flex;
-      gap: 18px;
-      margin-top: 10px;
-      font-size: 12px;
-      flex-wrap: wrap;
-    }
-
-    .diag-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .diag-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      color: var(--muted);
-    }
-
-    /* Settlement Summary Bar */
-    .settlement-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 12px 18px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: var(--shadow);
-    }
-
-    .settlement-bar-wrap {
-      flex: 1;
-      min-width: 220px;
-      background: var(--line);
-      height: 9px;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .settlement-fill {
-      height: 100%;
-      background: var(--green);
-      transition: width 0.25s ease;
-    }
-
-    /* Views Toolbar */
-    .view-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    /* Security Card */
-    .security-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px 16px;
-      margin-bottom: 16px;
-    }
-
-    .security-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .security-head h3 {
-      margin: 0;
-      font-size: 15px;
-      letter-spacing: -0.01em;
-    }
-
-    .security-meta {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .security-chip {
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      font-weight: 600;
-    }
-
-    .security-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    /* Category Boxes View */
-    .category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      gap: 16px;
-    }
-
-    .cat-box {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      border-left: 4px solid var(--line);
-    }
-
-    .cat-box-header {
-      padding: 14px 16px;
-      background: var(--card-muted);
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .cat-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .cat-icon-badge {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      flex-shrink: 0;
-      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.25);
-    }
-
-    .cat-icon-badge svg,
-    .bank-icon-badge svg,
-    .category-pill svg,
-    .cat-icon-badge iconify-icon,
-    .bank-icon-badge iconify-icon,
-    .category-pill iconify-icon,
-    .diag-icon iconify-icon {
-      display: block;
-    }
-
-    /* Icon size boost: +10% */
-    .cat-icon-badge iconify-icon,
-    .bank-icon-badge iconify-icon,
-    .category-pill iconify-icon,
-    .diag-icon iconify-icon {
-      transform: scale(1.1);
-      transform-origin: center;
-    }
-
-    .cat-badge {
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      color: var(--muted);
-    }
-
-    .category-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      background: color-mix(in srgb, var(--cat-color, var(--accent)) 12%, var(--card));
-      color: var(--text);
-      border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent)) 32%, var(--line));
-    }
-
-    .category-pill .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cat-color, var(--accent));
-      flex-shrink: 0;
-    }
-
-    .category-inline-icon {
-      opacity: 0.95;
-      color: var(--cat-color, var(--accent));
-    }
-
-    .cat-total {
-      font-size: 14.5px;
-      font-weight: 700;
-    }
-
-    .cat-items-list {
-      padding: 6px 12px;
-    }
-    .cat-items-list.collapsed { display: none; }
-
-    .cat-item-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 6px;
-      border-bottom: 1px dashed var(--line);
-      font-size: 13.5px;
-      gap: 8px;
-    }
-    .cat-item-row:last-child { border-bottom: none; }
-
-    .cat-item-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-    }
-
-    .checkbox {
-      width: 17px;
-      height: 17px;
-      border-radius: 5px;
-      border: 1.8px solid var(--muted);
-      cursor: pointer;
-      accent-color: var(--green);
-    }
-
-    .item-name { font-weight: 500; }
-    .item-name.done {
-      text-decoration: line-through;
-      color: var(--muted);
-    }
-
-    .cat-item-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .amount-input {
-      width: 95px;
-      text-align: right;
-      padding: 4px 8px;
-      font-size: 13px;
-      border-radius: 6px;
-    }
-    .amount-input:disabled {
-      background: transparent;
-      border-color: transparent;
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    /* Table View */
-    .table-panel {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-      min-width: 820px;
-    }
-
-    th {
-      background: var(--card-muted);
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 11.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 10px 14px;
-      text-align: left;
-      border-bottom: 1px solid var(--line);
-    }
-
-    td {
-      padding: 9px 14px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: middle;
-    }
-
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--card-muted); }
-
-    .cat-item-row,
-    td,
-    th {
-      transition: background-color 0.14s ease;
-    }
-
-    /* Redesigned Bank Accounts Routing Section */
-    .bank-accounts-section {
-      margin-top: 26px;
-    }
-
-    .bank-section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .bank-section-header h2 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .bank-section-header p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .bank-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .bank-routing-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-
-    .bank-routing-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .bank-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .bank-icon-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
-      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.25);
-      flex-shrink: 0;
-    }
-
-    .bank-head-text h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .bank-head-text span {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .bank-items-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 8px;
-    }
-
-    .bank-items-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      padding: 6px 8px;
-      background: var(--card-muted);
-      border-radius: 6px;
-      color: var(--text);
-    }
-
-    .bank-items-list li span.item-title {
-      font-weight: 500;
-    }
-
-    .bank-items-list li span.item-amt {
-      font-weight: 700;
-    }
-
-    .bank-footer {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .bank-footer .label {
-      font-size: 11px;
-      text-transform: uppercase;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-
-    .bank-footer .total {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #0f172a;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 9px;
-      font-size: 13.5px;
-      font-weight: 500;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.25s ease;
-      z-index: 1000;
-    }
-    #toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-        scroll-behavior: auto !important;
-      }
-    }
-
-    @media (max-width: 1040px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .bank-cards-grid { grid-template-columns: repeat(2, 1fr); }
-      .analytics-grid { grid-template-columns: 1fr; }
-      .donut-layout { grid-template-columns: 1fr; }
-      .auth-shell { grid-template-columns: 1fr; max-width: 560px; }
-      .auth-hero { order: 2; }
-    }
-
-    @media (max-width: 650px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .bank-cards-grid { grid-template-columns: 1fr; }
-      .top-header { flex-direction: column; align-items: stretch; }
-      .controls-bar { justify-content: flex-start; }
-      .category-grid { grid-template-columns: 1fr; }
-
-      .auth-overlay {
-        padding: 10px;
-        align-items: flex-start;
-      }
-
-      .auth-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .auth-hero {
-        order: 2;
-        padding: 14px;
-        gap: 10px;
-      }
-
-      .auth-hero h3 {
-        font-size: 18px;
-      }
-
-      .auth-hero p,
-      .auth-hero-points {
-        font-size: 12px;
-      }
-
-      .auth-card {
-        margin-top: 12px;
-        max-width: none;
-        border-radius: 14px;
-        padding: 16px 14px;
-      }
-
-      .auth-card h2 {
-        font-size: 18px;
-      }
-
-      .auth-card p {
-        font-size: 12.5px;
-      }
-
-      .auth-kicker {
-        font-size: 10.5px;
-      }
-
-      .auth-form {
-        margin-top: 12px;
-        gap: 9px;
-      }
-
-      .auth-form input,
-      .auth-mode-btn,
-      .auth-form .btn-primary {
-        min-height: 42px;
-      }
-
-      .auth-form input {
-        font-size: 16px;
-      }
-
-      .auth-switch-row {
-        flex-wrap: wrap;
-      }
-
-      .auth-note {
-        font-size: 11px;
-      }
-}
-
-    @media (max-width: 420px) {
-      .auth-mode-tabs {
-        grid-template-columns: 1fr;
-      }
-
-      .auth-mode-btn {
-        width: 100%;
-      }
-    }
-
-    canvas {
-      display: block;
-      max-width: 100%;
-    }
-    #expenseChart {
-      width: 220px !important;
-      height: 220px !important;
-    }
-    #trendChart {
-      width: 100% !important;
-      height: 220px !important;
     }
   </style>
-<style id="mashmind-auth-redesign">
-  :root {
-    --auth-ink: #14243b;
-    --auth-muted: #71839b;
-    --auth-blue: #347bd3;
-    --auth-blue-deep: #205fae;
-    --auth-line: #e3ebf5;
-    --auth-surface: #ffffff;
-  }
-
-  html, body { min-height: 100%; }
-  body { background: #f3f7fc; }
-
-  .auth-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: grid;
-    place-items: center;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 32px 20px;
-    background:
-      radial-gradient(ellipse at 15% 12%, rgba(168, 203, 244, .26), transparent 32%),
-      radial-gradient(ellipse at 86% 88%, rgba(172, 210, 247, .23), transparent 34%),
-      linear-gradient(145deg, #f7faff 0%, #eef4fb 48%, #f7faff 100%);
-    isolation: isolate;
-    backdrop-filter: none;
-  }
-
-  .auth-overlay.hidden { display: none; }
-
-  .auth-atmosphere {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .auth-atmosphere::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: .27;
-    background-image: radial-gradient(rgba(67, 115, 171, .24) .7px, transparent .7px);
-    background-size: 23px 23px;
-    mask-image: radial-gradient(ellipse at 50% 48%, #000 0%, transparent 73%);
-  }
-  .auth-orb {
-    position: absolute;
-    display: block;
-    border-radius: 50%;
-    filter: blur(2px);
-    will-change: transform;
-  }
-  .auth-orb-one {
-    width: 390px; height: 390px; left: -175px; top: 8%;
-    background: radial-gradient(circle, rgba(126, 177, 231, .16), rgba(126, 177, 231, 0) 70%);
-    animation: auth-drift-one 19s ease-in-out infinite alternate;
-  }
-  .auth-orb-two {
-    width: 510px; height: 510px; right: -230px; bottom: -180px;
-    background: radial-gradient(circle, rgba(95, 153, 221, .15), rgba(95, 153, 221, 0) 70%);
-    animation: auth-drift-two 23s ease-in-out infinite alternate;
-  }
-  .auth-orb-three {
-    width: 190px; height: 190px; right: 13%; top: -110px;
-    background: radial-gradient(circle, rgba(180, 211, 244, .35), transparent 70%);
-    animation: auth-drift-one 17s ease-in-out infinite alternate-reverse;
-  }
-  .auth-background-line {
-    position: absolute;
-    width: min(100vw, 1200px);
-    height: auto;
-    right: -7%;
-    bottom: -5%;
-    opacity: .2;
-  }
-  .auth-background-line path {
-    fill: none;
-    stroke: #78a7d9;
-    stroke-width: 1.15;
-    stroke-linecap: round;
-    stroke-dasharray: 7 11;
-    animation: auth-line-flow 32s linear infinite;
-  }
-  .auth-background-line path + path { opacity: .55; animation-duration: 42s; }
-
-  .auth-shell {
-    position: relative;
-    z-index: 1;
-    display: block;
-    width: min(100%, 470px);
-    max-width: 470px;
-    min-height: 0;
-    margin: auto;
-  }
-
-  .auth-card,
-  .auth-shell .auth-card {
-    width: 100%;
-    max-width: none;
-    min-width: 0;
-    min-height: 0;
-    height: auto;
-    margin: 0;
-    padding: clamp(28px, 5vw, 42px);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    overflow: hidden;
-    border: 1px solid rgba(220, 231, 245, .95);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, .94);
-    box-shadow: 0 26px 80px rgba(38, 77, 124, .12), 0 3px 12px rgba(38, 77, 124, .04);
-    backdrop-filter: blur(18px);
-    animation: auth-card-arrive .72s cubic-bezier(.2, .72, .2, 1) both;
-  }
-  .auth-card::before {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #2c6fbd 0%, #68a4e7 48%, #b5d7f6 100%);
-  }
-  .auth-card.shake { animation: auth-card-shake .34s ease; }
-  .auth-card.mode-switch .auth-form { animation: auth-content-swap .24s ease both; }
-
-  /* Brand lockup mirrors the MashMind landing-page header. */
-  .auth-card-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0 0 34px;
-    color: #171d19;
-    font: 700 17px/1.1 'Manrope', sans-serif;
-    letter-spacing: -.8px;
-  }
-  .auth-card-mark {
-    width: 34px;
-    height: 34px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    border: 1px solid #d9e2d8;
-    border-radius: 11px;
-    background: #fff;
-    color: #304c37;
-    box-shadow: none;
-  }
-  .auth-card-mark svg {
-    width: 19px;
-    height: 19px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .auth-card-brand small {
-    display: block;
-    margin-top: 1px;
-    color: #8a938b;
-    font: 600 8px/1 'DM Sans', sans-serif;
-    letter-spacing: 1.75px;
-    text-transform: uppercase;
-  }
-
-  .auth-head { display: grid; gap: 9px; }
-  .auth-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    width: fit-content;
-    padding: 7px 10px;
-    border: 1px solid #dfebf9;
-    border-radius: 999px;
-    background: #f4f8fe;
-    color: #4a7fb9;
-    font: 800 9px/1 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: 1.05px;
-  }
-  .auth-kicker i {
-    width: 6px; height: 6px; display: inline-block;
-    border-radius: 50%; background: #52b99c;
-    box-shadow: 0 0 0 4px rgba(82, 185, 156, .12);
-  }
-  .auth-card h2 {
-    margin: 4px 0 0;
-    color: #182e4a;
-    font: 800 clamp(29px, 5vw, 35px)/1.14 'Manrope', sans-serif;
-    letter-spacing: -1.5px;
-  }
-  .auth-card h2 span { color: #4a8bd2; }
-  .auth-card p {
-    margin: 0;
-    color: #7889a0;
-    font: 400 13px/1.7 'Plus Jakarta Sans', sans-serif;
-  }
-
-  .auth-mode-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
-    margin: 24px 0 3px;
-    padding: 5px;
-    border: 1px solid #e7eef7;
-    border-radius: 13px;
-    background: #f3f7fc;
-  }
-  .auth-mode-btn {
-    min-height: 43px;
-    padding: 10px 12px;
-    border: 1px solid transparent;
-    border-radius: 9px;
-    background: transparent;
-    color: #7889a0;
-    font: 700 12px 'Plus Jakarta Sans', sans-serif;
-    cursor: pointer;
-    transition: background .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s;
-  }
-  .auth-mode-btn:hover:not(:disabled) { color: #286cb6; transform: translateY(-1px); }
-  .auth-mode-btn:disabled { opacity: .55; cursor: wait; transform: none; }
-  .auth-mode-btn.active {
-    border-color: #dfebf9;
-    background: #fff;
-    color: #2b6fba;
-    box-shadow: 0 3px 10px rgba(34, 81, 141, .07);
-  }
-
-  .auth-form { display: grid; gap: 13px; margin-top: 18px; }
-  .auth-field { display: grid; gap: 7px; min-width: 0; }
-  .auth-form label:not(.auth-inline-check) {
-    color: #536982;
-    font: 800 11px/1.3 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: .15px;
-  }
-  .auth-form input:not([type="checkbox"]) {
-    display: block;
-    width: 100%;
-    min-height: 49px;
-    padding: 12px 14px;
-    border: 1px solid #dce6f1;
-    border-radius: 11px;
-    outline: none;
-    background: #f8fafd;
-    color: #1a3453;
-    font: 500 13px 'Plus Jakarta Sans', sans-serif;
-    box-shadow: inset 0 1px 2px rgba(25, 57, 91, .02);
-    transition: border-color .2s, background .2s, box-shadow .2s;
-  }
-  .auth-form input:not([type="checkbox"]):hover { border-color: #c5d8ed; }
-  .auth-form input:not([type="checkbox"]):focus {
-    border-color: #639bd7;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(65, 132, 205, .12);
-  }
-  .auth-form input::placeholder { color: #a1afc0; }
-  .auth-field-hint { min-height: 0; color: #8292a7 !important; font-size: 10px !important; line-height: 1.5 !important; }
-  .auth-strength-wrap { display: grid; gap: 6px; margin: 0; }
-  .auth-strength-bar { height: 6px; overflow: hidden; border: 0; border-radius: 99px; background: #edf2f8; }
-  .auth-strength-fill { border-radius: inherit; transition: width .24s ease, background .24s ease; }
-  .auth-strength-text { color: #8292a7 !important; font-size: 10px !important; }
-
-  .auth-inline-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 1px;
-    color: #75869c;
-    font: 500 11px 'Plus Jakarta Sans', sans-serif;
-    cursor: pointer;
-    user-select: none;
-  }
-  .auth-inline-check input { width: 15px; height: 15px; margin: 0; accent-color: #347bd3; }
-  .auth-form .btn-primary {
-    width: 100%;
-    min-height: 51px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #2c70bf;
-    border-radius: 11px;
-    background: linear-gradient(110deg, #286bb8, #4389d6 58%, #377bc8);
-    color: #fff;
-    box-shadow: 0 9px 20px rgba(51, 119, 193, .2);
-    font: 800 13px 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: .1px;
-    transition: transform .2s, box-shadow .2s, filter .2s;
-  }
-  .auth-form .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    filter: saturate(1.08);
-    box-shadow: 0 13px 25px rgba(51, 119, 193, .26);
-  }
-  .auth-form .btn-primary:active:not(:disabled) { transform: translateY(0); }
-  .auth-form .btn-primary:disabled { opacity: .65; cursor: wait; box-shadow: none; }
-  .auth-form .btn-primary:focus-visible,
-  .auth-mode-btn:focus-visible,
-  .auth-link-btn:focus-visible {
-    outline: 3px solid rgba(64, 133, 207, .24);
-    outline-offset: 3px;
-  }
-.auth-switch-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    margin-top: 7px;
-    color: #8291a5;
-    font: 500 11px 'Plus Jakarta Sans', sans-serif;
-  }
-  .auth-link-btn {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: #2f75c1;
-    font: 800 11px 'Plus Jakarta Sans', sans-serif;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .auth-link-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .auth-note { color: #93a0b1 !important; font-size: 10px !important; line-height: 1.55 !important; text-align: center; }
-  .auth-form > .auth-note { margin-top: -2px; }
-  .auth-error {
-    min-height: 0;
-    margin: 0;
-    color: #c54552 !important;
-    font: 700 11px/1.5 'Plus Jakarta Sans', sans-serif !important;
-    text-align: center;
-  }
-  .auth-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 22px;
-    padding-top: 14px;
-    border-top: 1px solid #edf1f6;
-    color: #a0adbc;
-    font: 600 9px 'Plus Jakarta Sans', sans-serif;
-  }
-  .auth-card-footer span:last-child { display: inline-flex; align-items: center; gap: 7px; }
-  .auth-card-footer i { width: 6px; height: 6px; border-radius: 50%; background: #4ebc9a; }
-  .auth-card-footer i { box-shadow: 0 0 0 4px rgba(78, 188, 154, .10); }
-
-  .hidden { display: none !important; }
-  body.dark-theme .auth-overlay {
-    background: radial-gradient(ellipse at 15% 12%, rgba(30, 75, 127, .28), transparent 35%),
-                radial-gradient(ellipse at 86% 88%, rgba(27, 80, 135, .22), transparent 35%),
-                linear-gradient(145deg, #0a1422, #101d30 55%, #0b1728);
-  }
-  body.dark-theme .auth-card,
-  body.dark-theme .auth-shell .auth-card { background: rgba(16, 29, 47, .96); border-color: #263c57; }
-  body.dark-theme .auth-card h2 { color: #eaf3ff; }
-  body.dark-theme .auth-card-brand { color: #e5effb; }
-  body.dark-theme .auth-card-brand small { color: #a5b2bd; }
-  body.dark-theme .auth-card-mark { background: #fff; border-color: #d9e2d8; color: #304c37; }
-  body.dark-theme .auth-card p,
-  body.dark-theme .auth-switch-row,
-  body.dark-theme .auth-note { color: #9aacc2 !important; }
-  body.dark-theme .auth-form label:not(.auth-inline-check) { color: #b0c1d7; }
-  body.dark-theme .auth-form input:not([type="checkbox"]) { color: #e7f0fb; background: #13233a; border-color: #2d4563; }
-  body.dark-theme .auth-form input:not([type="checkbox"]):focus { background: #172a43; }
-  body.dark-theme .auth-mode-tabs { background: #122239; border-color: #263e5d; }
-  body.dark-theme .auth-mode-btn { color: #9fb2ca; }
-  body.dark-theme .auth-mode-btn.active { color: #aad0ff; background: #1b3554; border-color: #31547b; }
-body.dark-theme .auth-card-footer { border-color: #283e59; color: #8197b2; }
-  body.dark-theme .auth-kicker { background: #182f4c; border-color: #2a496e; color: #a8cfff; }
-
-  @keyframes auth-card-arrive {
-    from { opacity: 0; transform: translateY(15px) scale(.99); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes auth-content-swap {
-    from { opacity: .45; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes auth-card-shake {
-    0%, 100% { transform: translateX(0); }
-    22% { transform: translateX(-5px); }
-    44% { transform: translateX(5px); }
-    66% { transform: translateX(-3px); }
-    84% { transform: translateX(2px); }
-  }
-  @keyframes auth-drift-one {
-    from { transform: translate3d(0, 0, 0) scale(1); }
-    to { transform: translate3d(35px, 24px, 0) scale(1.08); }
-  }
-  @keyframes auth-drift-two {
-    from { transform: translate3d(0, 0, 0) scale(1); }
-    to { transform: translate3d(-34px, -22px, 0) scale(1.06); }
-  }
-  @keyframes auth-line-flow { to { stroke-dashoffset: -720; } }
-
-  @media (max-width: 560px) {
-    .auth-overlay { place-items: center; padding: 18px 12px; }
-    .auth-shell { width: min(100%, 450px); }
-    .auth-card, .auth-shell .auth-card { padding: 27px 22px 24px; border-radius: 20px; }
-    .auth-card-brand { margin-bottom: 27px; }
-    .auth-card h2 { font-size: 30px; }
-    .auth-mode-tabs { margin-top: 20px; }
-    .auth-form { gap: 12px; }
-    .auth-background-line { width: 150vw; right: -30%; bottom: -3%; opacity: .12; }
-  }
-  @media (max-width: 380px) {
-    .auth-overlay { padding: 12px 9px; }
-    .auth-card, .auth-shell .auth-card { padding: 24px 17px 21px; }
-    .auth-card-brand { margin-bottom: 23px; }
-}
-  @media (max-height: 700px) and (min-width: 561px) {
-    .auth-overlay { place-items: start center; padding-top: 20px; padding-bottom: 20px; }
-    .auth-card, .auth-shell .auth-card { padding-top: 26px; padding-bottom: 24px; }
-    .auth-card-brand { margin-bottom: 20px; }
-    .auth-mode-tabs { margin-top: 16px; }
-    .auth-form { gap: 10px; margin-top: 13px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .auth-orb, .auth-background-line path, .auth-card, .auth-card.mode-switch .auth-form { animation: none !important; }
-    .auth-background-line path { stroke-dasharray: none; }
-    *, *::before, *::after { scroll-behavior: auto !important; }
-  }
-</style>
-
-<style id="mashmind-auth-sizing-v2">
-  /* Roomier authentication panel and more legible type scale. */
-  .auth-shell {
-    width: min(100%, 570px) !important;
-    max-width: 570px !important;
-  }
-  .auth-card,
-  .auth-shell .auth-card {
-    padding: clamp(36px, 5.2vw, 50px) !important;
-    border-radius: 26px;
-  }
-  .auth-card-brand {
-    font-size: 19px !important;
-    gap: 13px;
-    margin-bottom: 38px;
-  }
-  .auth-card-mark {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
-  .auth-card-mark svg { width: 22px; height: 22px; }
-  .auth-card-brand small {
-    margin-top: 3px;
-    font-size: 9px !important;
-    letter-spacing: 1.9px;
-  }
-  .auth-head { gap: 11px; }
-  .auth-kicker {
-    font-size: 10px !important;
-    padding: 8px 11px;
-    letter-spacing: 1.15px;
-  }
-  .auth-card h2 {
-    font-size: clamp(35px, 4.8vw, 42px) !important;
-    line-height: 1.12;
-    letter-spacing: -1.8px;
-  }
-  .auth-card p {
-    font-size: 15px !important;
-    line-height: 1.65;
-  }
-  .auth-mode-tabs {
-    margin-top: 27px;
-    gap: 6px;
-    padding: 6px;
-    border-radius: 15px;
-  }
-  .auth-mode-btn {
-    min-height: 49px;
-    padding: 12px 14px;
-    font-size: 14px !important;
-    border-radius: 10px;
-  }
-  .auth-form {
-    gap: 16px;
-    margin-top: 22px;
-  }
-  .auth-field { gap: 8px; }
-  .auth-form label:not(.auth-inline-check) {
-    font-size: 13px !important;
-    line-height: 1.4;
-  }
-  .auth-form input:not([type="checkbox"]) {
-    min-height: 56px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 15px !important;
-  }
-  .auth-form input::placeholder { font-size: 14px; }
-  .auth-field-hint,
-  .auth-strength-text {
-    font-size: 12px !important;
-    line-height: 1.5 !important;
-  }
-  .auth-inline-check {
-    gap: 9px;
-    font-size: 13px !important;
-  }
-  .auth-inline-check input { width: 16px; height: 16px; }
-  .auth-form .btn-primary {
-    min-height: 57px;
-    border-radius: 12px;
-    font-size: 15px !important;
-  }
-.auth-switch-row {
-    margin-top: 10px;
-    gap: 6px;
-    font-size: 13px !important;
-  }
-  .auth-link-btn { font-size: 13px !important; }
-  .auth-note { font-size: 12.5px !important; line-height: 1.55 !important; }
-  .auth-error { font-size: 13px !important; line-height: 1.5; }
-  .auth-card-footer {
-    margin-top: 25px;
-    padding-top: 15px;
-    font-size: 11.5px !important;
-  }
-
-  @media (max-width: 600px) {
-    .auth-shell { width: min(100%, 540px) !important; max-width: 540px !important; }
-    .auth-card,
-    .auth-shell .auth-card { padding: 31px 27px 28px !important; border-radius: 22px; }
-    .auth-card-brand { margin-bottom: 30px; }
-    .auth-card h2 { font-size: clamp(33px, 7vw, 38px) !important; }
-    .auth-card p { font-size: 14px !important; }
-    .auth-form input:not([type="checkbox"]) { min-height: 54px; font-size: 16px !important; }
-    .auth-mode-btn { min-height: 47px; font-size: 13.5px !important; }
-}
-  @media (max-width: 390px) {
-    .auth-card,
-    .auth-shell .auth-card { padding: 25px 20px 23px !important; }
-    .auth-card-brand { margin-bottom: 25px; }
-    .auth-card h2 { font-size: 32px !important; }
-}
-  @media (prefers-reduced-motion: reduce) {
-    .auth-card { animation: none !important; }
-  }
-</style>
-
-
-<style id="mashmind-auth-ux-polish-v4">
-  /* Password visibility controls */
-  .auth-input-control { position: relative; display: flex; align-items: center; min-width: 0; }
-  .auth-input-control > input { padding-right: 58px !important; }
-  .auth-password-toggle {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    width: 38px; height: 38px; display: grid; place-items: center;
-    border: 0; border-radius: 9px; background: transparent; color: #8194aa;
-    cursor: pointer; transition: background .18s ease, color .18s ease, transform .18s ease;
-  }
-  .auth-password-toggle:hover { background: #edf4fc; color: #2e73bd; }
-  .auth-password-toggle:focus-visible { outline: 3px solid rgba(64,133,207,.24); outline-offset: 1px; }
-  .auth-password-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-  .auth-password-toggle .eye-closed { display: none; }
-  .auth-password-toggle[aria-pressed="true"] .eye-open { display: none; }
-  .auth-password-toggle[aria-pressed="true"] .eye-closed { display: block; }
-
-  /* Inline field state feedback */
-  .auth-field.is-valid > .auth-input-control input,
-  .auth-field.is-valid > input { border-color: #67b99b !important; }
-  .auth-field.is-invalid > .auth-input-control input,
-  .auth-field.is-invalid > input { border-color: #e18a91 !important; background: #fffafb !important; }
-  .auth-field-hint.is-valid { color: #27936f !important; }
-  .auth-field-hint.is-invalid { color: #c34d5a !important; }
-  .auth-field-hint:empty { display: none; }
-  .auth-form input[aria-invalid="true"] { box-shadow: 0 0 0 3px rgba(209, 76, 91, .08) !important; }
-
-  /* Password strength checklist */
-  .auth-strength-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .auth-strength-caption { color: #9aa8b8; font: 500 10px/1.4 'Plus Jakarta Sans', sans-serif; }
-  .auth-requirements { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin: 3px 0 0; padding: 0; list-style: none; }
-  .auth-requirements li { display: flex; align-items: center; gap: 6px; min-width: 0; color: #91a0b1; font: 500 10.5px/1.4 'Plus Jakarta Sans', sans-serif; transition: color .18s ease; }
-  .auth-requirements .rule-check { width: 16px; height: 16px; flex: 0 0 16px; display: grid; place-items: center; border-radius: 50%; background: #edf2f7; color: #a0adba; font-size: 10px; font-weight: 800; transition: background .18s ease, color .18s ease; }
-  .auth-requirements li.met { color: #34896e; }
-  .auth-requirements li.met .rule-check { background: #e6f5ef; color: #19815e; }
-  .auth-requirements li em { margin-left: auto; color: #a2adba; font-size: 8px; font-style: normal; white-space: nowrap; }
-
-  /* Cleaner auth hierarchy: tabs are the only login/register switch. */
-  .auth-switch-row { display: none !important; }
-  .auth-form .auth-note { margin-top: 0; }
-  .auth-error:not(:empty) { padding: 10px 12px; border: 1px solid #f2d8dc; border-radius: 10px; background: #fff7f8; }
-
-  /* Submission state */
-  .auth-form .btn-primary.is-loading { cursor: progress; opacity: .84; }
-  .auth-submit-content { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-  .auth-spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.36); border-top-color: #fff; border-radius: 50%; animation: auth-spinner-turn .7s linear infinite; }
-  @keyframes auth-spinner-turn { to { transform: rotate(360deg); } }
-
-  /* Dark-mode details */
-  body.dark-theme .auth-password-toggle { color: #9db2ca; }
-  body.dark-theme .auth-password-toggle:hover { background: #213a58; color: #c7e0ff; }
-  body.dark-theme .auth-field.is-invalid > .auth-input-control input,
-  body.dark-theme .auth-field.is-invalid > input { background: #281e2b !important; }
-  body.dark-theme .auth-requirements li { color: #9db0c7; }
-  body.dark-theme .auth-requirements li.met { color: #7ed0b0; }
-  body.dark-theme .auth-requirements li.met .rule-check { background: #183b35; color: #91e0bf; }
-  body.dark-theme .auth-error:not(:empty) { color: #ffb3bc !important; background: #321f2a; border-color: #60323e; }
-
-  @media (max-width: 560px) {
-    .auth-requirements { grid-template-columns: 1fr 1fr; gap: 7px 8px; }
-    .auth-requirements li { font-size: 9.5px; }
-    .auth-requirements li em { display: none; }
-    .auth-strength-caption { width: 100%; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .auth-spinner { animation: none; border-top-color: rgba(255,255,255,.8); }
-    .auth-password-toggle, .auth-requirements li, .auth-requirements .rule-check { transition: none; }
-  }
-</style>
-
 </head>
-<body class="app-locked">
+<body>
+  <main class="auth-card" aria-labelledby="authTitle">
+    <div class="brand">
+      <h1>MashMind / Expense Planner</h1>
+      <a class="home-link" href="/">Back to home</a>
+    </div>
 
-  <div class="planner-app">
-    <!-- Header -->
-    <header class="top-header">
-      <div class="title-area">
-        <h1>Monthly Finance Planner</h1>
-        <p>Zero-dependency local-first personal ledger & cashflow manager</p>
-      </div>
+    <h2 id="authTitle">Sign in</h2>
+    <p id="authSubtitle" class="sub">Use your username and password to continue.</p>
 
-      <div class="controls-bar">
-        <label for="monthPicker" class="sr-only">Select month</label>
-        <input id="monthPicker" type="month" aria-label="Select planning month" />
-        <button id="logoutBtn" class="btn" title="Log out">🚪 Log out</button>
-        <button id="changePasswordBtn" class="btn" title="Change Password">🔑 Change Password</button>
-        <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
-        <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
-        <button id="themeToggle" class="btn" aria-pressed="false">🌙 Dark</button>
-        <button id="copyPrevBtn" class="btn" title="Copy amounts from previous month">📋 Copy Last Month</button>
-        <button id="saveMonthBtn" class="btn btn-primary">💾 Save Month</button>
-        <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Draft saved</span>
-      </div>
-    </header>
+    <div class="tabs" role="tablist" aria-label="Authentication mode">
+      <button id="tabLogin" class="tab active" type="button">Log in</button>
+      <button id="tabRegister" class="tab" type="button">Sign up</button>
+    </div>
 
-    <!-- Top KPI Stats -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="card-head">Salary / Inflow</div>
-        <div id="statSalary" class="value hideable-val tnum">₹0</div>
-        <div class="meta">
-            <label for="salaryInput" class="sr-only">Monthly salary input</label>
-            <input id="salaryInput" type="number" min="0" step="500" placeholder="Set Monthly Salary" aria-label="Set monthly salary" style="padding:4px 8px; width:100%; margin-top:4px;" />
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="card-head">Total Outflow</div>
-        <div id="statExpense" class="value hideable-val tnum" style="color:var(--red);">₹0</div>
-        <div id="expenseMeta" class="meta">Expenses + Investments</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="card-head">Net Balance</div>
-        <div id="statRemaining" class="value hideable-val tnum" style="color:var(--green);">₹0</div>
-        <div id="remainingMeta" class="meta">0% left</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="card-head">Savings Rate</div>
-        <div id="statSavingsRate" class="value hideable-val tnum" style="color:var(--accent);">0%</div>
-        <div id="savingsMeta" class="meta">Investments / Salary</div>
-      </div>
-    </section>
-
-    <!-- Analytics Grid (Expense & Allocation Breakdown + Monthly Trend) -->
-    <section class="analytics-grid">
-      <!-- Donut Allocation -->
-      <article class="chart-panel">
-        <div class="chart-panel-head">
-          <div>
-            <h2>Expense & Allocation Breakdown</h2>
-            <p>Spending distribution across household categories</p>
-          </div>
-        </div>
-        <div class="donut-layout">
-          <div class="donut-canvas-wrap">
-            <canvas id="expenseChart" width="220" height="220" role="img" aria-label="Expense and allocation donut chart"></canvas>
-          </div>
-          <div id="breakdownLegend" class="breakdown-legend"></div>
-        </div>
-      </article>
-
-      <!-- Monthly Trend -->
-      <article class="chart-panel">
-        <div class="chart-panel-head">
-          <div>
-            <h2>Monthly Trend</h2>
-            <p>Income vs Total Outflow (Last 6 Months)</p>
-          </div>
-        </div>
-        <canvas id="trendChart" height="220" role="img" aria-label="Monthly trend chart showing income vs outflow"></canvas>
-      </article>
-    </section>
-
-    <!-- 50 / 30 / 20 Budget Diagnostic Bar -->
-    <section class="budget-diagnostic">
-      <div class="diag-head">
-        <strong>50 / 30 / 20 Budget Allocation</strong>
-        <span id="diagSummary" class="tnum" style="color:var(--muted);">Needs: 0% • Wants: 0% • Savings: 0%</span>
-      </div>
-      <div class="diag-bar">
-        <div id="diagNeeds" class="diag-fill-needs" style="width:0%;"></div>
-        <div id="diagWants" class="diag-fill-wants" style="width:0%;"></div>
-        <div id="diagSavings" class="diag-fill-savings" style="width:0%;"></div>
-      </div>
-      <div class="diag-legend">
-        <div class="diag-item"><span id="diagNeedsIcon" class="diag-icon"></span><div class="color-dot" style="background:#3b82f6;"></div> Needs (Target 50%)</div>
-        <div class="diag-item"><span id="diagWantsIcon" class="diag-icon"></span><div class="color-dot" style="background:#f59e0b;"></div> Wants (Target 30%)</div>
-        <div class="diag-item"><span id="diagSavingsIcon" class="diag-icon"></span><div class="color-dot" style="background:#10b981;"></div> Savings/Investments (Target 20%)</div>
-      </div>
-    </section>
-
-    <!-- Settlement Tracking Progress Bar -->
-    <div class="settlement-card">
+    <form id="authForm" novalidate>
       <div>
-        <strong id="settleLabel">Paid 0 of 22 items</strong>
-        <span id="settleAmt" class="hideable-val tnum" style="color:var(--muted); margin-left:8px;">(₹0 of ₹0 cleared)</span>
+        <label for="username">Username</label>
+        <input id="username" autocomplete="username" placeholder="Enter username" required>
       </div>
-      <div class="settlement-bar-wrap">
-        <div id="settleFill" class="settlement-fill" style="width:0%;"></div>
+
+      <div>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
       </div>
+
+      <div id="confirmWrap" class="hidden">
+        <label for="confirmPassword">Confirm password</label>
+        <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm password">
+      </div>
+
+      <div id="turnstileWrap" class="hidden">
+        <div id="turnstileBox"></div>
+        <p class="note">Human verification is required.</p>
+      </div>
+
+      <button id="submitBtn" class="submit" type="submit">Sign in</button>
+      <p id="errorText" class="error" aria-live="polite"></p>
+      <p class="note">Protected with Cloudflare Turnstile, WAF rate limits, and server-side lockouts.</p>
+    </form>
+
+    <div class="footer">
+      <span>D1 month data + KV sessions</span>
+      <span id="statusNote">Checking status…</span>
     </div>
-
-    <!-- View & Filtering Toolbar -->
-    <div class="view-toolbar">
-      <div class="filter-group">
-        <button id="viewBoxesBtn" class="btn btn-active" aria-pressed="true">🗂️ Category Boxes</button>
-        <button id="viewTableBtn" class="btn" aria-pressed="false">📄 Table View</button>
-        <button id="collapseAllBtn" class="btn">↕️ Collapse All</button>
-        <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save Checked Items</button>
-      </div>
-
-      <div class="filter-group">
-        <label for="searchInput" class="sr-only">Search items</label>
-        <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" style="width:180px;" />
-        <button id="backupJsonBtn" class="btn">💾 Backup</button>
-        <button id="restoreJsonBtn" class="btn">📂 Restore</button>
-        <input id="jsonFileInput" type="file" accept=".json" style="display:none;" />
-      </div>
-    </div>
-
-    <section class="security-card" aria-labelledby="securityTitle">
-      <div class="security-head">
-        <h3 id="securityTitle">Security Settings</h3>
-        <div class="security-meta">
-          <span id="securitySessionChip" class="security-chip">Session: Locked</span>
-          <span id="securityPasswordUpdatedChip" class="security-chip">Password: Not set</span>
-        </div>
-      </div>
-      <div class="security-actions">
-        <button id="securityLogoutBtn" class="btn" type="button">🚪 Log out</button>
-        <button id="securityChangePasswordBtn" class="btn" type="button">🔑 Change Password</button>
-        <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Account Data</button>
-      </div>
-    </section>
-
-    <!-- Category Boxes View Container -->
-    <div id="categoryBoxesContainer" class="category-grid"></div>
-
-    <!-- Table View Container -->
-    <div id="tableViewContainer" class="table-panel" style="display:none; margin-top:14px;">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:44px;">Paid</th>
-            <th>Category</th>
-            <th>Item</th>
-            <th>Type</th>
-            <th style="text-align:right;">Amount (₹)</th>
-            <th style="text-align:center;">Action</th>
-          </tr>
-        </thead>
-        <tbody id="tableRows"></tbody>
-      </table>
-    </div>
-
-    <!-- Redesigned Bank Account Allocation & Routing -->
-    <section class="bank-accounts-section">
-      <div class="bank-section-header">
-        <div>
-          <h2>Account Liquidity & Routing</h2>
-          <p>Required transfer balances and debit destinations</p>
-        </div>
-      </div>
-      <div id="bankCardsGrid" class="bank-cards-grid"></div>
-    </section>
-  </div>
-
-  <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-atmosphere" aria-hidden="true">
-      <span class="auth-orb auth-orb-one"></span>
-      <span class="auth-orb auth-orb-two"></span>
-      <span class="auth-orb auth-orb-three"></span>
-      <svg class="auth-background-line" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice">
-        <path d="M-40 365 C110 355 150 235 280 265 S465 400 590 285 S790 100 900 175 S1080 250 1240 70" />
-        <path d="M-40 410 C120 400 180 315 300 325 S470 435 620 345 S820 205 945 255 S1090 310 1240 190" />
-      </svg>
-    </div>
-    <div class="auth-shell">
-      <section class="auth-card" aria-label="MashMind account access">
-        <div class="auth-card-brand" aria-label="MashMind Personal Finance">
-          <span class="auth-card-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg>
-          </span>
-          <span>MashMind<small>PERSONAL FINANCE</small></span>
-        </div>
-        <div class="auth-head">
-          <span class="auth-kicker"><i></i> YOUR FINANCES, IN FOCUS</span>
-          <h2 id="authTitle">Welcome back<span>.</span></h2>
-          <p id="authSubtitle">Sign in to continue to your personal finance workspace.</p>
-        </div>
-
-        <div id="authModeTabs" class="auth-mode-tabs" role="group" aria-label="Account access mode">
-          <button id="authModeLoginBtn" class="auth-mode-btn active" type="button">Log in</button>
-          <button id="authModeRegisterBtn" class="auth-mode-btn" type="button">Create account</button>
-        </div>
-
-        <form id="authForm" class="auth-form">
-          <div id="authUsernameWrap" class="auth-field">
-            <label id="authUsernameLabel" for="authUsername">Username</label>
-            <input id="authUsername" type="text" autocomplete="username" placeholder="Enter your username" />
-            <p id="authUsernameHint" class="auth-field-hint"></p>
-          </div>
-
-          <div id="authCurrentWrap" class="auth-field hidden">
-            <label id="authCurrentLabel" for="authCurrentPin">Current password</label>
-            <div class="auth-input-control">
-              <input id="authCurrentPin" type="password" autocomplete="current-password" placeholder="Enter current password" />
-              <button class="auth-password-toggle" type="button" data-password-toggle="authCurrentPin" aria-label="Show current password" aria-pressed="false" title="Show password">
-                <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg>
-                <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.2A10.8 10.8 0 0 1 12 6c6.1 0 9.5 6 9.5 6a16 16 0 0 1-3.1 3.7M6.2 6.4C3.8 8 2.5 12 2.5 12s3.4 6 9.5 6c1.4 0 2.6-.3 3.7-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="auth-field" id="authPasswordField">
-            <label id="authPinLabel" for="authPin">Password</label>
-            <div class="auth-input-control">
-              <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter your password" aria-describedby="authPasswordHint" required />
-              <button class="auth-password-toggle" type="button" data-password-toggle="authPin" aria-label="Show password" aria-pressed="false" title="Show password">
-                <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg>
-                <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.2A10.8 10.8 0 0 1 12 6c6.1 0 9.5 6 9.5 6a16 16 0 0 1-3.1 3.7M6.2 6.4C3.8 8 2.5 12 2.5 12s3.4 6 9.5 6c1.4 0 2.6-.3 3.7-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
-              </button>
-            </div>
-            <p id="authPasswordHint" class="auth-field-hint" aria-live="polite"></p>
-          </div>
-
-          <div id="authStrengthWrap" class="auth-strength-wrap hidden" aria-live="polite">
-            <div class="auth-strength-head"><p id="authStrengthText" class="auth-strength-text">Password strength: —</p><span class="auth-strength-caption">A stronger password helps protect your account</span></div>
-            <div class="auth-strength-bar"><div id="authStrengthFill" class="auth-strength-fill"></div></div>
-            <ul id="authRequirements" class="auth-requirements" aria-label="Password strength suggestions">
-              <li data-rule="length"><span class="rule-check">✓</span>At least 6 characters <em>Required</em></li>
-              <li data-rule="case"><span class="rule-check">✓</span>Mix uppercase and lowercase <em>Recommended</em></li>
-              <li data-rule="number"><span class="rule-check">✓</span>Include a number <em>Recommended</em></li>
-              <li data-rule="symbol"><span class="rule-check">✓</span>Include a symbol <em>Recommended</em></li>
-            </ul>
-          </div>
-
-          <div id="authConfirmWrap" class="auth-field hidden">
-            <label id="authPinConfirmLabel" for="authPinConfirm">Confirm password</label>
-            <div class="auth-input-control">
-              <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Re-enter your password" aria-describedby="authConfirmHint" />
-              <button class="auth-password-toggle" type="button" data-password-toggle="authPinConfirm" aria-label="Show confirmation password" aria-pressed="false" title="Show password">
-                <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/></svg>
-                <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.2A10.8 10.8 0 0 1 12 6c6.1 0 9.5 6 9.5 6a16 16 0 0 1-3.1 3.7M6.2 6.4C3.8 8 2.5 12 2.5 12s3.4 6 9.5 6c1.4 0 2.6-.3 3.7-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
-              </button>
-            </div>
-            <p id="authConfirmHint" class="auth-field-hint" aria-live="polite"></p>
-          </div>
-
-          <div id="authResetWrap" class="auth-field hidden">
-            <label id="authResetLabel" for="authResetConfirm">Type DELETE to confirm</label>
-            <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
-          </div>
-
-          <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:8px;">
-            <div id="authTurnstile"></div>
-            <p class="auth-note" style="text-align:left;">Human verification is required to continue.</p>
-          </div>
-
-          <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
-
-          <div id="authSwitchWrap" class="auth-switch-row">
-            <span id="authSwitchText">New to MashMind?</span>
-            <button id="authSwitchBtn" class="auth-link-btn" type="button">Create an account</button>
-          </div>
-          <p class="auth-note">Your financial workspace, kept private and in sync.</p>
-          <p id="authError" class="auth-error" aria-live="polite"></p>
-        </form>
-        <div class="auth-card-footer"><span>© MashMind</span><span><i></i> Private finance workspace</span></div>
-      </section>
-    </div>
-  </div>
-
-  <div id="toast" role="status" aria-live="polite">Saved</div>
+  </main>
 
   <script>
-    const STORAGE_KEY = "pf_monthly_finance_v1";
-    const UI_KEY_THEME = "pf_ui_theme";
-    const UI_KEY_PRIVACY = "pf_ui_privacy";
-    const UI_KEY_VIEW = "pf_ui_view";
-    const AUTH_SESSION_KEY = "pf_auth_session_v1";
+    const form = document.getElementById('authForm');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const authTitle = document.getElementById('authTitle');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+    const confirmWrap = document.getElementById('confirmWrap');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorText = document.getElementById('errorText');
+    const turnstileWrap = document.getElementById('turnstileWrap');
+    const statusNote = document.getElementById('statusNote');
 
-    const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
-
-    const CATEGORY_MAP = {
-      "Home / Living": { icon: "ph:house-line-bold", bucket: "needs", color: "#3b82f6" },
-      "Food / Household": { icon: "ph:shopping-cart-bold", bucket: "needs", color: "#10b981" },
-      "Utilities / Communication": { icon: "ph:lightning-bold", bucket: "needs", color: "#06b6d4" },
-      "Education": { icon: "ph:graduation-cap-bold", bucket: "needs", color: "#f59e0b" },
-      "Family / Personal": { icon: "ph:user-bold", bucket: "wants", color: "#ec4899" },
-      "Repayments": { icon: "ph:credit-card-bold", bucket: "needs", color: "#ef4444" },
-      "Investment / Savings": { icon: "ph:chart-line-up-bold", bucket: "savings", color: "#8b5cf6" }
-    };
-
-    const BANK_ACCOUNTS = [
-      {
-        id: "sbi",
-        name: "SBI Account",
-        purpose: "Education & Fees",
-        icon: "ph:bank-bold",
-        accent: "#3b82f6",
-        itemKeys: ["school_fee", "tuition_fee", "college_fee"]
-      },
-      {
-        id: "bandhan",
-        name: "Bandhan Bank",
-        purpose: "Savings, RD & Cash",
-        icon: "ph:wallet-bold",
-        accent: "#f59e0b",
-        itemKeys: ["mash", "lic", "rd", "rd_college"]
-      },
-      {
-        id: "icici",
-        name: "ICICI / Groww",
-        purpose: "SIPs & Wealth",
-        icon: "ph:chart-line-up-bold",
-        accent: "#10b981",
-        itemKeys: ["personal_sip", "baby_sip"]
-      },
-      {
-        id: "cards",
-        name: "Credit Cards",
-        purpose: "Axis, ICICI & Amazon",
-        icon: "ph:link-bold",
-        accent: "#ef4444",
-        itemKeys: ["cc_axis", "cc_icici", "cc_amazon"]
-      }
-    ];
-
-    const ITEMS = [
-      { category: "Home / Living", name: "Rent", key: "rent", kind: "expense", fixed: true, defaultAmount: 15000 },
-      { category: "Home / Living", name: "Flat maintenance", key: "flat_maintenance", kind: "expense", fixed: true, defaultAmount: 900 },
-      { category: "Food / Household", name: "Groceries", key: "groceries", kind: "expense", fixed: true, defaultAmount: 15000 },
-      { category: "Food / Household", name: "Maid", key: "maid", kind: "expense", fixed: true, defaultAmount: 2000 },
-      { category: "Food / Household", name: "Cash expenses", key: "cash_expenses", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Food / Household", name: "LPG gas", key: "lpg_gas", kind: "expense", fixed: true, defaultAmount: 500 },
-      { category: "Utilities / Communication", name: "Electricity bill", key: "electricity_bill", kind: "expense", fixed: false, defaultAmount: null },
-      { category: "Utilities / Communication", name: "WiFi", key: "wifi", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Utilities / Communication", name: "Phone recharge", key: "phone_recharge", kind: "expense", fixed: false, defaultAmount: null },
-      { category: "Education", name: "School fee", key: "school_fee", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Education", name: "Tuition fee", key: "tuition_fee", kind: "expense", fixed: true, defaultAmount: 1500 },
-      { category: "Education", name: "College fee", key: "college_fee", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Family / Personal", name: "Ayesha pocket money", key: "ayesha_pocket", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Family / Personal", name: "Mash", key: "mash", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Repayments", name: "Credit card (Axis)", key: "cc_axis", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Repayments", name: "Credit card (ICICI)", key: "cc_icici", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Repayments", name: "Credit card (Amazon)", key: "cc_amazon", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Investment / Savings", name: "Personal SIP", key: "personal_sip", kind: "investment", fixed: true, defaultAmount: 2000 },
-      { category: "Investment / Savings", name: "Baby SIP", key: "baby_sip", kind: "investment", fixed: true, defaultAmount: 5000 },
-      { category: "Investment / Savings", name: "LIC", key: "lic", kind: "investment", fixed: true, defaultAmount: 3683 },
-      { category: "Investment / Savings", name: "RD", key: "rd", kind: "investment", fixed: true, defaultAmount: 40000 },
-      { category: "Investment / Savings", name: "RD (college)", key: "rd_college", kind: "investment", fixed: true, defaultAmount: 10834 }
-    ];
-
-    let data = loadData();
-    let editState = {};
-    let collapsedState = {};
-    let autosaveTimer = null;
-    let autosaveHideTimer = null;
-    let chartRaf = 0;
-    let resizeTimer = null;
-    let pendingTotalsForCharts = null;
-    let listenersBound = false;
-    let paidDirty = false;
-
-    const monthPicker = document.getElementById("monthPicker");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const changePasswordBtn = document.getElementById("changePasswordBtn");
-    const resetAppBtn = document.getElementById("resetAppBtn");
-    const securityLogoutBtn = document.getElementById("securityLogoutBtn");
-    const securityChangePasswordBtn = document.getElementById("securityChangePasswordBtn");
-    const securityResetBtn = document.getElementById("securityResetBtn");
-    const securitySessionChip = document.getElementById("securitySessionChip");
-    const securityPasswordUpdatedChip = document.getElementById("securityPasswordUpdatedChip");
-    const salaryInput = document.getElementById("salaryInput");
-    const saveMonthBtn = document.getElementById("saveMonthBtn");
-    const autosaveBadge = document.getElementById("autosaveBadge");
-    const themeToggle = document.getElementById("themeToggle");
-    const incognitoBtn = document.getElementById("incognitoBtn");
-    const copyPrevBtn = document.getElementById("copyPrevBtn");
-    const searchInput = document.getElementById("searchInput");
-    const viewBoxesBtn = document.getElementById("viewBoxesBtn");
-    const viewTableBtn = document.getElementById("viewTableBtn");
-    const collapseAllBtn = document.getElementById("collapseAllBtn");
-    const saveChecksBtn = document.getElementById("saveChecksBtn");
-    const categoryBoxesContainer = document.getElementById("categoryBoxesContainer");
-    const tableViewContainer = document.getElementById("tableViewContainer");
-    const tableRows = document.getElementById("tableRows");
-    const backupJsonBtn = document.getElementById("backupJsonBtn");
-    const restoreJsonBtn = document.getElementById("restoreJsonBtn");
-    const jsonFileInput = document.getElementById("jsonFileInput");
-    const expenseChart = document.getElementById("expenseChart");
-    const trendChart = document.getElementById("trendChart");
-    const breakdownLegend = document.getElementById("breakdownLegend");
-    const bankCardsGrid = document.getElementById("bankCardsGrid");
-    const authOverlay = document.getElementById("authOverlay");
-    const authForm = document.getElementById("authForm");
-    const authCard = document.querySelector(".auth-card");
-    const authTitle = document.getElementById("authTitle");
-    const authSubtitle = document.getElementById("authSubtitle");
-    const authModeTabs = document.getElementById("authModeTabs");
-    const authModeLoginBtn = document.getElementById("authModeLoginBtn");
-    const authModeRegisterBtn = document.getElementById("authModeRegisterBtn");
-    const authUsernameWrap = document.getElementById("authUsernameWrap");
-    const authUsernameLabel = document.getElementById("authUsernameLabel");
-    const authUsername = document.getElementById("authUsername");
-    const authUsernameHint = document.getElementById("authUsernameHint");
-    const authCurrentWrap = document.getElementById("authCurrentWrap");
-    const authCurrentPin = document.getElementById("authCurrentPin");
-    const authPinLabel = document.getElementById("authPinLabel");
-    const authPin = document.getElementById("authPin");
-    const authPasswordHint = document.getElementById("authPasswordHint");
-    const authStrengthWrap = document.getElementById("authStrengthWrap");
-    const authStrengthFill = document.getElementById("authStrengthFill");
-    const authStrengthText = document.getElementById("authStrengthText");
-    const authPinConfirm = document.getElementById("authPinConfirm");
-    const authConfirmHint = document.getElementById("authConfirmHint");
-    const authPinConfirmLabel = document.getElementById("authPinConfirmLabel");
-    const authConfirmWrap = document.getElementById("authConfirmWrap");
-    const authResetWrap = document.getElementById("authResetWrap");
-    const authResetConfirm = document.getElementById("authResetConfirm");
-    const authTurnstileWrap = document.getElementById("authTurnstileWrap");
-    const authTurnstile = document.getElementById("authTurnstile");
-    const authShowPassword = document.getElementById("authShowPassword");
-    const authSubmitBtn = document.getElementById("authSubmitBtn");
-    const authSwitchWrap = document.getElementById("authSwitchWrap");
-    const authSwitchText = document.getElementById("authSwitchText");
-    const authSwitchBtn = document.getElementById("authSwitchBtn");
-    const authError = document.getElementById("authError");
-
-    let authMode = "login"; // login | register | changepassword | resetaccount
-    let cloudHasUsers = null;
-    const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
-    let cloudProfile = null;
+    const AUTH_SESSION_KEY = 'mashmind.auth.unlocked.v2';
+    let mode = 'login';
+    let hasUsers = true;
     let turnstileEnabled = false;
     let turnstileSiteKey = null;
     let turnstileWidgetID = null;
-    let turnstileToken = "";
-    let authCooldownUntil = 0;
-    let authCooldownTimer = null;
+    let turnstileToken = '';
+    let cooldownUntil = 0;
+    let cooldownTimer = null;
 
-    init();
-
-    async function init() {
-      restorePreferences();
-      renderDiagLegendIcons();
-      monthPicker.value = toMonthString(new Date());
-      bindCoreListeners();
-      updateSecurityCard();
-      await bootstrapCloudSession();
-    }
-
-    function bindCoreListeners() {
-      if (listenersBound) return;
-      listenersBound = true;
-
-      monthPicker.addEventListener("change", render);
-      salaryInput.addEventListener("input", () => {
-        syncSalaryToData();
-        markDirtyAndAutosave();
-        recalc();
-      });
-      saveMonthBtn.addEventListener("click", saveCurrentMonth);
-      logoutBtn.addEventListener("click", logoutUser);
-      changePasswordBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("changepassword");
-      });
-      resetAppBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("resetaccount");
-      });
-      securityChangePasswordBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("changepassword");
-      });
-      securityResetBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("resetaccount");
-      });
-      securityLogoutBtn.addEventListener("click", logoutUser);
-      themeToggle.addEventListener("click", toggleTheme);
-      incognitoBtn.addEventListener("click", togglePrivacy);
-      copyPrevBtn.addEventListener("click", copyPreviousMonth);
-      searchInput.addEventListener("input", applyFilters);
-      viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
-      viewTableBtn.addEventListener("click", () => switchView("table"));
-      collapseAllBtn.addEventListener("click", toggleCollapseAll);
-      saveChecksBtn.addEventListener("click", saveCheckedItems);
-
-      backupJsonBtn.addEventListener("click", exportBackup);
-      restoreJsonBtn.addEventListener("click", () => jsonFileInput.click());
-      jsonFileInput.addEventListener("change", importBackup);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") ensureSessionAlive();
-      });
-
-      window.addEventListener("resize", () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          queueChartDraw(getCurrentTotals());
-        }, 120);
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (!isAuthenticated()) return;
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-          e.preventDefault();
-          saveCurrentMonth();
-        }
-      });
-
-      authModeLoginBtn.addEventListener("click", () => showAuthOverlay("login"));
-      authModeRegisterBtn.addEventListener("click", () => showAuthOverlay("register"));
-      authSwitchBtn.addEventListener("click", () => {
-        showAuthOverlay(authMode === "register" ? "login" : "register");
-      });
-      document.querySelectorAll("[data-password-toggle]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const input = document.getElementById(button.dataset.passwordToggle);
-          if (!input) return;
-          const reveal = input.type === "password";
-          input.type = reveal ? "text" : "password";
-          button.setAttribute("aria-pressed", String(reveal));
-          button.setAttribute("aria-label", `${reveal ? "Hide" : "Show"} ${button.dataset.passwordToggle === "authPinConfirm" ? "confirmation password" : button.dataset.passwordToggle === "authCurrentPin" ? "current password" : "password"}`);
-          button.title = reveal ? "Hide password" : "Show password";
-          input.focus({ preventScroll: true });
-        });
-      });
-
-      authUsername.addEventListener("input", updateAuthLiveFeedback);
-      authPin.addEventListener("input", updateAuthLiveFeedback);
-      authPinConfirm.addEventListener("input", updateAuthLiveFeedback);
-      authCurrentPin.addEventListener("input", updateAuthLiveFeedback);
-    }
-
-    function restorePreferences() {
-      if (localStorage.getItem(UI_KEY_THEME) === "dark") {
-        document.body.classList.add("dark-theme");
-        themeToggle.textContent = "☀️ Light";
-      }
-      if (localStorage.getItem(UI_KEY_PRIVACY) === "true") {
-        document.body.classList.add("privacy-active");
-        incognitoBtn.classList.add("btn-active");
-      }
-      const savedView = localStorage.getItem(UI_KEY_VIEW) || "boxes";
-      switchView(savedView);
-      syncAriaStates();
-    }
-
-    function isAuthenticated() {
-      return sessionStorage.getItem(AUTH_SESSION_KEY) === "1";
-    }
-
-    function lockApp(silent = false) {
-      sessionStorage.removeItem(AUTH_SESSION_KEY);
-      document.body.classList.add("app-locked");
-      const needsRegister = cloudHasUsers === false;
-      showAuthOverlay(needsRegister ? "register" : "login");
-      updateSecurityCard();
-      if (!silent) showToast("Planner locked");
-    }
-
-    function unlockApp() {
-      sessionStorage.setItem(AUTH_SESSION_KEY, "1");
-      document.body.classList.remove("app-locked");
-      authOverlay.classList.add("hidden");
-      setAuthError("");
-      authForm.reset();
-      authPin.blur();
-      updateSecurityCard();
-    }
-
-    async function logoutUser(options = {}) {
-      const { quiet = false, reason = "Logged out" } = options;
-      try {
-        await api("/api/auth/logout", { method: "POST" });
-      } catch {}
-
-      sessionStorage.removeItem(AUTH_SESSION_KEY);
-      cloudProfile = null;
-      lockApp(true);
-      if (!quiet) showToast(reason);
-    }
-
-    function ensureTurnstileRendered() {
-      if (!turnstileEnabled || !turnstileSiteKey) return;
-      if (!window.turnstile?.render || !authTurnstile) return;
-      if (turnstileWidgetID !== null) return;
-
-      turnstileWidgetID = window.turnstile.render("#authTurnstile", {
-        sitekey: turnstileSiteKey,
-        theme: document.body.classList.contains("dark-theme") ? "dark" : "light",
-        callback: (token) => {
-          turnstileToken = token || "";
-        },
-        "expired-callback": () => {
-          turnstileToken = "";
-        },
-        "error-callback": () => {
-          turnstileToken = "";
-        },
-      });
-    }
-
-    function resetTurnstile() {
-      turnstileToken = "";
-      if (turnstileWidgetID !== null && window.turnstile?.reset) {
-        window.turnstile.reset(turnstileWidgetID);
-      }
-    }
-
-    function updateTurnstileVisibility() {
-      const needsTurnstile = turnstileEnabled && (authMode === "login" || authMode === "register");
-      authTurnstileWrap.classList.toggle("hidden", !needsTurnstile);
-      if (!needsTurnstile) {
-        turnstileToken = "";
-        return;
-      }
-      ensureTurnstileRendered();
-      if (turnstileWidgetID === null) {
-        setTimeout(() => ensureTurnstileRendered(), 250);
-      }
-      resetTurnstile();
-    }
-
-    function showAuthOverlay(mode) {
-      authMode = mode;
-      animateAuthModeSwitch();
-      authOverlay.classList.remove("hidden");
-      document.body.classList.add("app-locked");
-      setAuthError("");
-      authForm.reset();
-      [authPin, authPinConfirm, authCurrentPin].forEach((el) => {
-        if (!el) return;
-        el.type = "password";
-      });
-      document.querySelectorAll("[data-password-toggle]").forEach((button) => {
-        button.setAttribute("aria-pressed", "false");
-        button.title = "Show password";
-        const target = button.dataset.passwordToggle;
-        button.setAttribute("aria-label", `Show ${target === "authPinConfirm" ? "confirmation password" : target === "authCurrentPin" ? "current password" : "password"}`);
-      });
-
-      authUsernameWrap.classList.add("hidden");
-      authUsernameWrap.classList.remove("is-valid", "is-invalid");
-      authCurrentWrap.classList.add("hidden");
-      authCurrentWrap.classList.remove("is-valid", "is-invalid");
-      authConfirmWrap.classList.add("hidden");
-      authConfirmWrap.classList.remove("is-valid", "is-invalid");
-      authResetWrap.classList.add("hidden");
-      const mainPasswordField = document.getElementById("authPasswordField");
-      if (mainPasswordField) mainPasswordField.classList.remove("is-valid", "is-invalid");
-
-      authUsername.required = false;
-      authCurrentPin.required = false;
-      authPinConfirm.required = false;
-      authResetConfirm.required = false;
-
-      const simpleEntryMode = mode === "login" || mode === "register";
-      authModeTabs.classList.toggle("hidden", !simpleEntryMode);
-      authSwitchWrap.classList.toggle("hidden", !simpleEntryMode);
-      authModeLoginBtn.classList.toggle("active", mode === "login");
-      authModeRegisterBtn.classList.toggle("active", mode === "register");
-      authModeLoginBtn.setAttribute("aria-pressed", String(mode === "login"));
-      authModeRegisterBtn.setAttribute("aria-pressed", String(mode === "register"));
-      authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
-      updateTurnstileVisibility();
-
-      const cooldownLeft = getAuthCooldownSecondsLeft();
-      if ((mode === "login" || mode === "register") && cooldownLeft > 0) {
-        startAuthCooldown(cooldownLeft);
-      } else if (mode !== "login" && mode !== "register") {
-        authSubmitBtn.disabled = false;
-      }
-
-      if (mode === "register") {
-        authTitle.textContent = "Create account";
-        authSubtitle.textContent = "Use 3-32 chars for username and at least 6 chars for password.";
-        authUsernameWrap.classList.remove("hidden");
-        authUsernameLabel.textContent = "Username";
-        authUsername.required = true;
-        authPinLabel.textContent = "Password";
-        authPinConfirmLabel.textContent = "Confirm password";
-        authSubmitBtn.textContent = "Sign up";
-        authSwitchText.textContent = "Already have an account?";
-        authSwitchBtn.textContent = "Log in";
-        authConfirmWrap.classList.remove("hidden");
-        authPinConfirm.required = true;
-        authPin.setAttribute("autocomplete", "new-password");
-      } else if (mode === "changepassword") {
-        authTitle.textContent = "Change password";
-        authSubtitle.textContent = "Enter current password and set a new one.";
-        authCurrentWrap.classList.remove("hidden");
-        authPinLabel.textContent = "New password";
-        authPinConfirmLabel.textContent = "Confirm new password";
-        authSubmitBtn.textContent = "Update password";
-        authConfirmWrap.classList.remove("hidden");
-        authCurrentPin.required = true;
-        authPinConfirm.required = true;
-        authPin.setAttribute("autocomplete", "new-password");
-      } else if (mode === "resetaccount") {
-        authTitle.textContent = "Reset account data";
-        authSubtitle.textContent = "This wipes your cloud and local data.";
-        authPinLabel.textContent = "Current password";
-        authSubmitBtn.textContent = "Reset account";
-        authResetWrap.classList.remove("hidden");
-        authResetConfirm.required = true;
-        authPin.setAttribute("autocomplete", "current-password");
-      } else {
-        authTitle.textContent = "Sign in";
-        authSubtitle.textContent = "Use your username and password to access your finance dashboard.";
-        authUsernameWrap.classList.remove("hidden");
-        authUsername.required = true;
-        authPinLabel.textContent = "Password";
-        authSubmitBtn.textContent = "Sign in";
-        authSwitchText.textContent = "Don’t have an account yet?";
-        authSwitchBtn.textContent = "Sign up";
-        authPin.setAttribute("autocomplete", "current-password");
-      }
-
-      requestAnimationFrame(() => {
-        if (!authUsernameWrap.classList.contains("hidden")) authUsername.focus();
-        else if (!authCurrentWrap.classList.contains("hidden")) authCurrentPin.focus();
-        else authPin.focus();
-      });
-
-      updateAuthLiveFeedback();
-    }
-
-    function setAuthError(message, shake = false) {
-      authError.textContent = message || "";
-      authError.setAttribute("role", message ? "alert" : "status");
-      if (shake && authCard) {
-        authCard.classList.remove("shake");
-        void authCard.offsetWidth;
-        authCard.classList.add("shake");
-      }
-    }
-
-    function animateAuthModeSwitch() {
-      if (!authCard) return;
-      authCard.classList.remove("mode-switch");
-      void authCard.offsetWidth;
-      authCard.classList.add("mode-switch");
-    }
-
-    function passwordStrength(password) {
-      let score = 0;
-      if (password.length >= 6) score++;
-      if (password.length >= 10) score++;
-      if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-      if (/\d/.test(password)) score++;
-      if (/[^A-Za-z0-9]/.test(password)) score++;
-      return Math.min(score, 5);
-    }
-
-    function updateAuthLiveFeedback() {
-      if (authError.textContent) setAuthError("");
-      const username = (authUsername.value || "").trim();
-      const password = authPin.value || "";
-      const confirm = authPinConfirm.value || "";
-      const usernameValid = /^[a-z0-9._-]{3,32}$/i.test(username);
-
-      const usernameField = authUsername.closest(".auth-field");
-      if (usernameField) {
-        usernameField.classList.toggle("is-valid", !!username && usernameValid);
-        usernameField.classList.toggle("is-invalid", !!username && !usernameValid);
-      }
-      authUsername.setAttribute("aria-invalid", String(!!username && !usernameValid));
-      if (!authUsernameWrap.classList.contains("hidden")) {
-        if (!username) {
-          authUsernameHint.textContent = "3–32 characters: letters, numbers, dots, underscores or hyphens.";
-          authUsernameHint.className = "auth-field-hint";
-        } else if (!usernameValid) {
-          authUsernameHint.textContent = "Use 3–32 characters and only letters, numbers, ., _ or -.";
-          authUsernameHint.className = "auth-field-hint is-invalid";
-        } else {
-          authUsernameHint.textContent = "Username looks good.";
-          authUsernameHint.className = "auth-field-hint is-valid";
-        }
-      } else {
-        authUsernameHint.textContent = "";
-        authUsername.setAttribute("aria-invalid", "false");
-      }
-
-      const passwordField = document.getElementById("authPasswordField");
-      const passwordNeedsLength = authMode === "register" || authMode === "changepassword";
-      const passwordValid = password.length >= 6;
-      if (passwordField) {
-        passwordField.classList.toggle("is-valid", passwordNeedsLength && !!password && passwordValid);
-        passwordField.classList.toggle("is-invalid", passwordNeedsLength && !!password && !passwordValid);
-      }
-      authPin.setAttribute("aria-invalid", String(passwordNeedsLength && !!password && !passwordValid));
-
-      if (passwordNeedsLength) {
-        const strength = passwordStrength(password);
-        const pct = (strength / 5) * 100;
-        const levels = ["Not rated", "Very weak", "Fair", "Good", "Strong", "Excellent"];
-        const colors = ["#d7e0ea", "#d96d78", "#e59b4b", "#e5ad4f", "#3caa83", "#15956c"];
-        authStrengthFill.style.width = `${pct}%`;
-        authStrengthFill.style.background = colors[strength];
-        authStrengthText.textContent = `Password strength: ${password ? levels[strength] : "Not rated"}`;
-        authPasswordHint.textContent = password && !passwordValid ? "Please use at least 6 characters." : "";
-        authPasswordHint.className = password && !passwordValid ? "auth-field-hint is-invalid" : "auth-field-hint";
-
-        const rules = {
-          length: password.length >= 6,
-          case: /[A-Z]/.test(password) && /[a-z]/.test(password),
-          number: /\d/.test(password),
-          symbol: /[^A-Za-z0-9]/.test(password),
-        };
-        Object.entries(rules).forEach(([rule, met]) => {
-          const item = document.querySelector(`#authRequirements [data-rule="${rule}"]`);
-          if (item) item.classList.toggle("met", met);
-        });
-      } else {
-        authStrengthFill.style.width = "0%";
-        authStrengthText.textContent = "Password strength: —";
-        authPasswordHint.textContent = "";
-        authPasswordHint.className = "auth-field-hint";
-        if (passwordField) {
-          passwordField.classList.remove("is-valid", "is-invalid");
-        }
-        authPin.setAttribute("aria-invalid", "false");
-      }
-
-      if (!authConfirmWrap.classList.contains("hidden")) {
-        const match = !!confirm && password === confirm;
-        const mismatch = !!confirm && password !== confirm;
-        authConfirmWrap.classList.toggle("is-valid", match);
-        authConfirmWrap.classList.toggle("is-invalid", mismatch);
-        authPinConfirm.setAttribute("aria-invalid", String(mismatch));
-        if (!confirm) {
-          authConfirmHint.textContent = "Enter the same password again to confirm.";
-          authConfirmHint.className = "auth-field-hint";
-        } else if (match) {
-          authConfirmHint.textContent = "Passwords match.";
-          authConfirmHint.className = "auth-field-hint is-valid";
-        } else {
-          authConfirmHint.textContent = "These passwords do not match yet.";
-          authConfirmHint.className = "auth-field-hint is-invalid";
-        }
-      } else {
-        authConfirmWrap.classList.remove("is-valid", "is-invalid");
-        authConfirmHint.textContent = "";
-        authPinConfirm.setAttribute("aria-invalid", "false");
-      }
-
-      if (authCurrentPin && !authCurrentWrap.classList.contains("hidden")) {
-        authCurrentPin.setAttribute("aria-invalid", "false");
-      }
-    }
-
-    function wipePlannerData() {
-      data = {};
-      editState = {};
-      collapsedState = {};
-      sessionStorage.removeItem(AUTH_SESSION_KEY);
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(UI_KEY_PRIVACY);
-      localStorage.removeItem(UI_KEY_VIEW);
-      document.body.classList.remove("privacy-active");
-      incognitoBtn.classList.remove("btn-active");
-      renderDiagLegendIcons();
-      monthPicker.value = toMonthString(new Date());
-      updateSecurityCard();
-    }
-
-    function updateSecurityCard() {
-      if (!securitySessionChip || !securityPasswordUpdatedChip) return;
-
-      const authenticated = isAuthenticated();
-      securitySessionChip.textContent = `Session: ${authenticated ? "Unlocked" : "Locked"}`;
-
-      if (cloudProfile?.passwordUpdatedAt) {
-        const dt = new Date(cloudProfile.passwordUpdatedAt);
-        const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        securityPasswordUpdatedChip.textContent = `Password updated: ${label}`;
-      } else if (cloudHasUsers === false) {
-        securityPasswordUpdatedChip.textContent = "Password: Not set";
-      } else {
-        securityPasswordUpdatedChip.textContent = "Password: Configured";
-      }
-    }
-
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle("dark-theme");
-      localStorage.setItem(UI_KEY_THEME, isDark ? "dark" : "light");
-      themeToggle.textContent = isDark ? "☀️ Light" : "🌙 Dark";
-      syncAriaStates();
-      renderDiagLegendIcons();
-      const totals = getCurrentTotals();
-      drawDonutChart(totals.categoryTotals, totals.outflow);
-      drawTrendChart();
-    }
-
-    function togglePrivacy() {
-      const isPrivacy = document.body.classList.toggle("privacy-active");
-      localStorage.setItem(UI_KEY_PRIVACY, isPrivacy ? "true" : "false");
-      incognitoBtn.classList.toggle("btn-active", isPrivacy);
-      syncAriaStates();
-      showToast(isPrivacy ? "Privacy mode on" : "Privacy mode off");
-    }
-
-    function switchView(view) {
-      localStorage.setItem(UI_KEY_VIEW, view);
-      if (view === "boxes") {
-        viewBoxesBtn.classList.add("btn-active");
-        viewTableBtn.classList.remove("btn-active");
-        categoryBoxesContainer.style.display = "grid";
-        tableViewContainer.style.display = "none";
-      } else {
-        viewTableBtn.classList.add("btn-active");
-        viewBoxesBtn.classList.remove("btn-active");
-        categoryBoxesContainer.style.display = "none";
-        tableViewContainer.style.display = "block";
-      }
-      syncAriaStates();
-    }
-
-    function syncAriaStates() {
-      const isDark = document.body.classList.contains("dark-theme");
-      const isPrivacy = document.body.classList.contains("privacy-active");
-      const boxesActive = categoryBoxesContainer.style.display !== "none";
-      themeToggle.setAttribute("aria-pressed", String(isDark));
-      incognitoBtn.setAttribute("aria-pressed", String(isPrivacy));
-      viewBoxesBtn.setAttribute("aria-pressed", String(boxesActive));
-      viewTableBtn.setAttribute("aria-pressed", String(!boxesActive));
-    }
-
-    function toggleCollapseAll() {
-      const cats = Object.keys(CATEGORY_MAP);
-      const allCollapsed = cats.every(c => collapsedState[c]);
-      cats.forEach(c => collapsedState[c] = !allCollapsed);
-      render();
-    }
-
-    function render() {
-      const month = monthPicker.value;
-      const current = data[month] || { salary: "", items: {}, paid: {} };
-      const prevMonth = getPreviousMonth(month);
-      const prev = prevMonth ? (data[prevMonth] || { salary: "", items: {}, paid: {} }) : { salary: "", items: {}, paid: {} };
-
-      salaryInput.value = current.salary !== "" && current.salary != null ? current.salary : "";
-
-      renderBoxes(current, prev);
-      renderTable(current, prev);
-      renderBankAccounts(current, prev);
-      updateSecurityCard();
-      setPaidDirty(false);
-      applyFilters();
-      recalc();
-    }
-
-    function renderBoxes(current, prev) {
-      categoryBoxesContainer.innerHTML = "";
-      const categories = Object.keys(CATEGORY_MAP);
-
-      categories.forEach(cat => {
-        const catItems = ITEMS.filter(i => i.category === cat);
-        const box = document.createElement("div");
-        box.className = "cat-box";
-        box.dataset.category = cat;
-        const catColor = CATEGORY_MAP[cat]?.color || "#64748b";
-        box.style.borderLeftColor = catColor;
-
-        const isCollapsed = !!collapsedState[cat];
-
-        let catSum = 0;
-        let paidCount = 0;
-        catItems.forEach(item => {
-          const val = getItemValue(item, current, prev);
-          if (val) catSum += Number(val);
-          if (current.paid && current.paid[item.key]) paidCount++;
-        });
-
-        box.innerHTML = `
-          <div class="cat-box-header" data-toggle="${cat}" tabindex="0" role="button" aria-expanded="${!isCollapsed}" aria-controls="cat_items_${slugify(cat)}">
-            <div class="cat-title">
-              <span class="cat-icon-badge" style="background:${catColor};">${iconNode(CATEGORY_MAP[cat].icon, 14)}</span>
-              <span>${cat}</span>
-              <span class="cat-badge">${paidCount}/${catItems.length} paid</span>
-            </div>
-            <div class="cat-total tnum hideable-val" data-total-for="${cat}">₹${formatNumber(catSum)}</div>
-          </div>
-          <div id="cat_items_${slugify(cat)}" class="cat-items-list ${isCollapsed ? 'collapsed' : ''}"></div>
-        `;
-
-        const listEl = box.querySelector(".cat-items-list");
-
-        catItems.forEach(item => {
-          const val = getItemValue(item, current, prev);
-          const isPaid = !!(current.paid && current.paid[item.key]);
-
-          const row = document.createElement("div");
-          row.className = "cat-item-row";
-          row.dataset.search = (item.name + " " + cat).toLowerCase();
-
-          row.innerHTML = `
-            <div class="cat-item-left">
-              <input type="checkbox" class="checkbox" data-key="${item.key}" ${isPaid ? 'checked' : ''} />
-              <span class="item-name ${isPaid ? 'done' : ''}">${item.name}</span>
-            </div>
-            <div class="cat-item-right">
-              <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
-              <button class="btn" style="padding:3px 7px; font-size:11px;" data-edit="${item.key}">
-                ${editState[item.key] ? 'Save' : 'Edit'}
-              </button>
-            </div>
-          `;
-          listEl.appendChild(row);
-        });
-
-        const headerEl = box.querySelector(".cat-box-header");
-        headerEl.addEventListener("click", () => {
-          collapsedState[cat] = !collapsedState[cat];
-          render();
-        });
-        headerEl.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            collapsedState[cat] = !collapsedState[cat];
-            render();
-          }
-        });
-
-        categoryBoxesContainer.appendChild(box);
-      });
-
-      attachInputListeners();
-    }
-
-    function renderTable(current, prev) {
-      tableRows.innerHTML = "";
-
-      ITEMS.forEach(item => {
-        const val = getItemValue(item, current, prev);
-        const isPaid = !!(current.paid && current.paid[item.key]);
-        const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
-
-        const tr = document.createElement("tr");
-        tr.dataset.search = (item.name + " " + item.category).toLowerCase();
-
-        tr.innerHTML = `
-          <td><input type="checkbox" class="checkbox" data-key="${item.key}" ${isPaid ? 'checked' : ''} /></td>
-          <td>
-            <span class="category-pill" style="--cat-color:${catColor};">
-              <span class="dot"></span>
-              <span class="category-inline-icon">${iconNode(CATEGORY_MAP[item.category].icon, 13)}</span>
-              <span>${item.category}</span>
-            </span>
-          </td>
-          <td><strong class="${isPaid ? 'done' : ''}">${item.name}</strong></td>
-          <td><span style="font-size:11.5px; color:var(--muted);">${item.fixed ? 'Fixed' : 'Variable'}</span></td>
-          <td style="text-align:right;">
-            <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
-          </td>
-          <td style="text-align:center;">
-            <button class="btn" style="padding:3px 8px; font-size:11px;" data-edit="${item.key}">
-              ${editState[item.key] ? 'Save' : 'Edit'}
-            </button>
-          </td>
-        `;
-        tableRows.appendChild(tr);
-      });
-
-      attachInputListeners();
-    }
-
-    function renderBankAccounts(current, prev) {
-      bankCardsGrid.innerHTML = "";
-
-      BANK_ACCOUNTS.forEach(acc => {
-        let accSum = 0;
-        const itemsMarkup = acc.itemKeys.map(k => {
-          const itemDef = ITEMS.find(i => i.key === k);
-          if (!itemDef) return "";
-          const amt = Number(getItemValue(itemDef, current, prev)) || 0;
-          accSum += amt;
-          return `
-            <li>
-              <span class="item-title">${itemDef.name}</span>
-              <span class="item-amt tnum hideable-val" data-bank-item="${k}">₹${formatNumber(amt)}</span>
-            </li>
-          `;
-        }).join("");
-
-        const card = document.createElement("div");
-        card.className = "bank-routing-card";
-        const iconBg = colorWithAlpha(acc.accent || "#64748b", document.body.classList.contains("dark-theme") ? 0.26 : 0.14);
-        card.innerHTML = `
-          <div>
-            <div class="bank-head">
-              <div class="bank-icon-badge" style="background:${iconBg}; color:${acc.accent || "#64748b"};">${iconNode(acc.icon, 18)}</div>
-              <div class="bank-head-text">
-                <h3>${acc.name}</h3>
-                <span>${acc.purpose}</span>
-              </div>
-            </div>
-            <ul class="bank-items-list">${itemsMarkup}</ul>
-          </div>
-          <div class="bank-footer">
-            <span class="label">Total Needed</span>
-            <span class="total tnum hideable-val" data-bank-total="${acc.id}">₹${formatNumber(accSum)}</span>
-          </div>
-        `;
-        bankCardsGrid.appendChild(card);
-      });
-    }
-
-    function attachInputListeners() {
-      document.querySelectorAll(".checkbox").forEach(cb => {
-        cb.onchange = (e) => {
-          const key = e.target.dataset.key;
-          const month = monthPicker.value;
-          data[month] = data[month] || { salary: "", items: {}, paid: {} };
-          data[month].paid = data[month].paid || {};
-          data[month].paid[key] = e.target.checked;
-          // Sync both views checkbox state
-          document.querySelectorAll(`.checkbox[data-key="${key}"]`).forEach(twin => {
-            if (twin !== e.target) twin.checked = e.target.checked;
-          });
-
-          const nameNodes = document.querySelectorAll(`.cat-item-row .checkbox[data-key="${key}"]`);
-          nameNodes.forEach(node => {
-            const nameEl = node.closest(".cat-item-row")?.querySelector(".item-name");
-            if (nameEl) nameEl.classList.toggle("done", e.target.checked);
-          });
-          const tableName = document.querySelector(`#tableRows .checkbox[data-key="${key}"]`)?.closest("tr")?.querySelector("strong");
-          if (tableName) tableName.classList.toggle("done", e.target.checked);
-
-          updatePaidCategoryBadges();
-          setPaidDirty(true);
-          recalc();
-        };
-      });
-
-      document.querySelectorAll(".amount-input").forEach(inp => {
-        inp.setAttribute("aria-label", `Amount for ${inp.dataset.key?.replaceAll("_", " ") || "item"}`);
-        inp.oninput = (e) => {
-          const key = e.target.dataset.key;
-          const month = monthPicker.value;
-          data[month] = data[month] || { salary: "", items: {}, paid: {} };
-          data[month].items = data[month].items || {};
-          data[month].items[key] = e.target.value === "" ? "" : Number(e.target.value);
-          document.querySelectorAll(`.amount-input[data-key="${key}"]`).forEach(twin => {
-            if (twin !== e.target) twin.value = e.target.value;
-          });
-          markDirtyAndAutosave();
-          recalc();
-        };
-
-        inp.onkeydown = (e) => {
-          const key = inp.dataset.key;
-          if (e.key === "Escape") {
-            e.preventDefault();
-            const prevVal = inp.dataset.beforeEdit ?? "";
-            document.querySelectorAll(`.amount-input[data-key="${key}"]`).forEach(twin => {
-              twin.value = prevVal;
-            });
-            const month = monthPicker.value;
-            data[month] = data[month] || { salary: "", items: {}, paid: {} };
-            data[month].items = data[month].items || {};
-            data[month].items[key] = prevVal === "" ? "" : Number(prevVal);
-            setEditMode(key, false);
-            markDirtyAndAutosave();
-            recalc();
-            return;
-          }
-
-          if (e.key === "Enter") {
-            e.preventDefault();
-            setEditMode(key, false);
-            const editableVisible = [...document.querySelectorAll('.amount-input:not([disabled])')].filter(el => el.offsetParent !== null);
-            const idx = editableVisible.indexOf(inp);
-            if (idx >= 0 && idx < editableVisible.length - 1) {
-              editableVisible[idx + 1].focus();
-              editableVisible[idx + 1].select();
-            }
-          }
-        };
-      });
-
-      document.querySelectorAll("[data-edit]").forEach(btn => {
-        btn.setAttribute("aria-label", `Toggle edit for ${btn.dataset.edit?.replaceAll("_", " ") || "item"}`);
-        btn.onclick = (e) => {
-          const key = e.currentTarget.dataset.edit;
-          setEditMode(key, !editState[key], true);
-        };
-      });
-    }
-
-    function setEditMode(key, enabled, focusInput = false) {
-      editState[key] = enabled;
-
-      document.querySelectorAll(`.amount-input[data-key="${key}"]`).forEach(inp => {
-        if (enabled && inp.dataset.beforeEdit === undefined) inp.dataset.beforeEdit = inp.value;
-        if (!enabled) delete inp.dataset.beforeEdit;
-        inp.disabled = !enabled;
-      });
-
-      document.querySelectorAll(`[data-edit="${key}"]`).forEach(btn => {
-        btn.textContent = enabled ? "Save" : "Edit";
-        btn.classList.toggle("btn-active", enabled);
-      });
-
-      if (!enabled) {
-        markDirtyAndAutosave();
-        recalc();
-      }
-
-      if (enabled && focusInput) {
-        const firstVisible = [...document.querySelectorAll(`.amount-input[data-key="${key}"]`)].find(el => el.offsetParent !== null) || document.querySelector(`.amount-input[data-key="${key}"]`);
-        if (firstVisible) {
-          firstVisible.focus();
-          firstVisible.select();
-        }
-      }
-    }
-
-    function recalc() {
-      const totals = getCurrentTotals();
-      const salary = totals.salary;
-      const totalOutflow = totals.outflow;
-      const remaining = totals.remaining;
-      const savingsRate = totals.savingsRate;
-
-      // Keep category box header totals and bank routing values live while editing
-      updateCategoryHeaderTotals();
-      updateBankAccountFigures();
-
-      document.getElementById("statSalary").textContent = `₹${formatNumber(salary)}`;
-      document.getElementById("statExpense").textContent = `₹${formatNumber(totalOutflow)}`;
-      document.getElementById("statRemaining").textContent = `₹${formatNumber(remaining)}`;
-      document.getElementById("statSavingsRate").textContent = `${savingsRate.toFixed(1)}%`;
-
-      const remainingEl = document.getElementById("statRemaining");
-      remainingEl.style.color = remaining < 0 ? "var(--red)" : "var(--green)";
-
-      document.getElementById("remainingMeta").textContent = salary > 0 ? `${((remaining / salary) * 100).toFixed(1)}% remaining` : "0% left";
-      document.getElementById("expenseMeta").textContent = salary > 0 ? `${((totalOutflow / salary) * 100).toFixed(1)}% of income` : "Expenses + Investments";
-
-      const settlePct = ITEMS.length ? (totals.paidCount / ITEMS.length) * 100 : 0;
-      document.getElementById("settleLabel").textContent = `Paid ${totals.paidCount} of ${ITEMS.length} items`;
-      document.getElementById("settleAmt").textContent = `(₹${formatNumber(totals.paidOutflow)} of ₹${formatNumber(totalOutflow)} cleared)`;
-      document.getElementById("settleFill").style.width = `${settlePct}%`;
-
-      const baseIncome = salary > 0 ? salary : totalOutflow;
-      if (baseIncome > 0) {
-        const nPct = Math.min(100, (totals.needsSum / baseIncome) * 100);
-        const wPct = Math.min(100, (totals.wantsSum / baseIncome) * 100);
-        const sPct = Math.min(100, (totals.savingsSum / baseIncome) * 100);
-
-        document.getElementById("diagNeeds").style.width = `${nPct}%`;
-        document.getElementById("diagWants").style.width = `${wPct}%`;
-        document.getElementById("diagSavings").style.width = `${sPct}%`;
-
-        document.getElementById("diagSummary").textContent = `Needs: ${nPct.toFixed(0)}% • Wants: ${wPct.toFixed(0)}% • Savings: ${sPct.toFixed(0)}%`;
-      }
-
-      queueChartDraw(totals);
-    }
-
-    function getCurrentTotals() {
-      const salary = Number(salaryInput.value) || 0;
-      const month = monthPicker.value;
-      const current = data[month] || { salary: "", items: {}, paid: {} };
-
-      let totalOutflow = 0;
-      let totalInvest = 0;
-      let paidOutflow = 0;
-      let paidCount = 0;
-
-      let needsSum = 0;
-      let wantsSum = 0;
-      let savingsSum = 0;
-      const categoryTotals = {};
-
-      ITEMS.forEach(item => {
-        const val = getInputValue(item.key);
-        totalOutflow += val;
-        categoryTotals[item.category] = (categoryTotals[item.category] || 0) + val;
-
-        const isPaid = !!(current.paid && current.paid[item.key]);
-        if (isPaid) {
-          paidOutflow += val;
-          paidCount++;
-        }
-
-        if (item.kind === "investment") totalInvest += val;
-
-        const bucket = CATEGORY_MAP[item.category].bucket;
-        if (bucket === "needs") needsSum += val;
-        else if (bucket === "wants") wantsSum += val;
-        else if (bucket === "savings") savingsSum += val;
-      });
-
-      const remaining = salary > 0 ? salary - totalOutflow : 0;
-      const savingsRate = salary > 0 ? (totalInvest / salary) * 100 : 0;
-
-      return {
-        salary,
-        outflow: totalOutflow,
-        remaining,
-        savingsRate,
-        paidOutflow,
-        paidCount,
-        needsSum,
-        wantsSum,
-        savingsSum,
-        categoryTotals
-      };
-    }
-
-    function updateCategoryHeaderTotals() {
-      const sums = {};
-      ITEMS.forEach(item => {
-        sums[item.category] = (sums[item.category] || 0) + getInputValue(item.key);
-      });
-
-      document.querySelectorAll("[data-total-for]").forEach(el => {
-        const cat = el.getAttribute("data-total-for");
-        el.textContent = `₹${formatNumber(sums[cat] || 0)}`;
-      });
-    }
-
-    function updateBankAccountFigures() {
-      const accountSums = {};
-      BANK_ACCOUNTS.forEach(acc => {
-        let sum = 0;
-        acc.itemKeys.forEach(key => {
-          const val = getInputValue(key);
-          sum += val;
-          document.querySelectorAll(`[data-bank-item="${key}"]`).forEach(el => {
-            el.textContent = `₹${formatNumber(val)}`;
-          });
-        });
-        accountSums[acc.id] = sum;
-      });
-
-      Object.entries(accountSums).forEach(([id, sum]) => {
-        const totalEl = document.querySelector(`[data-bank-total="${id}"]`);
-        if (totalEl) totalEl.textContent = `₹${formatNumber(sum)}`;
-      });
-    }
-
-    function iconNode(iconName, size = 14) {
-      const icon = iconName || "ph:chart-line-up-bold";
-      return `<iconify-icon icon="${icon}" width="${size}" height="${size}" aria-hidden="true"></iconify-icon>`;
-    }
-
-    function colorWithAlpha(hex, alpha) {
-      const h = String(hex || "").replace("#", "");
-      if (![3, 6].includes(h.length)) return `rgba(100,116,139,${alpha})`;
-      const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
-      const r = parseInt(full.slice(0, 2), 16);
-      const g = parseInt(full.slice(2, 4), 16);
-      const b = parseInt(full.slice(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-
-    function renderDiagLegendIcons() {
-      const needsEl = document.getElementById("diagNeedsIcon");
-      const wantsEl = document.getElementById("diagWantsIcon");
-      const savingsEl = document.getElementById("diagSavingsIcon");
-      if (needsEl) needsEl.innerHTML = iconNode("ph:house-line-bold", 13);
-      if (wantsEl) wantsEl.innerHTML = iconNode("ph:user-bold", 13);
-      if (savingsEl) savingsEl.innerHTML = iconNode("ph:chart-line-up-bold", 13);
-    }
-
-    function getInputValue(key) {
-      const input = document.querySelector(`.amount-input[data-key="${key}"]`);
-      const n = Number(input?.value);
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function slugify(value) {
-      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    }
-
-    function queueChartDraw(totals) {
-      pendingTotalsForCharts = totals;
-      if (chartRaf) return;
-      chartRaf = requestAnimationFrame(() => {
-        chartRaf = 0;
-        const t = pendingTotalsForCharts || getCurrentTotals();
-        pendingTotalsForCharts = null;
-        drawDonutChart(t.categoryTotals, t.outflow);
-        drawTrendChart();
-      });
-    }
-
-    function drawDonutChart(categoryTotals, totalOutflow) {
-      const ctx = prepCanvas(expenseChart);
-      const w = expenseChart.clientWidth || 220;
-      const h = expenseChart.clientHeight || 220;
-
-      ctx.clearRect(0, 0, w, h);
-      breakdownLegend.innerHTML = "";
-
-      const entries = Object.entries(categoryTotals).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-
-      if (!entries.length || totalOutflow === 0) {
-        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted");
-        ctx.font = "13px Plus Jakarta Sans, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("No outflow recorded", w / 2, h / 2);
-        return;
-      }
-
-      const cx = w / 2;
-      const cy = h / 2;
-      const r = Math.min(w, h) * 0.44;
-      let startAngle = -Math.PI / 2;
-
-      entries.forEach(([cat, val], idx) => {
-        const sliceAngle = (val / totalOutflow) * 2 * Math.PI;
-        const color = CATEGORY_MAP[cat]?.color || CHART_COLORS[idx % CHART_COLORS.length];
-
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
-
-        startAngle += sliceAngle;
-
-        const row = document.createElement("div");
-        row.className = "breakdown-row";
-        const pct = ((val / totalOutflow) * 100).toFixed(1);
-        row.innerHTML = `
-          <div class="breakdown-label">
-            <span class="color-dot" style="background:${color}"></span>
-            <span>${cat}</span>
-          </div>
-          <span class="tnum hideable-val" style="font-weight:700;">₹${formatNumber(val)}</span>
-          <span class="tnum" style="color:var(--muted); font-size:11px;">${pct}%</span>
-        `;
-        breakdownLegend.appendChild(row);
-      });
-
-      // Inner Donut Cutout
-      ctx.beginPath();
-      ctx.arc(cx, cy, r * 0.65, 0, 2 * Math.PI);
-      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--card").trim();
-      ctx.fill();
-
-      // Center text
-      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--text").trim();
-      ctx.font = "bold 15px Plus Jakarta Sans, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(`₹${formatNumber(totalOutflow)}`, cx, cy + 2);
-      ctx.font = "11px Plus Jakarta Sans, sans-serif";
-      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted").trim();
-      ctx.fillText("Total Outflow", cx, cy + 18);
-    }
-
-    function drawTrendChart() {
-      const ctx = prepCanvas(trendChart);
-      const w = trendChart.clientWidth || 400;
-      const h = trendChart.clientHeight || 220;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const series = getLastMonthsSeries(6);
-      const textCol = getComputedStyle(document.body).getPropertyValue("--text").trim();
-      const mutedCol = getComputedStyle(document.body).getPropertyValue("--muted").trim();
-      const lineCol = getComputedStyle(document.body).getPropertyValue("--line").trim();
-
-      const pad = { top: 20, right: 15, bottom: 30, left: 45 };
-      const chartW = w - pad.left - pad.right;
-      const chartH = h - pad.top - pad.bottom;
-
-      const maxVal = Math.max(...series.flatMap(s => [s.salary, s.outflow]), 1000);
-
-      // Grid Lines
-      ctx.strokeStyle = lineCol;
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= 3; i++) {
-        const y = pad.top + (chartH * i) / 3;
-        ctx.beginPath();
-        ctx.moveTo(pad.left, y);
-        ctx.lineTo(w - pad.right, y);
-        ctx.stroke();
-
-        ctx.fillStyle = mutedCol;
-        ctx.font = "10px JetBrains Mono, monospace";
-        ctx.textAlign = "right";
-        const val = maxVal - (maxVal * i) / 3;
-        ctx.fillText(`₹${Math.round(val / 1000)}k`, pad.left - 6, y + 3);
-      }
-
-      const slotW = chartW / series.length;
-      const barW = Math.min(18, slotW * 0.32);
-
-      series.forEach((s, idx) => {
-        const x = pad.left + idx * slotW + slotW / 2;
-        const sH = (s.salary / maxVal) * chartH;
-        const oH = (s.outflow / maxVal) * chartH;
-
-        // Income bar
-        ctx.fillStyle = "#10b981";
-        ctx.fillRect(x - barW - 2, pad.top + chartH - sH, barW, sH);
-
-        // Outflow bar
-        ctx.fillStyle = "#3b82f6";
-        ctx.fillRect(x + 2, pad.top + chartH - oH, barW, oH);
-
-        // Month Label
-        ctx.fillStyle = textCol;
-        ctx.font = "11px Plus Jakarta Sans, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(monthShort(s.month), x, h - 8);
-      });
-    }
-
-    function getLastMonthsSeries(limit) {
-      const targetMonth = monthPicker.value;
-      const keys = Object.keys(data);
-      
-      if (!keys.includes(targetMonth)) keys.push(targetMonth);
-
-      keys.sort();
-      const filteredKeys = keys.filter(k => k <= targetMonth);
-      const slice = filteredKeys.slice(-limit);
-
-      return slice.map(m => {
-        const d = data[m] || { salary: "", items: {} };
-        const sal = Number(d.salary) || 0;
-        let outflow = 0;
-        ITEMS.forEach(it => {
-          const val = Number(d.items?.[it.key]);
-          if (Number.isFinite(val)) outflow += val;
-        });
-        return { month: m, salary: sal, outflow };
-      });
-    }
-
-    function prepCanvas(canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
-      const ctx = canvas.getContext("2d");
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      return ctx;
-    }
-
-    function getItemValue(item, current, prev) {
-      if (current.items && current.items[item.key] !== undefined && current.items[item.key] !== "") {
-        return current.items[item.key];
-      }
-      if (item.fixed) {
-        if (prev && prev.items && prev.items[item.key] !== undefined && prev.items[item.key] !== "") {
-          return prev.items[item.key];
-        }
-        return item.defaultAmount ?? "";
-      }
-      return "";
-    }
-
-    function applyFilters() {
-      const q = searchInput.value.trim().toLowerCase();
-
-      document.querySelectorAll(".cat-box").forEach(box => {
-        let boxHasMatch = false;
-        box.querySelectorAll(".cat-item-row").forEach(row => {
-          const match = !q || row.dataset.search.includes(q);
-          row.style.display = match ? "flex" : "none";
-          if (match) boxHasMatch = true;
-        });
-        box.style.display = boxHasMatch ? "block" : "none";
-      });
-
-      document.querySelectorAll("#tableRows tr").forEach(row => {
-        const match = !q || row.dataset.search.includes(q);
-        row.style.display = match ? "" : "none";
-      });
-    }
-
-    function saveCurrentMonth() {
-      const month = monthPicker.value;
-      if (!month) return;
-
-      data[month] = data[month] || { salary: "", items: {}, paid: {} };
-      data[month].salary = salaryInput.value ? Number(salaryInput.value) : "";
-
-      ITEMS.forEach(item => {
-        const input = document.querySelector(`.amount-input[data-key="${item.key}"]`);
-        const val = input ? input.value.trim() : "";
-        data[month].items[item.key] = val === "" ? "" : Number(val);
-      });
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      setAutosaveBadge("Saved", "saved", true);
-      setPaidDirty(false);
-      showToast(`Saved ledger for ${month}`);
-      render();
-    }
-
-    function saveCheckedItems() {
-      const month = monthPicker.value;
-      if (!month) return;
-      data[month] = data[month] || { salary: "", items: {}, paid: {} };
-      data[month].paid = data[month].paid || {};
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      setPaidDirty(false);
-      showToast(`Checked items saved for ${month}`);
-    }
-
-    function setPaidDirty(flag) {
-      paidDirty = !!flag;
-      if (!saveChecksBtn) return;
-      saveChecksBtn.disabled = !paidDirty;
-      saveChecksBtn.textContent = paidDirty ? "✅ Save Checked Items*" : "✅ Save Checked Items";
-    }
-
-    function updatePaidCategoryBadges() {
-      document.querySelectorAll(".cat-box").forEach(box => {
-        const badge = box.querySelector(".cat-badge");
-        if (!badge) return;
-        const total = box.querySelectorAll(".checkbox").length;
-        const checked = box.querySelectorAll(".checkbox:checked").length;
-        badge.textContent = `${checked}/${total} paid`;
-      });
-    }
-
-    function copyPreviousMonth() {
-      const currentMonth = monthPicker.value;
-      const prevMonth = getPreviousMonth(currentMonth);
-      if (!prevMonth || !data[prevMonth]) {
-        alert("No previous month record found to copy from.");
-        return;
-      }
-
-      data[currentMonth] = data[currentMonth] || { salary: "", items: {}, paid: {} };
-      data[currentMonth].salary = data[prevMonth].salary;
-      data[currentMonth].items = { ...data[prevMonth].items };
-      data[currentMonth].paid = {};
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      render();
-      showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
-      setAutosaveBadge("Saved", "saved", true);
-    }
-
-    function exportBackup() {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `finance_planner_backup_${toMonthString(new Date())}.json`;
-      a.click();
-      showToast("Backup exported");
-    }
-
-    function importBackup(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        try {
-          const parsed = JSON.parse(evt.target.result);
-          if (typeof parsed === "object") {
-            data = parsed;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            render();
-            showToast("Backup restored successfully!");
-          }
-        } catch {
-          alert("Invalid backup JSON file.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2200);
-    }
-
-    function syncSalaryToData() {
-      const month = monthPicker.value;
-      data[month] = data[month] || { salary: "", items: {}, paid: {} };
-      data[month].salary = salaryInput.value ? Number(salaryInput.value) : "";
-    }
-
-    function markDirtyAndAutosave() {
-      setAutosaveBadge("Saving draft...", "saving");
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        setAutosaveBadge("Draft saved", "saved", true);
-      }, 800);
-    }
-
-    function setAutosaveBadge(text, state = "", autoHide = false) {
-      if (!autosaveBadge) return;
-      autosaveBadge.textContent = text;
-      autosaveBadge.classList.add("show");
-      autosaveBadge.classList.remove("saving", "saved");
-      if (state) autosaveBadge.classList.add(state);
-
-      clearTimeout(autosaveHideTimer);
-      if (autoHide) {
-        autosaveHideTimer = setTimeout(() => {
-          autosaveBadge.classList.remove("show", "saving", "saved");
-        }, 1500);
-      }
-    }
-
-    function formatNumber(n) {
-      return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n || 0);
-    }
-
-    function toMonthString(d) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    function monthShort(mStr) {
-      const [y, m] = mStr.split("-").map(Number);
-      if (!y || !m) return mStr;
-      return new Date(y, m - 1, 1).toLocaleString("en-US", { month: "short" });
-    }
-
-    function getPreviousMonth(monthString) {
-      if (!monthString) return null;
-      const [y, m] = monthString.split("-").map(Number);
-      if (!y || !m) return null;
-      return toMonthString(new Date(y, m - 2, 1));
-    }
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : {};
-      } catch {
-        return {};
-      }
-    }
-
-    // ==============================
-    // Phase 2: Cloudflare D1 + KV
-    // ==============================
     async function api(path, options = {}) {
       const res = await fetch(path, {
-        credentials: "include",
-        headers: { "content-type": "application/json", ...(options.headers || {}) },
+        credentials: 'include',
+        headers: { 'content-type': 'application/json', ...(options.headers || {}) },
         ...options,
       });
       let payload = {};
       try { payload = await res.json(); } catch {}
       if (!res.ok) {
-        const msg = payload?.error || `Request failed (${res.status})`;
-        const err = new Error(msg);
+        const err = new Error(payload?.error || `Request failed (${res.status})`);
         err.status = res.status;
-        const retryAfter = Number(res.headers.get("Retry-After") || "0");
+        const retryAfter = Number(res.headers.get('Retry-After') || '0');
         if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfterSec = retryAfter;
         throw err;
       }
       return payload;
     }
 
-    function getAuthCooldownSecondsLeft() {
-      if (!authCooldownUntil) return 0;
-      return Math.max(0, Math.ceil((authCooldownUntil - Date.now()) / 1000));
+    function setError(message = '') { errorText.textContent = message; }
+
+    function getCooldownLeft() {
+      if (!cooldownUntil) return 0;
+      return Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
     }
 
-    function formatCooldown(seconds) {
-      const s = Math.max(0, Number(seconds || 0));
-      const mm = String(Math.floor(s / 60)).padStart(2, "0");
-      const ss = String(s % 60).padStart(2, "0");
+    function formatCooldown(sec) {
+      const s = Math.max(0, Number(sec || 0));
+      const mm = String(Math.floor(s / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
       return `${mm}:${ss}`;
     }
 
-    function clearAuthCooldown() {
-      authCooldownUntil = 0;
-      if (authCooldownTimer) {
-        clearInterval(authCooldownTimer);
-        authCooldownTimer = null;
+    function clearCooldown() {
+      cooldownUntil = 0;
+      if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
       }
     }
 
-    function startAuthCooldown(seconds) {
-      const sec = Math.max(1, Number(seconds || 0));
-      authCooldownUntil = Date.now() + sec * 1000;
-      if (authCooldownTimer) clearInterval(authCooldownTimer);
+    function startCooldown(seconds) {
+      cooldownUntil = Date.now() + Math.max(1, Number(seconds || 0)) * 1000;
+      if (cooldownTimer) clearInterval(cooldownTimer);
 
       const tick = () => {
-        const left = getAuthCooldownSecondsLeft();
+        const left = getCooldownLeft();
         if (left <= 0) {
-          clearAuthCooldown();
-          authSubmitBtn.disabled = false;
-          authSubmitBtn.textContent = authMode === "register" ? "Sign up" : "Sign in";
-          setAuthError("");
+          clearCooldown();
+          submitBtn.disabled = false;
+          submitBtn.textContent = mode === 'register' ? 'Create account' : 'Sign in';
+          setError('');
           return;
         }
-        const label = formatCooldown(left);
-        authSubmitBtn.disabled = true;
-        authSubmitBtn.textContent = `Try again in ${label}`;
-        setAuthError(`Too many attempts. Try again in ${label}.`);
+        submitBtn.disabled = true;
+        submitBtn.textContent = `Try again in ${formatCooldown(left)}`;
+        setError(`Too many attempts. Try again in ${formatCooldown(left)}.`);
       };
 
       tick();
-      authCooldownTimer = setInterval(tick, 1000);
+      cooldownTimer = setInterval(tick, 1000);
     }
 
-    async function cloudLoginFlow(mode) {
-      const username = (authUsername?.value || "").trim().toLowerCase();
-      const password = (authPin.value || "").trim();
-      const currentPassword = (authCurrentPin?.value || "").trim();
-      const confirmPassword = (authPinConfirm?.value || "").trim();
-      const resetConfirm = (authResetConfirm?.value || "").trim();
-
-      const payload = await api("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm, turnstileToken }),
+    function ensureTurnstileRendered() {
+      if (!turnstileEnabled || !turnstileSiteKey) return;
+      if (!window.turnstile?.render) return;
+      if (turnstileWidgetID !== null) return;
+      turnstileWidgetID = window.turnstile.render('#turnstileBox', {
+        sitekey: turnstileSiteKey,
+        callback: (token) => { turnstileToken = token || ''; },
+        'expired-callback': () => { turnstileToken = ''; },
+        'error-callback': () => { turnstileToken = ''; },
       });
-      return payload;
     }
 
-    function readableAuthError(error) {
-      const message = String(error?.message || "").trim();
-      const status = Number(error?.status || 0);
-      const lower = message.toLowerCase();
-      if (!message || lower === "failed to fetch" || lower.includes("networkerror")) {
-        return "We couldn’t reach MashMind. Check your connection and try again.";
-      }
-      if (status === 401 || lower.includes("invalid credentials") || lower.includes("invalid username or password")) {
-        return "That username and password combination doesn’t look right. Please try again.";
-      }
-      if (status === 409 || lower.includes("already exists") || lower.includes("username taken")) {
-        return "That username is already in use. Try signing in or choose another username.";
-      }
-      if (status >= 500) {
-        return "MashMind is having trouble right now. Please try again in a moment.";
-      }
-      return message;
-    }
-
-    function validateAuthInput() {
-      const username = (authUsername?.value || "").trim().toLowerCase();
-      const password = (authPin.value || "").trim();
-      const currentPassword = (authCurrentPin?.value || "").trim();
-      const confirmPassword = (authPinConfirm?.value || "").trim();
-
-      if ((authMode === "login" || authMode === "register") && !/^[a-z0-9._-]{3,32}$/.test(username)) {
-        return "Username must be 3-32 chars (letters, numbers, ., _, -).";
-      }
-      if (authMode === "login" && !password) return "Password is required.";
-      if ((authMode === "register" || authMode === "changepassword") && password.length < 6) {
-        return "Password must be at least 6 characters.";
-      }
-      if (authMode === "register" || authMode === "changepassword") {
-        if (password !== confirmPassword) return "Password confirmation does not match.";
-      }
-      if (authMode === "changepassword" && !currentPassword) {
-        return "Current password is required.";
-      }
-      if (authMode === "resetaccount" && !password) {
-        return "Current password is required.";
-      }
-      const cooldownLeft = getAuthCooldownSecondsLeft();
-      if ((authMode === "login" || authMode === "register") && cooldownLeft > 0) {
-        return `Too many attempts. Try again in ${formatCooldown(cooldownLeft)}.`;
-      }
-      if (turnstileEnabled && (authMode === "login" || authMode === "register") && !turnstileToken) {
-        return "Please complete human verification.";
-      }
-      return "";
-    }
-
-    async function hydrateFromCloud() {
-      const res = await api("/api/data");
-      if (res?.data && typeof res.data === "object") {
-        data = res.data;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    function resetTurnstile() {
+      turnstileToken = '';
+      if (turnstileWidgetID !== null && window.turnstile?.reset) {
+        window.turnstile.reset(turnstileWidgetID);
       }
     }
 
-    async function migrateLocalStorageToCloudOnce() {
-      const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
-      const already = localStorage.getItem(syncKey) === "1";
-      if (already) return;
-      const localData = loadData();
-      if (!localData || !Object.keys(localData).length) {
-        localStorage.setItem(syncKey, "1");
+    function updateTurnstileVisibility() {
+      const needed = turnstileEnabled && (mode === 'login' || mode === 'register');
+      turnstileWrap.classList.toggle('hidden', !needed);
+      if (!needed) {
+        turnstileToken = '';
         return;
       }
-      await api("/api/data", { method: "POST", body: JSON.stringify({ data: localData }) });
-      localStorage.setItem(syncKey, "1");
+      ensureTurnstileRendered();
+      if (turnstileWidgetID === null) setTimeout(ensureTurnstileRendered, 250);
+      resetTurnstile();
     }
 
-    async function syncMonthToCloud(month) {
-      const monthData = data[month] || { salary: "", items: {}, paid: {} };
-      await api(`/api/data/month/${month}`, {
-        method: "PUT",
-        body: JSON.stringify(monthData),
-      });
+    function setMode(nextMode) {
+      mode = nextMode;
+      const isRegister = mode === 'register';
+      tabLogin.classList.toggle('active', !isRegister);
+      tabRegister.classList.toggle('active', isRegister);
+      confirmWrap.classList.toggle('hidden', !isRegister);
+
+      authTitle.textContent = isRegister ? 'Create account' : 'Sign in';
+      authSubtitle.textContent = isRegister
+        ? 'Set your username and password to start planning.'
+        : 'Use your username and password to continue.';
+      submitBtn.textContent = isRegister ? 'Create account' : 'Sign in';
+      submitBtn.disabled = false;
+      setError('');
+      clearCooldown();
+      updateTurnstileVisibility();
     }
 
-    async function refreshCloudProfile() {
-      try {
-        const me = await api("/api/auth/me");
-        cloudProfile = me;
-        return me;
-      } catch {
-        cloudProfile = null;
-        return null;
+    function validate() {
+      const u = username.value.trim();
+      const p = password.value;
+      const c = confirmPassword.value;
+
+      if (!/^[a-z0-9._-]{3,32}$/i.test(u)) return 'Username must be 3–32 characters (letters, numbers, ., _, -).';
+      if (!p) return 'Password is required.';
+      if (mode === 'register') {
+        if (p.length < 6) return 'Password must be at least 6 characters.';
+        if (p !== c) return 'Password confirmation does not match.';
       }
+
+      const cooldown = getCooldownLeft();
+      if (cooldown > 0) return `Too many attempts. Try again in ${formatCooldown(cooldown)}.`;
+      if (turnstileEnabled && !turnstileToken) return 'Please complete human verification.';
+      return '';
     }
 
-    async function fetchAuthStatus() {
+    async function fetchStatus() {
       try {
-        const res = await api("/api/auth/status");
-        cloudHasUsers = !!res?.hasUsers;
+        const res = await api('/api/auth/status');
+        hasUsers = !!res?.hasUsers;
         turnstileEnabled = !!res?.turnstileEnabled;
         turnstileSiteKey = res?.turnstileSiteKey || null;
       } catch {
-        cloudHasUsers = true;
+        hasUsers = true;
         turnstileEnabled = false;
         turnstileSiteKey = null;
       }
-      return cloudHasUsers;
-    }
 
-    async function bootstrapCloudSession() {
-      const me = await refreshCloudProfile();
-      if (me?.authenticated) {
-        sessionStorage.setItem(AUTH_SESSION_KEY, "1");
-        window.location.replace("/app.html");
-        return;
+      if (!hasUsers) {
+        statusNote.textContent = 'No account found yet — create your first account.';
+        tabLogin.disabled = true;
+        setMode('register');
+      } else {
+        statusNote.textContent = 'Secure account access is active.';
       }
-
-      sessionStorage.removeItem(AUTH_SESSION_KEY);
-      await fetchAuthStatus();
-      lockApp(true);
     }
 
-    async function ensureSessionAlive() {
-      if (!isAuthenticated()) return;
-      const me = await refreshCloudProfile();
-      if (me?.authenticated) {
-        updateSecurityCard();
-        return;
-      }
-      await logoutUser({ reason: "Session expired. Please sign in again." });
+    async function bootstrapSession() {
+      try {
+        const me = await api('/api/auth/me');
+        if (me?.authenticated) {
+          sessionStorage.setItem(AUTH_SESSION_KEY, '1');
+          window.location.replace('/app.html');
+          return;
+        }
+      } catch {}
     }
 
-    // replace auth submit with cloud-backed auth
-    authForm.addEventListener("submit", async (e) => {
+    tabLogin.addEventListener('click', () => setMode('login'));
+    tabRegister.addEventListener('click', () => setMode('register'));
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      setAuthError("");
-      const validationError = validateAuthInput();
-      if (validationError) {
-        setAuthError(validationError, true);
+      setError('');
+
+      const err = validate();
+      if (err) {
+        setError(err);
         return;
       }
 
-      const submittedMode = authMode;
-      const initialBtnLabel = authSubmitBtn.textContent;
-      const busyLabel = authMode === "register" ? "Creating your account…" : authMode === "changepassword" ? "Updating password…" : authMode === "resetaccount" ? "Resetting account…" : "Signing you in…";
-      authSubmitBtn.disabled = true;
-      authModeLoginBtn.disabled = true;
-      authModeRegisterBtn.disabled = true;
-      authSwitchBtn.disabled = true;
-      authSubmitBtn.classList.add("is-loading");
-      authSubmitBtn.setAttribute("aria-busy", "true");
-      authSubmitBtn.innerHTML = `<span class="auth-submit-content"><span class="auth-spinner" aria-hidden="true"></span><span>${busyLabel}</span></span>`;
+      const submitLabel = submitBtn.textContent;
+      submitBtn.disabled = true;
+      tabLogin.disabled = true;
+      tabRegister.disabled = true;
+      submitBtn.textContent = mode === 'register' ? 'Creating account…' : 'Signing in…';
 
       try {
-        const payload = await cloudLoginFlow(authMode);
+        await api('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            mode,
+            username: username.value.trim(),
+            password: password.value,
+            confirmPassword: confirmPassword.value,
+            turnstileToken,
+          }),
+        });
 
-        if (authMode === "resetaccount") {
-          cloudHasUsers = false;
-          cloudProfile = null;
-          wipePlannerData();
-          Object.keys(localStorage)
-            .filter((k) => k.startsWith(`${CLOUD_SYNC_KEY}:`))
-            .forEach((k) => localStorage.removeItem(k));
-          showAuthOverlay("register");
-          showToast(payload?.message || "Account reset complete");
+        sessionStorage.setItem(AUTH_SESSION_KEY, '1');
+        window.location.replace('/app.html');
+      } catch (e2) {
+        resetTurnstile();
+        const retryAfter = Number(e2?.retryAfterSec || 0);
+        if (retryAfter > 0) {
+          startCooldown(retryAfter);
           return;
         }
-
-        cloudHasUsers = true;
-        clearAuthCooldown();
-        cloudProfile = payload || null;
-        sessionStorage.setItem(AUTH_SESSION_KEY, "1");
-        window.location.replace("/app.html");
-        return;
-      } catch (err) {
-        if (authMode === "login" || authMode === "register") resetTurnstile();
-        const retryAfter = Number(err?.retryAfterSec || 0);
-        if ((authMode === "login" || authMode === "register") && retryAfter > 0) {
-          startAuthCooldown(retryAfter);
+        const lockMatch = String(e2?.message || '').match(/try again in\s+(\d+)s/i);
+        if (lockMatch) {
+          startCooldown(Number(lockMatch[1]));
           return;
         }
-        const lockMatch = String(err?.message || "").match(/try again in\s+(\d+)s/i);
-        if ((authMode === "login" || authMode === "register") && lockMatch) {
-          startAuthCooldown(Number(lockMatch[1]));
-          return;
-        }
-        setAuthError(readableAuthError(err) || "Authentication failed. Please try again.", true);
+        setError(e2?.message || 'Authentication failed. Please try again.');
       } finally {
-        authSubmitBtn.classList.remove("is-loading");
-        authSubmitBtn.removeAttribute("aria-busy");
-        authModeLoginBtn.disabled = false;
-        authModeRegisterBtn.disabled = false;
-        authSwitchBtn.disabled = false;
-        if (getAuthCooldownSecondsLeft() <= 0) {
-          authSubmitBtn.disabled = false;
-          if (authMode === submittedMode) authSubmitBtn.textContent = initialBtnLabel;
+        tabLogin.disabled = !hasUsers;
+        tabRegister.disabled = false;
+        if (getCooldownLeft() <= 0) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitLabel;
         }
       }
     });
 
-    // wrap save handlers to sync with D1
-    saveMonthBtn.removeEventListener("click", saveCurrentMonth);
-    saveMonthBtn.addEventListener("click", async () => {
-      saveCurrentMonth();
-      try {
-        await syncMonthToCloud(monthPicker.value);
-      } catch (e) {
-        showToast(`Saved locally. Cloud sync failed: ${e.message}`);
-      }
-    });
-
-    if (typeof saveCheckedItems === "function") {
-      saveChecksBtn.removeEventListener("click", saveCheckedItems);
-      saveChecksBtn.addEventListener("click", async () => {
-        saveCheckedItems();
-        try {
-          await syncMonthToCloud(monthPicker.value);
-        } catch (e) {
-          showToast(`Checks saved locally. Cloud sync failed: ${e.message}`);
-        }
-      });
-    }
-
+    (async () => {
+      await bootstrapSession();
+      await fetchStatus();
+      if (hasUsers) setMode('login');
+      updateTurnstileVisibility();
+    })();
   </script>
 </body>
 </html>
