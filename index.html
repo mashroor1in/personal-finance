@@ -1,149 +1,313 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MashMind Expenses</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f2f6fc">
+  <meta name="description" content="MashMind Expense Planner helps you plan monthly finances, track paid items, and stay secure with cloud-backed sync.">
+  <title>MashMind Expense Planner — A clearer view of your money</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #0b1220;
-      --card: #111b32;
-      --line: #22304d;
-      --text: #e5edff;
-      --muted: #9fb0d3;
-      --accent: #3b82f6;
-      --accent2: #10b981;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-      color: var(--text);
-      background: radial-gradient(900px 480px at 20% -10%, #1d4ed8 0%, transparent 60%), var(--bg);
-    }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 22px 18px 48px; }
-    .top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .logo { font-weight: 800; letter-spacing: -0.02em; }
-    .btn {
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      padding: 11px 16px;
-      font-weight: 700;
-      border: 1px solid var(--line);
-      color: var(--text);
-      background: rgba(255,255,255,0.03);
-    }
-    .btn-primary { background: var(--accent); border-color: #60a5fa; color: #fff; }
-    .hero {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 16px;
-      align-items: stretch;
-    }
-    .panel {
-      border: 1px solid var(--line);
-      background: rgba(17,27,50,0.82);
-      backdrop-filter: blur(5px);
-      border-radius: 18px;
-      padding: 24px;
-    }
-    h1 {
-      margin: 0;
-      font-size: clamp(28px, 5vw, 48px);
-      line-height: 1.08;
-      letter-spacing: -0.03em;
-    }
-    .sub { color: var(--muted); margin: 14px 0 18px; line-height: 1.55; }
-    .cta { display: flex; gap: 10px; flex-wrap: wrap; }
-    .kpis {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .kpi {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.02);
-    }
-    .kpi b { display: block; font-size: 18px; margin-bottom: 4px; }
-    .kpi span { color: var(--muted); font-size: 12px; }
-    .features {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 10px;
-    }
-    .feature {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: rgba(255,255,255,0.02);
-      padding: 12px;
-    }
-    .feature h3 { margin: 0 0 6px; font-size: 14px; }
-    .feature p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
-    .foot { margin-top: 18px; color: var(--muted); font-size: 12px; }
-    @media (max-width: 900px) {
-      .hero { grid-template-columns: 1fr; }
-      .features { grid-template-columns: 1fr; }
-    }
+    :root{--paper:#f7f8f5;--white:#fff;--ink:#171d19;--muted:#747d75;--line:#e6eae4;--green:#304c37;--green2:#58775c;--soft:#eef3ed;--lime:#d9e7ce;--shadow:0 30px 80px rgba(30,49,34,.11)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    .shell{width:min(1160px,calc(100% - 64px));margin-inline:auto}
+    .nav{height:88px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:12px;font:700 17px 'Manrope',sans-serif;letter-spacing:-.8px}
+    .brand-mark{width:34px;height:34px;border:1px solid #d9e2d8;border-radius:11px;display:grid;place-items:center;background:#fff;color:var(--green)}
+    .brand-mark svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .brand small{display:block;margin-top:1px;color:#8a938b;font:600 8px 'DM Sans',sans-serif;letter-spacing:1.75px;text-transform:uppercase}
+    .nav-right{display:flex;align-items:center;gap:34px;font-size:12px;color:#6f786f}
+    .nav-right>a:not(.nav-cta){transition:color .2s}.nav-right>a:not(.nav-cta):hover{color:var(--green)}
+    .nav-cta{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--green);color:#fff;border-radius:7px;font-size:11px;font-weight:600;transition:transform .2s,background .2s,box-shadow .2s;box-shadow:0 5px 14px rgba(48,76,55,.12)}
+    .nav-cta:hover,.button-primary:hover{background:#223a29;transform:translateY(-2px);box-shadow:0 8px 22px rgba(48,76,55,.17)}
+    .arrow{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+    a:hover .arrow{transform:translate(2px,-2px)}
+    .hero{min-height:650px;display:grid;grid-template-columns:.93fr 1.07fr;align-items:center;gap:58px;padding:70px 0 76px;position:relative}
+    .hero-copy{position:relative;z-index:2;padding-bottom:10px}
+    .eyebrow{display:flex;align-items:center;gap:11px;color:var(--green2);font-size:9px;font-weight:700;letter-spacing:1.85px;text-transform:uppercase;margin-bottom:27px}
+    .eyebrow:before{content:'';width:23px;height:1px;background:#78927a}
+    h1{font:600 clamp(48px,5.7vw,76px)/1.05 'Manrope',sans-serif;letter-spacing:-4.8px;margin:0;max-width:590px}
+    h1 .serif{font:400 1.03em/1 'Instrument Serif',serif;letter-spacing:-2.5px;color:var(--green2);font-style:italic}
+    .hero-copy>p{font-size:15px;line-height:1.85;color:var(--muted);max-width:440px;margin:26px 0 29px}
+    .hero-actions{display:flex;align-items:center;gap:21px;flex-wrap:wrap}
+    .button-primary{display:inline-flex;align-items:center;gap:12px;padding:15px 19px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:11px;font-weight:600;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s;box-shadow:0 6px 16px rgba(48,76,55,.13)}
+    .button-secondary{display:inline-flex;align-items:center;gap:8px;color:#68736a;font-size:11px;font-weight:600;padding:12px 0;transition:color .2s}
+    .button-secondary:hover{color:var(--green)}
+    .fineprint{margin-top:24px;display:flex;align-items:center;gap:8px;color:#929b92;font-size:10px}
+    .fineprint svg{width:14px;height:14px;stroke:#719074;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+    .visual{position:relative;min-width:0;padding:26px 0 26px 14px;perspective:1200px}
+    .visual-glow{position:absolute;inset:4% -9% 2% 5%;background:radial-gradient(ellipse at 58% 45%,#dce7d9 0%,#edf1ea 38%,rgba(247,248,245,0) 72%);filter:blur(8px);pointer-events:none}
+    .dashboard{position:relative;z-index:1;background:rgba(255,255,255,.94);border:1px solid #e5eae4;border-radius:13px;box-shadow:var(--shadow);padding:25px 27px 23px;transform:rotateY(-5deg) rotateX(1deg);transform-origin:center;animation:float-card 8s ease-in-out infinite}
+    .dash-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:19px;border-bottom:1px solid #edf0eb}
+    .dash-title{display:flex;align-items:center;gap:10px;font:650 13px 'Manrope',sans-serif;letter-spacing:-.25px}
+    .dash-logo{width:27px;height:27px;border-radius:8px;background:#edf3ed;color:var(--green);display:grid;place-items:center}
+    .dash-logo svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .month-pill{padding:7px 10px;border:1px solid #edf0eb;border-radius:5px;color:#7c857d;font-size:9px}
+    .balance-block{padding:24px 0 19px}
+    .overline{font-size:8px;letter-spacing:1.25px;font-weight:700;color:#939c93;text-transform:uppercase}
+    .balance{font:650 35px/1.2 'Manrope',sans-serif;letter-spacing:-1.7px;margin:8px 0 5px;color:#19221b}
+    .balance-note{display:flex;align-items:center;gap:6px;color:#829084;font-size:9px}
+    .balance-note svg{width:12px;height:12px;stroke:#64866b;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:21px}
+    .mini-stat{border:1px solid #edf0eb;border-radius:8px;padding:13px 14px;background:#fcfdfb}
+    .mini-stat-top{display:flex;align-items:center;gap:7px;color:#89928a;font-size:9px;margin-bottom:8px}
+    .mini-stat-top svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .mini-stat strong{font:650 17px 'Manrope',sans-serif;letter-spacing:-.5px;color:#29392d}
+    .mini-stat small{display:block;margin-top:4px;font-size:8px;color:#9aa39a}
+    .chart-card{border:1px solid #edf0eb;border-radius:8px;padding:14px 14px 10px;margin-bottom:16px}
+    .chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+    .chart-head strong{font:650 10px 'Manrope',sans-serif}
+    .chart-head span{color:#9aa39a;font-size:8px}
+    .chart-svg{width:100%;height:115px;display:block;overflow:visible}
+    .chart-svg .gridline{stroke:#eef1ed;stroke-width:1;stroke-dasharray:3 4}
+    .chart-svg .area{fill:url(#chartFill)}
+    .chart-svg .line{fill:none;stroke:#65866b;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:draw-line 2s .5s ease forwards}
+    .chart-svg .point{fill:#fff;stroke:#65866b;stroke-width:2}
+    .chart-labels{display:flex;justify-content:space-between;color:#a1aaa1;font-size:8px;padding:0 4px}
+    .payments{display:grid;gap:0}
+    .payments-head{display:flex;align-items:center;justify-content:space-between;padding:0 1px 8px}
+    .payments-head strong{font:650 10px 'Manrope',sans-serif}
+    .payments-head span{color:#929b92;font-size:8px}
+    .payment{display:flex;align-items:center;gap:10px;padding:10px 1px;border-top:1px solid #f0f2ee}
+    .payment-icon{width:29px;height:29px;border:1px solid #edf0eb;border-radius:7px;display:grid;place-items:center;color:#667e69;background:#fbfcfa}
+    .payment-icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .payment-copy{flex:1}.payment-copy strong{display:block;font-size:9px;font-weight:600;color:#3b453d}.payment-copy small{color:#9ca49c;font-size:8px}
+    .payment-amount{text-align:right;font-size:9px;font-weight:600;color:#47564a}.payment-amount small{display:block;margin-top:3px;font-size:8px;color:#719174;font-weight:500}
+    .float-note{position:absolute;z-index:2;right:-24px;bottom:46px;display:flex;align-items:center;gap:10px;padding:13px 15px;background:#fff;border:1px solid #e7ece6;border-radius:9px;box-shadow:0 13px 34px rgba(34,52,37,.1);animation:float-note 6s ease-in-out infinite}
+    .float-check{width:29px;height:29px;border-radius:50%;background:#edf4eb;color:#628466;display:grid;place-items:center}
+    .float-check svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .float-note strong{display:block;font:650 10px 'Manrope',sans-serif}.float-note small{display:block;margin-top:2px;font-size:8px;color:#8d978e}
+    .capabilities{border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:27px 0}
+    .capability{display:flex;gap:13px;align-items:flex-start;padding:0 26px;border-right:1px solid var(--line)}
+    .capability:first-child{padding-left:0}.capability:last-child{border-right:0;padding-right:0}
+    .cap-icon{width:34px;height:34px;border:1px solid #e3e9e2;background:#fff;border-radius:9px;display:grid;place-items:center;color:var(--green2);flex:none}
+    .cap-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
+    .capability strong{display:block;font:650 11px 'Manrope',sans-serif;margin:2px 0 4px;letter-spacing:-.2px}
+    .capability p{font-size:10px;line-height:1.6;color:#879188;margin:0;max-width:230px}
+    .closing{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;padding:87px 0 82px}
+    .closing .eyebrow{margin-bottom:17px}
+    .closing h2{font:550 clamp(30px,3.3vw,43px)/1.17 'Manrope',sans-serif;letter-spacing:-2px;margin:0;max-width:600px}
+    .closing h2 em{font:400 1.06em 'Instrument Serif',serif;color:var(--green2)}
+    .closing p{font-size:12px;line-height:1.8;color:var(--muted);max-width:460px;margin:14px 0 0}
+    .closing-cta{white-space:nowrap}
+    footer{border-top:1px solid var(--line);padding:22px 0}
+    .footer-row{display:flex;align-items:center;justify-content:space-between;gap:18px;color:#929a92;font-size:9px}
+    .footer-brand{font:650 11px 'Manrope',sans-serif;color:#677269}
+    .footer-note{display:flex;align-items:center;gap:7px}.footer-note svg{width:12px;height:12px;stroke:#829982;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+    .reveal.is-visible{opacity:1;transform:translateY(0)}
+    .hero-copy{animation:copy-enter .85s .08s both cubic-bezier(.2,.7,.2,1)}
+    .visual{animation:visual-enter 1s .14s both cubic-bezier(.2,.7,.2,1)}
+    @keyframes copy-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes visual-enter{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes float-card{0%,100%{transform:rotateY(-5deg) rotateX(1deg) translateY(0)}50%{transform:rotateY(-5deg) rotateX(1deg) translateY(-7px)}}
+    @keyframes float-note{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes draw-line{to{stroke-dashoffset:0}}
+    @media(max-width:1000px){.hero{gap:30px;grid-template-columns:.9fr 1.1fr}.visual{padding-left:0}.dashboard{padding:21px}.float-note{right:-10px}.hero h1{font-size:clamp(46px,6vw,64px);letter-spacing:-3.8px}}
+    @media(max-width:760px){.shell{width:min(100% - 38px,560px)}.nav{height:72px}.nav-right{gap:15px}.nav-right>a:not(.nav-cta){display:none}.nav-cta{padding:10px 12px}.hero{display:flex;flex-direction:column;align-items:stretch;gap:25px;padding:58px 0 43px;min-height:0}.hero-copy{padding:0}.hero h1{font-size:clamp(49px,11vw,67px);letter-spacing:-3.7px}.hero-copy>p{font-size:13px;margin:20px 0 23px}.visual{padding:4px 2px 24px}.dashboard{transform:none;animation:none;padding:19px}.float-note{right:-4px;bottom:7px}.capabilities{grid-template-columns:1fr;gap:0;padding:6px 0}.capability,.capability:first-child,.capability:last-child{padding:17px 0;border-right:0;border-bottom:1px solid var(--line)}.capability:last-child{border-bottom:0}.capability p{max-width:none}.closing{grid-template-columns:1fr;gap:22px;padding:58px 0}.closing h2{font-size:34px}.closing-cta{justify-self:start}.footer-row{align-items:flex-start;flex-direction:column;gap:9px}}
+    @media(max-width:420px){.shell{width:calc(100% - 30px)}.brand{font-size:15px}.hero h1{font-size:47px;letter-spacing:-3.1px}.hero-actions{gap:13px}.button-primary{padding:14px 16px}.dashboard{padding:16px}.balance{font-size:30px}.float-note{transform:scale(.92);transform-origin:right bottom}.mini-stat strong{font-size:15px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
   </style>
+
+<style id="mashmind-blue-motion-landing">
+  :root{
+    --paper:#f3f7fc;--white:#fff;--ink:#14243b;--muted:#667891;--line:#e1eaf5;
+    --green:#2f6fc5;--green2:#538ee1;--soft:#eaf2ff;--lime:#d9e9ff;
+    --shadow:0 30px 90px rgba(35,82,145,.13)
+  }
+  body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;letter-spacing:-.012em}
+  .nav{height:92px;border-color:#dfe8f3}
+  .brand{font-size:19px;letter-spacing:-.95px}
+  .brand-mark{width:38px;height:38px;border-color:#d5e3f5;color:#2865ad;background:linear-gradient(145deg,#fff,#edf4ff);box-shadow:0 6px 18px rgba(48,103,172,.08)}
+  .brand small{font-size:9px;letter-spacing:1.9px;color:#8292a8}
+  .nav-right{font-size:14px;gap:36px;color:#687b94}
+  .nav-right>a:not(.nav-cta):hover{color:#2f6fc5}
+  .nav-cta{font-size:13px;padding:13px 18px;background:linear-gradient(115deg,#397ed4,#245da8);border-radius:9px;box-shadow:0 8px 20px rgba(47,111,197,.16)}
+  .nav-cta:hover,.button-primary:hover{background:linear-gradient(115deg,#2d71c7,#194f95);box-shadow:0 12px 27px rgba(47,111,197,.23)}
+  .hero{min-height:700px;gap:62px;padding:75px 0 86px;isolation:isolate}
+  .hero::before{content:"";position:absolute;z-index:-1;width:520px;height:520px;right:22%;top:1%;border-radius:50%;background:radial-gradient(circle,rgba(123,174,239,.15),rgba(190,215,245,.08) 45%,transparent 72%);filter:blur(12px);animation:ambient-drift 16s ease-in-out infinite alternate}
+  .hero::after{content:"";position:absolute;z-index:-1;right:-60px;top:80px;width:230px;height:230px;opacity:.35;background-image:radial-gradient(#8eb4e5 1px,transparent 1px);background-size:15px 15px;mask-image:radial-gradient(circle,black,transparent 72%);animation:dot-drift 18s linear infinite}
+  .eyebrow{font-size:11px;letter-spacing:2.1px;color:#4d7fbd;margin-bottom:29px}
+  .eyebrow:before{width:27px;background:#6c9edb}
+  h1{font-size:clamp(58px,6.6vw,88px);line-height:1.02;letter-spacing:-5.7px;font-weight:650;max-width:620px}
+  h1 .serif{color:#4384d2;letter-spacing:-2.8px;background:linear-gradient(100deg,#3974ba,#73a8eb 48%,#3e79c7);background-size:180% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 9s ease-in-out infinite}
+  .hero-copy>p{font-size:17px;line-height:1.85;color:#687b94;max-width:470px;margin:29px 0 33px}
+  .hero-actions{gap:24px}
+  .button-primary{position:relative;overflow:hidden;padding:17px 21px;border-radius:9px;background:linear-gradient(115deg,#397ed4,#245da8);font-size:13px;box-shadow:0 9px 22px rgba(47,111,197,.17)}
+  .button-primary::after{content:"";position:absolute;inset:0;transform:translateX(-130%);background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.27) 48%,transparent 70%);transition:transform .7s}
+  .button-primary:hover::after{transform:translateX(130%)}
+  .button-secondary{font-size:13px;color:#71839a}
+  .fineprint{font-size:12px;color:#8595aa;margin-top:26px}
+  .fineprint svg{stroke:#538bd2;width:16px;height:16px}
+  .visual{padding:28px 0 31px 14px}
+  .visual-glow{inset:-4% -12% -2% 1%;background:radial-gradient(ellipse at 56% 44%,#dceaff 0%,#e9f2ff 38%,rgba(243,247,252,0) 73%);filter:blur(13px);animation:glow-breathe 8s ease-in-out infinite}
+  .dashboard{border-color:#e0e9f5;border-radius:17px;box-shadow:0 34px 85px rgba(31,74,131,.15),0 5px 18px rgba(41,78,122,.055);backdrop-filter:blur(16px)}
+  .dash-title{font-size:14px}.dash-logo{background:#e9f2ff;color:#2f6fc5}
+  .month-pill{font-size:10px;color:#7588a2;border-color:#e5edf7}
+  .overline{font-size:9px;color:#8394ab;letter-spacing:1.35px}
+  .balance{font-size:39px;color:#172b48}
+  .balance-note{font-size:10px;color:#7187a2}.balance-note svg{stroke:#4288dc}
+  .mini-stat{background:#fafdff;border-color:#e5edf7;padding:14px 15px}
+  .mini-stat-top{font-size:10px;color:#768aa4}.mini-stat-top svg{color:#4b84c9}
+  .mini-stat strong{font-size:19px;color:#213c61}.mini-stat small{font-size:9px}
+  .chart-card{border-color:#e4edf8;background:#fff;padding:15px 15px 11px}
+  .chart-head strong{font-size:11px;color:#233c5d}.chart-head span{font-size:9px}
+  .chart-svg .gridline{stroke:#edf2f8}.chart-svg .line{stroke:#4489dc;stroke-width:2.5;animation:draw-line 2.4s .6s cubic-bezier(.2,.7,.2,1) forwards}
+  .chart-svg .point{stroke:#4489dc}.chart-labels{font-size:9px}
+  .payments-head strong{font-size:11px}.payments-head span{font-size:9px}
+  .payment{padding:11px 1px;transition:background .22s,transform .22s;border-radius:7px}
+  .payment:hover{background:#f5f9ff;transform:translateX(3px)}
+  .payment-icon{background:#f5f9ff;border-color:#e8eff8;color:#4d83c3}
+  .payment-copy strong{font-size:10px;color:#2a405e}.payment-copy small{font-size:9px}
+  .payment-amount{font-size:10px;color:#334e70}.payment-amount small{font-size:9px;color:#4387d3}
+  .float-note{border-color:#dfebf8;border-radius:11px;box-shadow:0 17px 40px rgba(34,78,133,.13);animation:float-note 5.4s ease-in-out infinite}
+  .float-check{background:#e9f3ff;color:#347acb}
+  .float-note strong{font-size:11px;color:#233b5b}.float-note small{font-size:9px;color:#7c8da4}
+  .capabilities{padding:31px 0;border-color:#dfe8f3}
+  .capability{gap:15px;padding-inline:28px;transition:transform .28s}
+  .capability:hover{transform:translateY(-4px)}
+  .cap-icon{width:39px;height:39px;border-color:#dce8f6;background:#fff;color:#4d86ca;border-radius:11px;transition:transform .3s,box-shadow .3s}
+  .capability:hover .cap-icon{transform:translateY(-2px) rotate(-5deg);box-shadow:0 8px 18px rgba(48,104,175,.12)}
+  .cap-icon svg{width:19px;height:19px}
+  .capability strong{font-size:14px;color:#1e3452;margin:1px 0 5px}
+  .capability p{font-size:12px;line-height:1.7;color:#72839a}
+  .closing{padding:98px 0 90px}
+  .closing .eyebrow{margin-bottom:20px}
+  .closing h2{font-size:clamp(38px,4vw,51px);letter-spacing:-2.4px}
+  .closing h2 em{color:#4e8bd4}
+  .closing p{font-size:14px;color:#71839a;line-height:1.9}
+  .footer-row{font-size:11px;color:#8494a8}
+  .footer-brand{font-size:13px;color:#607690}
+  .footer-note svg{stroke:#4e89d1}
+  .reveal{opacity:0;transform:translateY(28px) scale(.99);filter:blur(2px);transition:opacity .9s cubic-bezier(.16,.72,.18,1),transform .9s cubic-bezier(.16,.72,.18,1),filter .9s}
+  .reveal.is-visible{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+  .capabilities.is-visible .capability{animation:cap-rise .7s both cubic-bezier(.2,.7,.2,1)}
+  .capabilities.is-visible .capability:nth-child(2){animation-delay:.12s}.capabilities.is-visible .capability:nth-child(3){animation-delay:.24s}
+  .hero-copy{animation:copy-enter 1s .08s both cubic-bezier(.16,.72,.18,1)}
+  .hero-copy .eyebrow{animation:eyebrow-in .8s .14s both}
+  .hero-copy h1{animation:headline-in 1.05s .19s both cubic-bezier(.16,.72,.18,1)}
+  .hero-copy>p{animation:copy-enter .9s .36s both}
+  .hero-actions{animation:copy-enter .9s .46s both}
+  .fineprint{animation:copy-enter .9s .56s both}
+  .visual{animation:visual-enter 1.15s .18s both cubic-bezier(.16,.72,.18,1)}
+  .dashboard .dash-top{animation:dash-item .75s .55s both}.dashboard .balance-block{animation:dash-item .75s .68s both}
+  .dashboard .mini-stat:nth-child(1){animation:dash-item .7s .78s both}.dashboard .mini-stat:nth-child(2){animation:dash-item .7s .88s both}
+  .dashboard .chart-card{animation:dash-item .8s .94s both}.dashboard .payments{animation:dash-item .8s 1.05s both}
+  .closing.is-visible>*{animation:cap-rise .8s both}.closing.is-visible .closing-cta{animation-delay:.14s}
+  @keyframes ambient-drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(25px,-20px,0) scale(1.1)}}
+  @keyframes dot-drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-18px,22px,0)}}
+  @keyframes glow-breathe{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.045)}}
+  @keyframes text-shimmer{0%,100%{background-position:0% center}50%{background-position:100% center}}
+  @keyframes headline-in{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(17px)}to{opacity:1;clip-path:inset(0 0 0 0);transform:translateY(0)}}
+  @keyframes eyebrow-in{from{opacity:0;letter-spacing:5px;transform:translateX(-12px)}to{opacity:1;letter-spacing:2.1px;transform:translateX(0)}}
+  @keyframes dash-item{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes cap-rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:1000px){.hero{gap:36px}.hero h1{font-size:clamp(54px,6.3vw,72px);letter-spacing:-4.5px}}
+  @media(max-width:760px){.nav{height:76px}.brand{font-size:17px}.nav-right{gap:13px}.nav-cta{font-size:12px;padding:11px 13px}.hero{padding:60px 0 49px;gap:27px}.hero h1{font-size:clamp(53px,11.8vw,70px);letter-spacing:-4px}.hero-copy>p{font-size:15px;line-height:1.8;margin:21px 0 25px}.eyebrow{font-size:10px;margin-bottom:22px}.visual{padding:6px 2px 26px}.dashboard{animation:float-card 8s ease-in-out infinite;padding:18px}.balance{font-size:34px}.mini-stat strong{font-size:17px}.capabilities{padding:8px 0}.capability,.capability:first-child,.capability:last-child{padding:18px 0}.capability strong{font-size:13px}.capability p{font-size:12px}.closing{padding:62px 0}.closing h2{font-size:38px}.closing p{font-size:13px}}
+  @media(max-width:420px){.shell{width:calc(100% - 30px)}.brand{font-size:16px}.hero h1{font-size:51px;letter-spacing:-3.5px}.hero-copy>p{font-size:14px}.button-primary{font-size:12px;padding:15px 16px}.dashboard{padding:15px}.balance{font-size:30px}.mini-stat{padding:11px}.float-note{transform:scale(.9);transform-origin:right bottom}.closing h2{font-size:34px}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none;filter:none}}
+</style>
+
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="logo">MashMind • Expense Planner</div>
-      <a class="btn" href="/app.html">Open App</a>
-    </div>
-
-    <section class="hero">
-      <div class="panel">
-        <h1>Plan. Track. Stay in control of your monthly money.</h1>
-        <p class="sub">
-          A focused personal finance planner for monthly budgeting, payment tracking, and cloud-synced history.
-          Built for speed, security, and daily use.
-        </p>
-        <div class="cta">
-          <a class="btn btn-primary" href="/app.html">Launch Planner</a>
-          <a class="btn" href="/app.html">Sign in / Sign up</a>
+  <div id="landing-page">
+    <div class="shell">
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="#top" aria-label="MashMind home">
+          <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg></span>
+          <span>MashMind<small>EXPENSE PLANNER</small></span>
+        </a>
+        <div class="nav-right">
+          <a href="#approach">Features</a>
+          <a href="#privacy">Security</a>
+          <a href="/app.html" class="nav-cta">Open planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
         </div>
-        <p class="foot">Protected with Cloudflare security stack: Turnstile + Rate Limiting + Session controls.</p>
-      </div>
+      </nav>
 
-      <div class="panel kpis">
-        <div class="kpi"><b>✅ Track paid items</b><span>Mark expenses and save progress per month</span></div>
-        <div class="kpi"><b>☁️ Cloud sync</b><span>D1-backed month data and account state</span></div>
-        <div class="kpi"><b>🔒 Secure login</b><span>Username/password + protected sessions</span></div>
-        <div class="kpi"><b>📊 Clear insights</b><span>Category totals, settlement progress, trends</span></div>
-      </div>
-    </section>
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow">A calmer way to plan each month</div>
+            <h1>Make room for<br><span class="serif">what matters.</span></h1>
+            <p>Plan monthly expenses, track paid items, and keep your cashflow clear in one focused workspace.</p>
+            <div class="hero-actions">
+              <a href="/app.html" class="button-primary">Open your planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <a href="#approach" class="button-secondary">Explore features <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+            </div>
+            <div class="fineprint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Protected by Cloudflare Turnstile, WAF rate limiting, and server-side lockouts.</div>
+          </div>
 
-    <section class="features">
-      <article class="feature">
-        <h3>Monthly-first workflow</h3>
-        <p>Open any month, copy previous values, and keep fixed/variable items cleanly separated.</p>
-      </article>
-      <article class="feature">
-        <h3>Fast saves</h3>
-        <p>Save month details and checked items separately so control stays explicit.</p>
-      </article>
-      <article class="feature">
-        <h3>Security-by-default</h3>
-        <p>Turnstile verification, server-side lockouts, and WAF rate limits help block abuse.</p>
-      </article>
-    </section>
+          <div class="visual" aria-label="Illustrative finance dashboard preview">
+            <div class="visual-glow"></div>
+            <div class="dashboard">
+              <div class="dash-top">
+                <div class="dash-title"><span class="dash-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 18V6l7.5 7.5L19.5 6v12"/></svg></span>Monthly overview</div>
+                <span class="month-pill">October 2026&nbsp;⌄</span>
+              </div>
+              <div class="balance-block">
+                <div class="overline">Total monthly expenses</div>
+                <div class="balance">₹48,500</div>
+                <div class="balance-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> A clear picture of your month</div>
+              </div>
+              <div class="mini-stats">
+                <div class="mini-stat"><div class="mini-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 15 6-6 4 4 5-7M14 6h6v6"/></svg>Paid so far</div><strong>₹32,500</strong><small>3 payments completed</small></div>
+                <div class="mini-stat"><div class="mini-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Still to go</div><strong>₹16,000</strong><small>2 payments remaining</small></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-head"><strong>Spending at a glance</strong><span>Illustrative data</span></div>
+                <svg class="chart-svg" viewBox="0 0 440 120" role="img" aria-label="Illustrative spending trend line">
+                  <defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8ba98d" stop-opacity=".24"/><stop offset="1" stop-color="#8ba98d" stop-opacity="0"/></linearGradient></defs>
+                  <path class="gridline" d="M0 20H440M0 55H440M0 90H440"/>
+                  <path class="area" d="M0 89 C25 82 37 67 63 72 S103 93 130 67 S171 46 196 58 S234 78 260 47 S300 45 326 34 S368 50 390 25 S422 23 440 12 V110 H0Z"/>
+                  <path class="line" d="M0 89 C25 82 37 67 63 72 S103 93 130 67 S171 46 196 58 S234 78 260 47 S300 45 326 34 S368 50 390 25 S422 23 440 12"/>
+                  <circle class="point" cx="326" cy="34" r="4"/><circle class="point" cx="440" cy="12" r="4"/>
+                </svg>
+                <div class="chart-labels"><span>Week 1</span><span>Week 2</span><span>Week 3</span><span>Week 4</span></div>
+              </div>
+              <div class="payments">
+                <div class="payments-head"><strong>Recent payments</strong><span>View all&nbsp; ↗</span></div>
+                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5.5 9v11h13V9M9 20v-7h6v7"/></svg></span><span class="payment-copy"><strong>House rent</strong><small>Fixed expense</small></span><span class="payment-amount">₹20,000<small>Paid</small></span></div>
+                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z"/></svg></span><span class="payment-copy"><strong>Electricity</strong><small>Utilities</small></span><span class="payment-amount">₹2,500<small>Paid</small></span></div>
+                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><span class="payment-copy"><strong>Credit card</strong><small>Monthly payment</small></span><span class="payment-amount">₹8,000<small style="color:#ad8b5f">Pending</small></span></div>
+              </div>
+            </div>
+            <div class="float-note"><span class="float-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span><span><strong>You're on track</strong><small>One step at a time.</small></span></div>
+          </div>
+        </section>
+
+        <section class="capabilities reveal" id="approach" aria-label="What the planner helps with">
+          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7.5 8h9M7.5 12h5M7.5 16h9"/></svg></span><div><strong>One view for the month</strong><p>Keep salary, expenses, and investments together in a clean monthly layout.</p></div></div>
+          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><div><strong>Progress that persists</strong><p>Save checked items so paid-vs-pending status stays accurate every time you return.</p></div></div>
+          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><div><strong>Secure by default</strong><p>Username/password auth, Turnstile bot checks, D1 data storage, and KV-backed sessions.</p></div></div>
+        </section>
+
+        <section class="closing reveal" id="privacy">
+          <div>
+            <div class="eyebrow">Security that stays quiet</div>
+            <h2>Better money habits start with <em>clear monthly rhythm.</em></h2>
+            <p>Sign in securely, sync month data in D1, keep sessions in KV, and stay protected with Turnstile, WAF, and login lockouts.</p>
+          </div>
+          <a href="/app.html" class="button-primary closing-cta">Go to your planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        </section>
+      </main>
+
+      <footer><div class="footer-row"><span class="footer-brand">MashMind <span style="font-weight:400;color:#929a92">/ Expense Planner</span></span><span>A clearer way to run each month.</span><span class="footer-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/></svg> Cloud sync with D1 + KV sessions</span></div></footer>
+    </div>
   </div>
+<script>
+    (()=>{
+      const revealNodes=document.querySelectorAll('.reveal');
+      if('IntersectionObserver' in window){
+        const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}}),{threshold:.12});
+        revealNodes.forEach(node=>observer.observe(node));
+      }else{revealNodes.forEach(node=>node.classList.add('is-visible'));}
+    })();
+  </script>
 </body>
 </html>
