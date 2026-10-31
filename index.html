@@ -107,12 +107,43 @@
 
     .auth-card {
       width: 100%;
-      max-width: 420px;
+      max-width: 460px;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 16px;
       box-shadow: var(--shadow);
       padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), #8b5cf6 60%, #10b981);
+    }
+
+    .auth-head {
+      display: grid;
+      gap: 6px;
+    }
+
+    .auth-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+      border-radius: 999px;
+      padding: 4px 8px;
     }
 
     .auth-card h2 {
@@ -127,10 +158,49 @@
       font-size: 13px;
     }
 
+    .auth-mode-tabs {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .auth-mode-btn {
+      padding: 8px 10px;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: var(--card-muted);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .auth-mode-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    .auth-mode-btn:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+    }
+
     .auth-form {
       margin-top: 14px;
       display: grid;
       gap: 10px;
+    }
+
+    .auth-form .btn-primary {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
     }
 
     .auth-form label {
@@ -142,6 +212,52 @@
 
     .auth-form input {
       width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--card-muted);
+      padding: 10px 11px;
+      font-size: 13px;
+    }
+
+    .auth-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    .auth-switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .auth-link-btn {
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .auth-inline-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+      user-select: none;
+    }
+
+    .auth-inline-check input {
+      width: auto;
+      margin: 0;
     }
 
     .auth-error {
@@ -150,6 +266,13 @@
       color: var(--red);
       font-size: 12px;
       font-weight: 600;
+    }
+
+    .auth-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11.5px;
+      text-align: center;
     }
 
     .hidden {
@@ -958,6 +1081,63 @@
       .top-header { flex-direction: column; align-items: stretch; }
       .controls-bar { justify-content: flex-start; }
       .category-grid { grid-template-columns: 1fr; }
+
+      .auth-overlay {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
+      .auth-card {
+        margin-top: 12px;
+        max-width: none;
+        border-radius: 14px;
+        padding: 16px 14px;
+      }
+
+      .auth-card h2 {
+        font-size: 18px;
+      }
+
+      .auth-card p {
+        font-size: 12.5px;
+      }
+
+      .auth-kicker {
+        font-size: 10.5px;
+      }
+
+      .auth-form {
+        margin-top: 12px;
+        gap: 9px;
+      }
+
+      .auth-form input,
+      .auth-mode-btn,
+      .auth-form .btn-primary {
+        min-height: 42px;
+      }
+
+      .auth-form input {
+        font-size: 16px;
+      }
+
+      .auth-switch-row {
+        flex-wrap: wrap;
+      }
+
+      .auth-note {
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .auth-mode-tabs {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-mode-btn {
+        width: 100%;
+      }
     }
 
     canvas {
@@ -987,7 +1167,6 @@
       <div class="controls-bar">
         <label for="monthPicker" class="sr-only">Select month</label>
         <input id="monthPicker" type="month" aria-label="Select planning month" />
-        <button id="authLockBtn" class="btn" title="Lock app">🔒 Lock</button>
         <button id="changePinBtn" class="btn" title="Change Password">🔑 Change Password</button>
         <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
         <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
@@ -1114,7 +1293,6 @@
         </div>
       </div>
       <div class="security-actions">
-        <button id="securityLockBtn" class="btn" type="button">🔒 Lock Now</button>
         <button id="securityChangePinBtn" class="btn" type="button">🔑 Change Password</button>
         <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Account Data</button>
       </div>
@@ -1154,8 +1332,16 @@
 
   <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
-      <h2 id="authTitle">Sign in</h2>
-      <p id="authSubtitle">Use your username and password to access your finance dashboard.</p>
+      <div class="auth-head">
+        <span class="auth-kicker">Secure access</span>
+        <h2 id="authTitle">Sign in</h2>
+        <p id="authSubtitle">Use your username and password to access your finance dashboard.</p>
+      </div>
+
+      <div id="authModeTabs" class="auth-mode-tabs">
+        <button id="authModeLoginBtn" class="auth-mode-btn active" type="button">Log in</button>
+        <button id="authModeRegisterBtn" class="auth-mode-btn" type="button">Sign up</button>
+      </div>
 
       <form id="authForm" class="auth-form">
         <div id="authUsernameWrap">
@@ -1181,7 +1367,17 @@
           <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
         </div>
 
+        <label class="auth-inline-check" for="authShowPassword">
+          <input id="authShowPassword" type="checkbox" />
+          Show password fields
+        </label>
+
         <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
+        <div id="authSwitchWrap" class="auth-switch-row">
+          <span id="authSwitchText">New here?</span>
+          <button id="authSwitchBtn" class="auth-link-btn" type="button">Create account</button>
+        </div>
+        <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
         <p id="authError" class="auth-error" aria-live="polite"></p>
       </form>
     </div>
@@ -1281,10 +1477,8 @@
     let paidDirty = false;
 
     const monthPicker = document.getElementById("monthPicker");
-    const authLockBtn = document.getElementById("authLockBtn");
     const changePinBtn = document.getElementById("changePinBtn");
     const resetAppBtn = document.getElementById("resetAppBtn");
-    const securityLockBtn = document.getElementById("securityLockBtn");
     const securityChangePinBtn = document.getElementById("securityChangePinBtn");
     const securityResetBtn = document.getElementById("securityResetBtn");
     const securitySessionChip = document.getElementById("securitySessionChip");
@@ -1314,6 +1508,9 @@
     const authForm = document.getElementById("authForm");
     const authTitle = document.getElementById("authTitle");
     const authSubtitle = document.getElementById("authSubtitle");
+    const authModeTabs = document.getElementById("authModeTabs");
+    const authModeLoginBtn = document.getElementById("authModeLoginBtn");
+    const authModeRegisterBtn = document.getElementById("authModeRegisterBtn");
     const authUsernameWrap = document.getElementById("authUsernameWrap");
     const authUsernameLabel = document.getElementById("authUsernameLabel");
     const authUsername = document.getElementById("authUsername");
@@ -1326,7 +1523,11 @@
     const authConfirmWrap = document.getElementById("authConfirmWrap");
     const authResetWrap = document.getElementById("authResetWrap");
     const authResetConfirm = document.getElementById("authResetConfirm");
+    const authShowPassword = document.getElementById("authShowPassword");
     const authSubmitBtn = document.getElementById("authSubmitBtn");
+    const authSwitchWrap = document.getElementById("authSwitchWrap");
+    const authSwitchText = document.getElementById("authSwitchText");
+    const authSwitchBtn = document.getElementById("authSwitchBtn");
     const authError = document.getElementById("authError");
 
     let authMode = "login"; // login | register | changepassword | resetaccount
@@ -1356,7 +1557,6 @@
         recalc();
       });
       saveMonthBtn.addEventListener("click", saveCurrentMonth);
-      authLockBtn.addEventListener("click", lockApp);
       changePinBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
         showAuthOverlay("changepassword");
@@ -1365,7 +1565,6 @@
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
       });
-      securityLockBtn.addEventListener("click", lockApp);
       securityChangePinBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
         showAuthOverlay("changepassword");
@@ -1400,6 +1599,19 @@
           e.preventDefault();
           saveCurrentMonth();
         }
+      });
+
+      authModeLoginBtn.addEventListener("click", () => showAuthOverlay("login"));
+      authModeRegisterBtn.addEventListener("click", () => showAuthOverlay("register"));
+      authSwitchBtn.addEventListener("click", () => {
+        showAuthOverlay(authMode === "register" ? "login" : "register");
+      });
+      authShowPassword.addEventListener("change", () => {
+        const show = authShowPassword.checked;
+        [authPin, authPinConfirm, authCurrentPin].forEach((el) => {
+          if (!el) return;
+          el.type = show ? "text" : "password";
+        });
       });
 
       authForm.addEventListener("submit", onAuthSubmit);
@@ -1469,6 +1681,11 @@
       document.body.classList.add("app-locked");
       authError.textContent = "";
       authForm.reset();
+      authShowPassword.checked = false;
+      [authPin, authPinConfirm, authCurrentPin].forEach((el) => {
+        if (!el) return;
+        el.type = "password";
+      });
 
       authUsernameWrap.classList.add("hidden");
       authCurrentWrap.classList.add("hidden");
@@ -1480,15 +1697,23 @@
       authPinConfirm.required = false;
       authResetConfirm.required = false;
 
+      const simpleEntryMode = mode === "login" || mode === "register";
+      authModeTabs.classList.toggle("hidden", !simpleEntryMode);
+      authSwitchWrap.classList.toggle("hidden", !simpleEntryMode);
+      authModeLoginBtn.classList.toggle("active", mode === "login");
+      authModeRegisterBtn.classList.toggle("active", mode === "register");
+
       if (mode === "register") {
         authTitle.textContent = "Create account";
-        authSubtitle.textContent = "Set up your username and password.";
+        authSubtitle.textContent = "Use 3-32 chars for username and at least 6 chars for password.";
         authUsernameWrap.classList.remove("hidden");
         authUsernameLabel.textContent = "Username";
         authUsername.required = true;
         authPinLabel.textContent = "Password";
         authPinConfirmLabel.textContent = "Confirm password";
         authSubmitBtn.textContent = "Sign up";
+        authSwitchText.textContent = "Already have an account?";
+        authSwitchBtn.textContent = "Log in";
         authConfirmWrap.classList.remove("hidden");
         authPinConfirm.required = true;
         authPin.setAttribute("autocomplete", "new-password");
@@ -1518,6 +1743,8 @@
         authUsername.required = true;
         authPinLabel.textContent = "Password";
         authSubmitBtn.textContent = "Sign in";
+        authSwitchText.textContent = "Don’t have an account yet?";
+        authSwitchBtn.textContent = "Sign up";
         authPin.setAttribute("autocomplete", "current-password");
       }
 
@@ -2555,6 +2782,31 @@
       return payload;
     }
 
+    function validateAuthInput() {
+      const username = (authUsername?.value || "").trim().toLowerCase();
+      const password = (authPin.value || "").trim();
+      const currentPassword = (authCurrentPin?.value || "").trim();
+      const confirmPassword = (authPinConfirm?.value || "").trim();
+
+      if ((authMode === "login" || authMode === "register") && !/^[a-z0-9._-]{3,32}$/.test(username)) {
+        return "Username must be 3-32 chars (letters, numbers, ., _, -).";
+      }
+      if (authMode === "login" && !password) return "Password is required.";
+      if ((authMode === "register" || authMode === "changepassword") && password.length < 6) {
+        return "Password must be at least 6 characters.";
+      }
+      if (authMode === "register" || authMode === "changepassword") {
+        if (password !== confirmPassword) return "Password confirmation does not match.";
+      }
+      if (authMode === "changepassword" && !currentPassword) {
+        return "Current password is required.";
+      }
+      if (authMode === "resetaccount" && !password) {
+        return "Current password is required.";
+      }
+      return "";
+    }
+
     async function hydrateFromCloud() {
       const res = await api("/api/data");
       if (res?.data && typeof res.data === "object") {
@@ -2626,6 +2878,15 @@
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       authError.textContent = "";
+      const validationError = validateAuthInput();
+      if (validationError) {
+        authError.textContent = validationError;
+        return;
+      }
+
+      const initialBtnLabel = authSubmitBtn.textContent;
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.textContent = "Please wait...";
 
       try {
         const payload = await cloudLoginFlow(authMode);
@@ -2658,6 +2919,9 @@
         );
       } catch (err) {
         authError.textContent = err.message || "Authentication failed";
+      } finally {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.textContent = initialBtnLabel;
       }
     });
 
@@ -2684,13 +2948,6 @@
       });
     }
 
-    // lock should also invalidate KV session
-    authLockBtn.addEventListener("click", async () => {
-      try { await api("/api/auth/logout", { method: "POST" }); } catch {}
-    });
-    securityLockBtn.addEventListener("click", async () => {
-      try { await api("/api/auth/logout", { method: "POST" }); } catch {}
-    });
   </script>
 </body>
 </html>
