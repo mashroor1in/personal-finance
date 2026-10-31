@@ -225,6 +225,54 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
     }
 
+    .auth-field-hint {
+      margin: -2px 0 2px;
+      font-size: 11px;
+      color: var(--muted);
+      min-height: 14px;
+    }
+
+    .auth-strength-wrap {
+      display: grid;
+      gap: 6px;
+      margin-top: -2px;
+    }
+
+    .auth-strength-bar {
+      height: 7px;
+      border-radius: 999px;
+      background: var(--card-muted);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .auth-strength-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: var(--red);
+      transition: width 0.2s ease, background 0.2s ease;
+    }
+
+    .auth-strength-text {
+      margin: 0;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .auth-card.shake {
+      animation: auth-shake 0.28s ease;
+    }
+
+    @keyframes auth-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
     .auth-switch-row {
       display: flex;
       align-items: center;
@@ -1347,6 +1395,7 @@
         <div id="authUsernameWrap">
           <label id="authUsernameLabel" for="authUsername">Username</label>
           <input id="authUsername" type="text" autocomplete="username" placeholder="Enter username" />
+          <p id="authUsernameHint" class="auth-field-hint"></p>
         </div>
 
         <div id="authCurrentWrap" class="hidden">
@@ -1356,10 +1405,17 @@
 
         <label id="authPinLabel" for="authPin">Password</label>
         <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
+        <p id="authPasswordHint" class="auth-field-hint"></p>
+
+        <div id="authStrengthWrap" class="auth-strength-wrap hidden" aria-live="polite">
+          <div class="auth-strength-bar"><div id="authStrengthFill" class="auth-strength-fill"></div></div>
+          <p id="authStrengthText" class="auth-strength-text">Password strength: —</p>
+        </div>
 
         <div id="authConfirmWrap" class="hidden">
           <label id="authPinConfirmLabel" for="authPinConfirm">Confirm Password</label>
           <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" />
+          <p id="authConfirmHint" class="auth-field-hint"></p>
         </div>
 
         <div id="authResetWrap" class="hidden">
@@ -1506,6 +1562,7 @@
     const bankCardsGrid = document.getElementById("bankCardsGrid");
     const authOverlay = document.getElementById("authOverlay");
     const authForm = document.getElementById("authForm");
+    const authCard = document.querySelector(".auth-card");
     const authTitle = document.getElementById("authTitle");
     const authSubtitle = document.getElementById("authSubtitle");
     const authModeTabs = document.getElementById("authModeTabs");
@@ -1514,11 +1571,17 @@
     const authUsernameWrap = document.getElementById("authUsernameWrap");
     const authUsernameLabel = document.getElementById("authUsernameLabel");
     const authUsername = document.getElementById("authUsername");
+    const authUsernameHint = document.getElementById("authUsernameHint");
     const authCurrentWrap = document.getElementById("authCurrentWrap");
     const authCurrentPin = document.getElementById("authCurrentPin");
     const authPinLabel = document.getElementById("authPinLabel");
     const authPin = document.getElementById("authPin");
+    const authPasswordHint = document.getElementById("authPasswordHint");
+    const authStrengthWrap = document.getElementById("authStrengthWrap");
+    const authStrengthFill = document.getElementById("authStrengthFill");
+    const authStrengthText = document.getElementById("authStrengthText");
     const authPinConfirm = document.getElementById("authPinConfirm");
+    const authConfirmHint = document.getElementById("authConfirmHint");
     const authPinConfirmLabel = document.getElementById("authPinConfirmLabel");
     const authConfirmWrap = document.getElementById("authConfirmWrap");
     const authResetWrap = document.getElementById("authResetWrap");
@@ -1614,6 +1677,10 @@
         });
       });
 
+      authUsername.addEventListener("input", updateAuthLiveFeedback);
+      authPin.addEventListener("input", updateAuthLiveFeedback);
+      authPinConfirm.addEventListener("input", updateAuthLiveFeedback);
+
       authForm.addEventListener("submit", onAuthSubmit);
     }
 
@@ -1679,7 +1746,7 @@
       authMode = mode;
       authOverlay.classList.remove("hidden");
       document.body.classList.add("app-locked");
-      authError.textContent = "";
+      setAuthError("");
       authForm.reset();
       authShowPassword.checked = false;
       [authPin, authPinConfirm, authCurrentPin].forEach((el) => {
@@ -1702,6 +1769,7 @@
       authSwitchWrap.classList.toggle("hidden", !simpleEntryMode);
       authModeLoginBtn.classList.toggle("active", mode === "login");
       authModeRegisterBtn.classList.toggle("active", mode === "register");
+      authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
 
       if (mode === "register") {
         authTitle.textContent = "Create account";
@@ -1753,6 +1821,63 @@
         else if (!authCurrentWrap.classList.contains("hidden")) authCurrentPin.focus();
         else authPin.focus();
       });
+
+      updateAuthLiveFeedback();
+    }
+
+    function setAuthError(message, shake = false) {
+      authError.textContent = message || "";
+      if (shake && authCard) {
+        authCard.classList.remove("shake");
+        void authCard.offsetWidth;
+        authCard.classList.add("shake");
+      }
+    }
+
+    function passwordStrength(password) {
+      let score = 0;
+      if (password.length >= 6) score++;
+      if (password.length >= 10) score++;
+      if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+      if (/\d/.test(password)) score++;
+      if (/[^A-Za-z0-9]/.test(password)) score++;
+      return Math.min(score, 5);
+    }
+
+    function updateAuthLiveFeedback() {
+      const username = (authUsername.value || "").trim();
+      const password = authPin.value || "";
+      const confirm = authPinConfirm.value || "";
+
+      if (!authUsernameWrap.classList.contains("hidden")) {
+        if (!username) authUsernameHint.textContent = "Use 3-32 chars: letters, numbers, ., _, -";
+        else if (!/^[a-z0-9._-]{3,32}$/i.test(username)) authUsernameHint.textContent = "Invalid format.";
+        else authUsernameHint.textContent = "Looks good.";
+      } else {
+        authUsernameHint.textContent = "";
+      }
+
+      if (authMode === "register" || authMode === "changepassword") {
+        const strength = passwordStrength(password);
+        const pct = (strength / 5) * 100;
+        const levels = ["Very weak", "Weak", "Fair", "Good", "Strong", "Excellent"];
+        const colors = ["var(--red)", "var(--red)", "#f59e0b", "#f59e0b", "#10b981", "#059669"];
+        authStrengthFill.style.width = `${pct}%`;
+        authStrengthFill.style.background = colors[strength];
+        authStrengthText.textContent = `Password strength: ${levels[strength] || "—"}`;
+        authPasswordHint.textContent = password && password.length < 6 ? "At least 6 characters required." : "";
+      } else {
+        authStrengthFill.style.width = "0%";
+        authStrengthText.textContent = "Password strength: —";
+        authPasswordHint.textContent = "";
+      }
+
+      if (!authConfirmWrap.classList.contains("hidden")) {
+        if (!confirm) authConfirmHint.textContent = "Re-enter password to confirm.";
+        else authConfirmHint.textContent = password === confirm ? "Passwords match." : "Passwords do not match.";
+      } else {
+        authConfirmHint.textContent = "";
+      }
     }
 
     async function onAuthSubmit(e) {
@@ -2877,10 +3002,10 @@
     authForm.removeEventListener("submit", onAuthSubmit);
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      authError.textContent = "";
+      setAuthError("");
       const validationError = validateAuthInput();
       if (validationError) {
-        authError.textContent = validationError;
+        setAuthError(validationError, true);
         return;
       }
 
@@ -2918,7 +3043,7 @@
               : "Welcome back"
         );
       } catch (err) {
-        authError.textContent = err.message || "Authentication failed";
+        setAuthError(err.message || "Authentication failed", true);
       } finally {
         authSubmitBtn.disabled = false;
         authSubmitBtn.textContent = initialBtnLabel;
