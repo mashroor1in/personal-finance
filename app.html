@@ -1350,6 +1350,95 @@
       height: 220px !important;
     }
   </style>
+  <style id="app-auth-ui-from-login">
+    .auth-overlay {
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 28px 18px;
+      background:
+        radial-gradient(ellipse at 15% 12%, rgba(168, 203, 244, .26), transparent 32%),
+        radial-gradient(ellipse at 86% 88%, rgba(172, 210, 247, .23), transparent 34%),
+        linear-gradient(145deg, #f7faff 0%, #eef4fb 48%, #f7faff 100%);
+      backdrop-filter: none;
+    }
+
+    .auth-atmosphere { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .auth-orb { position: absolute; border-radius: 50%; filter: blur(2px); }
+    .auth-orb-one { width: 380px; height: 380px; left: -170px; top: 10%; background: radial-gradient(circle, rgba(126,177,231,.16), rgba(126,177,231,0) 70%); }
+    .auth-orb-two { width: 500px; height: 500px; right: -230px; bottom: -180px; background: radial-gradient(circle, rgba(95,153,221,.15), rgba(95,153,221,0) 70%); }
+    .auth-orb-three { width: 190px; height: 190px; right: 13%; top: -110px; background: radial-gradient(circle, rgba(180,211,244,.35), transparent 70%); }
+    .auth-background-line { position: absolute; width: min(100vw, 1200px); right: -7%; bottom: -5%; opacity: .2; }
+    .auth-background-line path { fill: none; stroke: #78a7d9; stroke-width: 1.1; stroke-linecap: round; stroke-dasharray: 7 11; }
+
+    .auth-shell { width: min(100%, 560px); max-width: 560px; display: block; }
+    .auth-hero { display: none !important; }
+    .auth-card,
+    .auth-shell .auth-card {
+      width: 100%;
+      max-width: none;
+      height: auto;
+      padding: clamp(30px, 4.2vw, 42px);
+      border: 1px solid rgba(220, 231, 245, .95);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .94);
+      box-shadow: 0 26px 80px rgba(38, 77, 124, .12), 0 3px 12px rgba(38, 77, 124, .04);
+      backdrop-filter: blur(18px);
+    }
+    .auth-card::before { height: 3px; background: linear-gradient(90deg, #2c6fbd 0%, #68a4e7 48%, #b5d7f6 100%); }
+
+    .auth-card-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 30px;
+      color: #171d19;
+      font: 700 17px/1.1 'Plus Jakarta Sans', sans-serif;
+      letter-spacing: -.5px;
+    }
+    .auth-card-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #d9e2d8;
+      border-radius: 11px;
+      background: #fff;
+      color: #304c37;
+    }
+    .auth-card-mark svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .auth-card-brand small { display: block; margin-top: 1px; color: #8a938b; font: 600 8px 'Plus Jakarta Sans', sans-serif; letter-spacing: 1.75px; text-transform: uppercase; }
+
+    .auth-head { gap: 8px; }
+    .auth-kicker { padding: 6px 10px; background: #f4f8fe; border-color: #dfebf9; color: #4a7fb9; }
+    .auth-card h2 { font-size: clamp(30px, 4.8vw, 36px); letter-spacing: -1.3px; color: #182e4a; }
+    .auth-card p { color: #7889a0; font-size: 14px; line-height: 1.65; }
+
+    .auth-mode-tabs { margin-top: 20px; padding: 5px; border: 1px solid #e7eef7; border-radius: 13px; background: #f3f7fc; }
+    .auth-mode-btn { min-height: 44px; border-radius: 9px; font-size: 13px; }
+    .auth-mode-btn.active { border-color: #dfebf9; background: #fff; color: #2b6fba; box-shadow: 0 3px 10px rgba(34, 81, 141, .07); }
+
+    .auth-form { gap: 13px; margin-top: 16px; }
+    .auth-form label { color: #536982; font-size: 11.5px; }
+    .auth-form input { min-height: 47px; border: 1px solid #dce6f1; border-radius: 11px; background: #f8fafd; color: #1a3453; }
+    .auth-form input:focus { border-color: #639bd7; background: #fff; box-shadow: 0 0 0 4px rgba(65,132,205,.12); }
+    .auth-field-hint { color: #8292a7; font-size: 10px; }
+    .auth-inline-check { color: #75869c; }
+    .auth-form .btn-primary { min-height: 49px; border-radius: 11px; border-color: #2c70bf; background: linear-gradient(110deg, #286bb8, #4389d6 58%, #377bc8); }
+
+    .auth-trust-row { margin-top: 0; }
+    .auth-note { color: #93a0b1; font-size: 10.5px; }
+    .auth-error:not(:empty) { padding: 10px 12px; border: 1px solid #f2d8dc; border-radius: 10px; background: #fff7f8; }
+    .auth-card-footer { margin-top: 18px; padding-top: 12px; border-top: 1px solid #edf1f6; color: #a0adbc; font-size: 10px; display: flex; justify-content: space-between; gap: 8px; }
+
+    @media (max-width: 650px) {
+      .auth-overlay { padding: 14px 10px; }
+      .auth-card,
+      .auth-shell .auth-card { padding: 24px 18px; border-radius: 20px; }
+      .auth-card h2 { font-size: 30px; }
+    }
+  </style>
 </head>
 <body class="app-locked">
 
@@ -1358,7 +1447,7 @@
     <header class="top-header">
       <div class="title-area">
         <h1>Monthly Finance Planner</h1>
-        <p>Zero-dependency local-first personal ledger & cashflow manager</p>
+        <p>Cloud-synced monthly finance planner with secure account access</p>
       </div>
 
       <div class="controls-bar">
@@ -1530,23 +1619,23 @@
   </div>
 
   <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-atmosphere" aria-hidden="true">
+      <span class="auth-orb auth-orb-one"></span>
+      <span class="auth-orb auth-orb-two"></span>
+      <span class="auth-orb auth-orb-three"></span>
+      <svg class="auth-background-line" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice">
+        <path d="M-40 365 C110 355 150 235 280 265 S465 400 590 285 S790 100 900 175 S1080 250 1240 70" />
+        <path d="M-40 410 C120 400 180 315 300 325 S470 435 620 345 S820 205 945 255 S1090 310 1240 190" />
+      </svg>
+    </div>
     <div class="auth-shell">
-      <aside class="auth-hero" aria-hidden="true">
-        <h3>Take control of your monthly cashflow</h3>
-        <p>Plan expenses, track paid items, and keep your data synced securely across sessions.</p>
-        <div class="auth-hero-points">
-          <div class="auth-hero-point"><span class="auth-hero-dot"></span>One-click month saving with cloud backup</div>
-          <div class="auth-hero-point"><span class="auth-hero-dot"></span>Fast login with bot protection</div>
-          <div class="auth-hero-point"><span class="auth-hero-dot"></span>Private data, account-scoped access</div>
-        </div>
-        <div class="auth-hero-foot">
-          <span class="auth-hero-chip">🔒 Encrypted session</span>
-          <span class="auth-hero-chip">☁️ Cloud sync</span>
-          <span class="auth-hero-chip">🛡️ Turnstile</span>
-        </div>
-      </aside>
-
       <div class="auth-card">
+        <div class="auth-card-brand" aria-label="MashMind Expense Planner">
+          <span class="auth-card-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg>
+          </span>
+          <span>MashMind<small>EXPENSE PLANNER</small></span>
+        </div>
         <div class="auth-head">
           <span class="auth-kicker">Secure access</span>
           <h2 id="authTitle">Sign in</h2>
@@ -1559,33 +1648,35 @@
         </div>
 
         <form id="authForm" class="auth-form">
-          <div id="authUsernameWrap">
+          <div id="authUsernameWrap" class="auth-field">
             <label id="authUsernameLabel" for="authUsername">Username</label>
             <input id="authUsername" type="text" autocomplete="username" placeholder="Enter username" />
             <p id="authUsernameHint" class="auth-field-hint"></p>
           </div>
 
-          <div id="authCurrentWrap" class="hidden">
+          <div id="authCurrentWrap" class="auth-field hidden">
             <label id="authCurrentLabel" for="authCurrentPin">Current Password</label>
             <input id="authCurrentPin" type="password" autocomplete="current-password" placeholder="Enter current password" />
           </div>
 
-          <label id="authPinLabel" for="authPin">Password</label>
-          <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
-          <p id="authPasswordHint" class="auth-field-hint"></p>
+          <div class="auth-field">
+            <label id="authPinLabel" for="authPin">Password</label>
+            <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
+            <p id="authPasswordHint" class="auth-field-hint"></p>
+          </div>
 
           <div id="authStrengthWrap" class="auth-strength-wrap hidden" aria-live="polite">
             <div class="auth-strength-bar"><div id="authStrengthFill" class="auth-strength-fill"></div></div>
             <p id="authStrengthText" class="auth-strength-text">Password strength: —</p>
           </div>
 
-          <div id="authConfirmWrap" class="hidden">
+          <div id="authConfirmWrap" class="auth-field hidden">
             <label id="authPinConfirmLabel" for="authPinConfirm">Confirm Password</label>
             <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" />
             <p id="authConfirmHint" class="auth-field-hint"></p>
           </div>
 
-          <div id="authResetWrap" class="hidden">
+          <div id="authResetWrap" class="auth-field hidden">
             <label id="authResetLabel" for="authResetConfirm">Type DELETE to confirm</label>
             <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
           </div>
@@ -1613,6 +1704,7 @@
           <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
           <p id="authError" class="auth-error" aria-live="polite"></p>
         </form>
+        <div class="auth-card-footer"><span>© MashMind</span><span>Private finance workspace</span></div>
       </div>
     </div>
   </div>
@@ -1919,8 +2011,8 @@
 
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       cloudProfile = null;
+      lockApp(true);
       if (!quiet) showToast(reason);
-      window.location.replace("/login.html");
     }
 
     function ensureTurnstileRendered() {
@@ -3188,7 +3280,7 @@
           showToast("Connection issue. Showing cached data.");
           return;
         }
-        window.location.replace("/login.html");
+        lockApp(true);
         return;
       }
 
@@ -3203,7 +3295,7 @@
 
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       await fetchAuthStatus();
-      window.location.replace("/login.html");
+      lockApp(true);
     }
 
     async function ensureSessionAlive() {
