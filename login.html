@@ -3887,6 +3887,7 @@ body.dark-theme .auth-card-footer { border-color: #283e59; color: #8197b2; }
     async function bootstrapCloudSession() {
       const me = await refreshCloudProfile();
       if (me?.authenticated) {
+        sessionStorage.setItem(AUTH_SESSION_KEY, "1");
         window.location.replace("/app.html");
         return;
       }
@@ -3945,6 +3946,7 @@ body.dark-theme .auth-card-footer { border-color: #283e59; color: #8197b2; }
         cloudHasUsers = true;
         clearAuthCooldown();
         cloudProfile = payload || null;
+        sessionStorage.setItem(AUTH_SESSION_KEY, "1");
         window.location.replace("/app.html");
         return;
       } catch (err) {

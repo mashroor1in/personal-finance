@@ -3156,9 +3156,10 @@
         const me = await api("/api/auth/me");
         cloudProfile = me;
         return me;
-      } catch {
+      } catch (err) {
         cloudProfile = null;
-        return null;
+        if (err?.status === 401 || err?.status === 403) return null;
+        throw err;
       }
     }
 
@@ -3177,7 +3178,20 @@
     }
 
     async function bootstrapCloudSession() {
-      const me = await refreshCloudProfile();
+      let me = null;
+      try {
+        me = await refreshCloudProfile();
+      } catch {
+        await fetchAuthStatus();
+        if (isAuthenticated()) {
+          updateSecurityCard();
+          showToast("Connection issue. Showing cached data.");
+          return;
+        }
+        window.location.replace("/login.html");
+        return;
+      }
+
       if (me?.authenticated) {
         cloudHasUsers = true;
         sessionStorage.setItem(AUTH_SESSION_KEY, "1");
@@ -3194,7 +3208,12 @@
 
     async function ensureSessionAlive() {
       if (!isAuthenticated()) return;
-      const me = await refreshCloudProfile();
+      let me = null;
+      try {
+        me = await refreshCloudProfile();
+      } catch {
+        return;
+      }
       if (me?.authenticated) {
         updateSecurityCard();
         return;
