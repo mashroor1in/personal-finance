@@ -102,6 +102,97 @@
       backdrop-filter: blur(6px);
     }
 
+    .auth-shell {
+      width: 100%;
+      max-width: 960px;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .auth-hero {
+      background: linear-gradient(140deg, #0f172a 0%, #1e293b 58%, #1d4ed8 100%);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 22px 20px;
+      display: grid;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-hero::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -70px;
+      top: -85px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.36), transparent 70%);
+      pointer-events: none;
+    }
+
+    .auth-hero h3 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .auth-hero p {
+      margin: 0;
+      font-size: 13.5px;
+      color: #bfdbfe;
+      max-width: 44ch;
+    }
+
+    .auth-hero-points {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      color: #dbeafe;
+    }
+
+    .auth-hero-point {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .auth-hero-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #60a5fa;
+      box-shadow: 0 0 0 4px rgba(96,165,250,0.2);
+      flex-shrink: 0;
+    }
+
+    .auth-hero-foot {
+      margin-top: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .auth-hero-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #dbeafe;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      padding: 5px 9px;
+    }
+
     .auth-overlay.hidden {
       display: none;
     }
@@ -116,6 +207,11 @@
       padding: 20px;
       position: relative;
       overflow: hidden;
+    }
+
+    .auth-shell .auth-card {
+      max-width: none;
+      height: 100%;
     }
 
     .auth-card::before {
@@ -266,6 +362,15 @@
       animation: auth-shake 0.28s ease;
     }
 
+    .auth-card.mode-switch .auth-form {
+      animation: auth-mode-fade 0.2s ease;
+    }
+
+    @keyframes auth-mode-fade {
+      from { opacity: 0.5; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @keyframes auth-shake {
       0%, 100% { transform: translateX(0); }
       20% { transform: translateX(-5px); }
@@ -321,6 +426,24 @@
       margin: 0;
       color: var(--muted);
       font-size: 11.5px;
+      text-align: center;
+    }
+
+    .auth-trust-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .auth-trust-item {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: var(--card-muted);
+      border-radius: 9px;
+      padding: 6px 7px;
       text-align: center;
     }
 
@@ -1122,6 +1245,8 @@
       .bank-cards-grid { grid-template-columns: repeat(2, 1fr); }
       .analytics-grid { grid-template-columns: 1fr; }
       .donut-layout { grid-template-columns: 1fr; }
+      .auth-shell { grid-template-columns: 1fr; max-width: 560px; }
+      .auth-hero { order: 2; }
     }
 
     @media (max-width: 650px) {
@@ -1134,6 +1259,25 @@
       .auth-overlay {
         padding: 10px;
         align-items: flex-start;
+      }
+
+      .auth-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-hero {
+        order: 2;
+        padding: 14px;
+        gap: 10px;
+      }
+
+      .auth-hero h3 {
+        font-size: 18px;
+      }
+
+      .auth-hero p,
+      .auth-hero-points {
+        font-size: 12px;
       }
 
       .auth-card {
@@ -1176,6 +1320,10 @@
 
       .auth-note {
         font-size: 11px;
+      }
+
+      .auth-trust-row {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -1382,68 +1530,90 @@
   </div>
 
   <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-card">
-      <div class="auth-head">
-        <span class="auth-kicker">Secure access</span>
-        <h2 id="authTitle">Sign in</h2>
-        <p id="authSubtitle">Use your username and password to access your finance dashboard.</p>
+    <div class="auth-shell">
+      <aside class="auth-hero" aria-hidden="true">
+        <h3>Take control of your monthly cashflow</h3>
+        <p>Plan expenses, track paid items, and keep your data synced securely across sessions.</p>
+        <div class="auth-hero-points">
+          <div class="auth-hero-point"><span class="auth-hero-dot"></span>One-click month saving with cloud backup</div>
+          <div class="auth-hero-point"><span class="auth-hero-dot"></span>Fast login with bot protection</div>
+          <div class="auth-hero-point"><span class="auth-hero-dot"></span>Private data, account-scoped access</div>
+        </div>
+        <div class="auth-hero-foot">
+          <span class="auth-hero-chip">🔒 Encrypted session</span>
+          <span class="auth-hero-chip">☁️ Cloud sync</span>
+          <span class="auth-hero-chip">🛡️ Turnstile</span>
+        </div>
+      </aside>
+
+      <div class="auth-card">
+        <div class="auth-head">
+          <span class="auth-kicker">Secure access</span>
+          <h2 id="authTitle">Sign in</h2>
+          <p id="authSubtitle">Use your username and password to access your finance dashboard.</p>
+        </div>
+
+        <div id="authModeTabs" class="auth-mode-tabs">
+          <button id="authModeLoginBtn" class="auth-mode-btn active" type="button">Log in</button>
+          <button id="authModeRegisterBtn" class="auth-mode-btn" type="button">Sign up</button>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <div id="authUsernameWrap">
+            <label id="authUsernameLabel" for="authUsername">Username</label>
+            <input id="authUsername" type="text" autocomplete="username" placeholder="Enter username" />
+            <p id="authUsernameHint" class="auth-field-hint"></p>
+          </div>
+
+          <div id="authCurrentWrap" class="hidden">
+            <label id="authCurrentLabel" for="authCurrentPin">Current Password</label>
+            <input id="authCurrentPin" type="password" autocomplete="current-password" placeholder="Enter current password" />
+          </div>
+
+          <label id="authPinLabel" for="authPin">Password</label>
+          <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
+          <p id="authPasswordHint" class="auth-field-hint"></p>
+
+          <div id="authStrengthWrap" class="auth-strength-wrap hidden" aria-live="polite">
+            <div class="auth-strength-bar"><div id="authStrengthFill" class="auth-strength-fill"></div></div>
+            <p id="authStrengthText" class="auth-strength-text">Password strength: —</p>
+          </div>
+
+          <div id="authConfirmWrap" class="hidden">
+            <label id="authPinConfirmLabel" for="authPinConfirm">Confirm Password</label>
+            <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" />
+            <p id="authConfirmHint" class="auth-field-hint"></p>
+          </div>
+
+          <div id="authResetWrap" class="hidden">
+            <label id="authResetLabel" for="authResetConfirm">Type DELETE to confirm</label>
+            <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
+          </div>
+
+          <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:6px;">
+            <div id="authTurnstile"></div>
+            <p class="auth-note" style="text-align:left;">Human verification required for sign in and sign up.</p>
+          </div>
+
+          <label class="auth-inline-check" for="authShowPassword">
+            <input id="authShowPassword" type="checkbox" />
+            Show password fields
+          </label>
+
+          <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
+          <div class="auth-trust-row" aria-hidden="true">
+            <span class="auth-trust-item">🔒 Secure cookie</span>
+            <span class="auth-trust-item">☁️ D1 + KV</span>
+            <span class="auth-trust-item">🛡️ Bot defense</span>
+          </div>
+          <div id="authSwitchWrap" class="auth-switch-row">
+            <span id="authSwitchText">New here?</span>
+            <button id="authSwitchBtn" class="auth-link-btn" type="button">Create account</button>
+          </div>
+          <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
+          <p id="authError" class="auth-error" aria-live="polite"></p>
+        </form>
       </div>
-
-      <div id="authModeTabs" class="auth-mode-tabs">
-        <button id="authModeLoginBtn" class="auth-mode-btn active" type="button">Log in</button>
-        <button id="authModeRegisterBtn" class="auth-mode-btn" type="button">Sign up</button>
-      </div>
-
-      <form id="authForm" class="auth-form">
-        <div id="authUsernameWrap">
-          <label id="authUsernameLabel" for="authUsername">Username</label>
-          <input id="authUsername" type="text" autocomplete="username" placeholder="Enter username" />
-          <p id="authUsernameHint" class="auth-field-hint"></p>
-        </div>
-
-        <div id="authCurrentWrap" class="hidden">
-          <label id="authCurrentLabel" for="authCurrentPin">Current Password</label>
-          <input id="authCurrentPin" type="password" autocomplete="current-password" placeholder="Enter current password" />
-        </div>
-
-        <label id="authPinLabel" for="authPin">Password</label>
-        <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
-        <p id="authPasswordHint" class="auth-field-hint"></p>
-
-        <div id="authStrengthWrap" class="auth-strength-wrap hidden" aria-live="polite">
-          <div class="auth-strength-bar"><div id="authStrengthFill" class="auth-strength-fill"></div></div>
-          <p id="authStrengthText" class="auth-strength-text">Password strength: —</p>
-        </div>
-
-        <div id="authConfirmWrap" class="hidden">
-          <label id="authPinConfirmLabel" for="authPinConfirm">Confirm Password</label>
-          <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" />
-          <p id="authConfirmHint" class="auth-field-hint"></p>
-        </div>
-
-        <div id="authResetWrap" class="hidden">
-          <label id="authResetLabel" for="authResetConfirm">Type DELETE to confirm</label>
-          <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
-        </div>
-
-        <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:6px;">
-          <div id="authTurnstile"></div>
-          <p class="auth-note" style="text-align:left;">Human verification required for sign in and sign up.</p>
-        </div>
-
-        <label class="auth-inline-check" for="authShowPassword">
-          <input id="authShowPassword" type="checkbox" />
-          Show password fields
-        </label>
-
-        <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
-        <div id="authSwitchWrap" class="auth-switch-row">
-          <span id="authSwitchText">New here?</span>
-          <button id="authSwitchBtn" class="auth-link-btn" type="button">Create account</button>
-        </div>
-        <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
-        <p id="authError" class="auth-error" aria-live="polite"></p>
-      </form>
     </div>
   </div>
 
@@ -1612,6 +1782,8 @@
     let turnstileSiteKey = null;
     let turnstileWidgetID = null;
     let turnstileToken = "";
+    let authCooldownUntil = 0;
+    let authCooldownTimer = null;
 
     init();
 
@@ -1794,6 +1966,7 @@
 
     function showAuthOverlay(mode) {
       authMode = mode;
+      animateAuthModeSwitch();
       authOverlay.classList.remove("hidden");
       document.body.classList.add("app-locked");
       setAuthError("");
@@ -1821,6 +1994,13 @@
       authModeRegisterBtn.classList.toggle("active", mode === "register");
       authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
       updateTurnstileVisibility();
+
+      const cooldownLeft = getAuthCooldownSecondsLeft();
+      if ((mode === "login" || mode === "register") && cooldownLeft > 0) {
+        startAuthCooldown(cooldownLeft);
+      } else if (mode !== "login" && mode !== "register") {
+        authSubmitBtn.disabled = false;
+      }
 
       if (mode === "register") {
         authTitle.textContent = "Create account";
@@ -1883,6 +2063,13 @@
         void authCard.offsetWidth;
         authCard.classList.add("shake");
       }
+    }
+
+    function animateAuthModeSwitch() {
+      if (!authCard) return;
+      authCard.classList.remove("mode-switch");
+      void authCard.offsetWidth;
+      authCard.classList.add("mode-switch");
     }
 
     function passwordStrength(password) {
@@ -2836,9 +3023,57 @@
       try { payload = await res.json(); } catch {}
       if (!res.ok) {
         const msg = payload?.error || `Request failed (${res.status})`;
-        throw new Error(msg);
+        const err = new Error(msg);
+        err.status = res.status;
+        const retryAfter = Number(res.headers.get("Retry-After") || "0");
+        if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfterSec = retryAfter;
+        throw err;
       }
       return payload;
+    }
+
+    function getAuthCooldownSecondsLeft() {
+      if (!authCooldownUntil) return 0;
+      return Math.max(0, Math.ceil((authCooldownUntil - Date.now()) / 1000));
+    }
+
+    function formatCooldown(seconds) {
+      const s = Math.max(0, Number(seconds || 0));
+      const mm = String(Math.floor(s / 60)).padStart(2, "0");
+      const ss = String(s % 60).padStart(2, "0");
+      return `${mm}:${ss}`;
+    }
+
+    function clearAuthCooldown() {
+      authCooldownUntil = 0;
+      if (authCooldownTimer) {
+        clearInterval(authCooldownTimer);
+        authCooldownTimer = null;
+      }
+    }
+
+    function startAuthCooldown(seconds) {
+      const sec = Math.max(1, Number(seconds || 0));
+      authCooldownUntil = Date.now() + sec * 1000;
+      if (authCooldownTimer) clearInterval(authCooldownTimer);
+
+      const tick = () => {
+        const left = getAuthCooldownSecondsLeft();
+        if (left <= 0) {
+          clearAuthCooldown();
+          authSubmitBtn.disabled = false;
+          authSubmitBtn.textContent = authMode === "register" ? "Sign up" : "Sign in";
+          setAuthError("");
+          return;
+        }
+        const label = formatCooldown(left);
+        authSubmitBtn.disabled = true;
+        authSubmitBtn.textContent = `Try again in ${label}`;
+        setAuthError(`Too many attempts. Try again in ${label}.`);
+      };
+
+      tick();
+      authCooldownTimer = setInterval(tick, 1000);
     }
 
     async function cloudLoginFlow(mode) {
@@ -2876,6 +3111,10 @@
       }
       if (authMode === "resetaccount" && !password) {
         return "Current password is required.";
+      }
+      const cooldownLeft = getAuthCooldownSecondsLeft();
+      if ((authMode === "login" || authMode === "register") && cooldownLeft > 0) {
+        return `Too many attempts. Try again in ${formatCooldown(cooldownLeft)}.`;
       }
       if (turnstileEnabled && (authMode === "login" || authMode === "register") && !turnstileToken) {
         return "Please complete human verification.";
@@ -2993,6 +3232,7 @@
         }
 
         cloudHasUsers = true;
+        clearAuthCooldown();
         cloudProfile = payload || null;
         unlockApp();
 
@@ -3008,8 +3248,19 @@
         );
       } catch (err) {
         if (authMode === "login" || authMode === "register") resetTurnstile();
+        const retryAfter = Number(err?.retryAfterSec || 0);
+        if ((authMode === "login" || authMode === "register") && retryAfter > 0) {
+          startAuthCooldown(retryAfter);
+          return;
+        }
+        const lockMatch = String(err?.message || "").match(/try again in\s+(\d+)s/i);
+        if ((authMode === "login" || authMode === "register") && lockMatch) {
+          startAuthCooldown(Number(lockMatch[1]));
+          return;
+        }
         setAuthError(err.message || "Authentication failed", true);
       } finally {
+        if (getAuthCooldownSecondsLeft() > 0) return;
         authSubmitBtn.disabled = false;
         authSubmitBtn.textContent = initialBtnLabel;
       }
