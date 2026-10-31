@@ -1458,6 +1458,8 @@
         <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
         <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
         <button id="themeToggle" class="btn" aria-pressed="false">🌙 Dark</button>
+        <button id="addExpenseBtn" class="btn" title="Add a new expense item">➕ Add Expense</button>
+        <button id="addPrevMoneyBtn" class="btn" title="Add previous month amounts into this month">➕ Add Prev Money</button>
         <button id="copyPrevBtn" class="btn" title="Copy amounts from previous month">📋 Copy Last Month</button>
         <button id="saveMonthBtn" class="btn btn-primary">💾 Save Month</button>
         <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Draft saved</span>
@@ -1790,7 +1792,30 @@
       { category: "Investment / Savings", name: "RD (college)", key: "rd_college", kind: "investment", fixed: true, defaultAmount: 10834 }
     ];
 
+    function getMeta() {
+      if (!data || typeof data !== "object") data = {};
+      if (!data.__meta || typeof data.__meta !== "object") {
+        data.__meta = { customItems: [], nameOverrides: {} };
+      }
+      if (!Array.isArray(data.__meta.customItems)) data.__meta.customItems = [];
+      if (!data.__meta.nameOverrides || typeof data.__meta.nameOverrides !== "object") data.__meta.nameOverrides = {};
+      return data.__meta;
+    }
+
+    function getAllItems() {
+      const meta = getMeta();
+      const overrides = meta.nameOverrides || {};
+      const base = ITEMS.map(item => ({ ...item, name: overrides[item.key] || item.name }));
+      const custom = (meta.customItems || []).map(item => ({ ...item, name: overrides[item.key] || item.name, isCustom: true }));
+      return [...base, ...custom];
+    }
+
+    function ensureDataShape() {
+      getMeta();
+    }
+
     let data = loadData();
+    ensureDataShape();
     let editState = {};
     let collapsedState = {};
     let autosaveTimer = null;
@@ -1815,6 +1840,8 @@
     const autosaveBadge = document.getElementById("autosaveBadge");
     const themeToggle = document.getElementById("themeToggle");
     const incognitoBtn = document.getElementById("incognitoBtn");
+    const addExpenseBtn = document.getElementById("addExpenseBtn");
+    const addPrevMoneyBtn = document.getElementById("addPrevMoneyBtn");
     const copyPrevBtn = document.getElementById("copyPrevBtn");
     const searchInput = document.getElementById("searchInput");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
@@ -1919,6 +1946,8 @@
       securityLogoutBtn.addEventListener("click", logoutUser);
       themeToggle.addEventListener("click", toggleTheme);
       incognitoBtn.addEventListener("click", togglePrivacy);
+      addExpenseBtn.addEventListener("click", addCustomExpense);
+      addPrevMoneyBtn.addEventListener("click", addPreviousMonthAmounts);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
@@ -2315,9 +2344,10 @@
     function renderBoxes(current, prev) {
       categoryBoxesContainer.innerHTML = "";
       const categories = Object.keys(CATEGORY_MAP);
+      const allItems = getAllItems();
 
       categories.forEach(cat => {
-        const catItems = ITEMS.filter(i => i.category === cat);
+        const catItems = allItems.filter(i => i.category === cat);
         const box = document.createElement("div");
         box.className = "cat-box";
         box.dataset.category = cat;
@@ -2366,6 +2396,7 @@
               <button class="btn" style="padding:3px 7px; font-size:11px;" data-edit="${item.key}">
                 ${editState[item.key] ? 'Save' : 'Edit'}
               </button>
+              <button class="btn" style="padding:3px 7px; font-size:11px;" data-rename="${item.key}">Rename</button>
             </div>
           `;
           listEl.appendChild(row);
@@ -2392,8 +2423,9 @@
 
     function renderTable(current, prev) {
       tableRows.innerHTML = "";
+      const allItems = getAllItems();
 
-      ITEMS.forEach(item => {
+      allItems.forEach(item => {
         const val = getItemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
@@ -2419,6 +2451,7 @@
             <button class="btn" style="padding:3px 8px; font-size:11px;" data-edit="${item.key}">
               ${editState[item.key] ? 'Save' : 'Edit'}
             </button>
+            <button class="btn" style="padding:3px 8px; font-size:11px; margin-left:4px;" data-rename="${item.key}">Rename</button>
           </td>
         `;
         tableRows.appendChild(tr);
@@ -2429,11 +2462,12 @@
 
     function renderBankAccounts(current, prev) {
       bankCardsGrid.innerHTML = "";
+      const allItems = getAllItems();
 
       BANK_ACCOUNTS.forEach(acc => {
         let accSum = 0;
         const itemsMarkup = acc.itemKeys.map(k => {
-          const itemDef = ITEMS.find(i => i.key === k);
+          const itemDef = allItems.find(i => i.key === k);
           if (!itemDef) return "";
           const amt = Number(getItemValue(itemDef, current, prev)) || 0;
           accSum += amt;
@@ -2548,6 +2582,14 @@
           setEditMode(key, !editState[key], true);
         };
       });
+
+      document.querySelectorAll("[data-rename]").forEach(btn => {
+        btn.setAttribute("aria-label", `Rename ${btn.dataset.rename?.replaceAll("_", " ") || "item"}`);
+        btn.onclick = (e) => {
+          const key = e.currentTarget.dataset.rename;
+          renameExpenseItem(key);
+        };
+      });
     }
 
     function setEditMode(key, enabled, focusInput = false) {
@@ -2600,8 +2642,9 @@
       document.getElementById("remainingMeta").textContent = salary > 0 ? `${((remaining / salary) * 100).toFixed(1)}% remaining` : "0% left";
       document.getElementById("expenseMeta").textContent = salary > 0 ? `${((totalOutflow / salary) * 100).toFixed(1)}% of income` : "Expenses + Investments";
 
-      const settlePct = ITEMS.length ? (totals.paidCount / ITEMS.length) * 100 : 0;
-      document.getElementById("settleLabel").textContent = `Paid ${totals.paidCount} of ${ITEMS.length} items`;
+      const allItems = getAllItems();
+      const settlePct = allItems.length ? (totals.paidCount / allItems.length) * 100 : 0;
+      document.getElementById("settleLabel").textContent = `Paid ${totals.paidCount} of ${allItems.length} items`;
       document.getElementById("settleAmt").textContent = `(₹${formatNumber(totals.paidOutflow)} of ₹${formatNumber(totalOutflow)} cleared)`;
       document.getElementById("settleFill").style.width = `${settlePct}%`;
 
@@ -2636,7 +2679,8 @@
       let savingsSum = 0;
       const categoryTotals = {};
 
-      ITEMS.forEach(item => {
+      const allItems = getAllItems();
+      allItems.forEach(item => {
         const val = getInputValue(item.key);
         totalOutflow += val;
         categoryTotals[item.category] = (categoryTotals[item.category] || 0) + val;
@@ -2674,7 +2718,8 @@
 
     function updateCategoryHeaderTotals() {
       const sums = {};
-      ITEMS.forEach(item => {
+      const allItems = getAllItems();
+      allItems.forEach(item => {
         sums[item.category] = (sums[item.category] || 0) + getInputValue(item.key);
       });
 
@@ -2889,7 +2934,8 @@
         const d = data[m] || { salary: "", items: {} };
         const sal = Number(d.salary) || 0;
         let outflow = 0;
-        ITEMS.forEach(it => {
+        const allItems = getAllItems();
+        allItems.forEach(it => {
           const val = Number(d.items?.[it.key]);
           if (Number.isFinite(val)) outflow += val;
         });
@@ -2946,7 +2992,8 @@
       data[month] = data[month] || { salary: "", items: {}, paid: {} };
       data[month].salary = salaryInput.value ? Number(salaryInput.value) : "";
 
-      ITEMS.forEach(item => {
+      const allItems = getAllItems();
+      allItems.forEach(item => {
         const input = document.querySelector(`.amount-input[data-key="${item.key}"]`);
         const val = input ? input.value.trim() : "";
         data[month].items[item.key] = val === "" ? "" : Number(val);
@@ -2996,12 +3043,116 @@
 
       data[currentMonth] = data[currentMonth] || { salary: "", items: {}, paid: {} };
       data[currentMonth].salary = data[prevMonth].salary;
-      data[currentMonth].items = { ...data[prevMonth].items };
+      const allItems = getAllItems();
+      const copiedItems = {};
+      allItems.forEach(item => {
+        const val = data[prevMonth]?.items?.[item.key];
+        if (val !== undefined) copiedItems[item.key] = val;
+      });
+      data[currentMonth].items = copiedItems;
       data[currentMonth].paid = {};
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       render();
       showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
+      setAutosaveBadge("Saved", "saved", true);
+    }
+
+    function addPreviousMonthAmounts() {
+      const currentMonth = monthPicker.value;
+      const prevMonth = getPreviousMonth(currentMonth);
+      if (!prevMonth || !data[prevMonth]) {
+        alert("No previous month record found to add from.");
+        return;
+      }
+
+      data[currentMonth] = data[currentMonth] || { salary: "", items: {}, paid: {} };
+      data[currentMonth].items = data[currentMonth].items || {};
+
+      const allItems = getAllItems();
+      let updatedCount = 0;
+      allItems.forEach(item => {
+        const prevVal = Number(data[prevMonth]?.items?.[item.key]);
+        if (!Number.isFinite(prevVal) || prevVal === 0) return;
+        const currentVal = Number(data[currentMonth].items[item.key]);
+        const nextVal = (Number.isFinite(currentVal) ? currentVal : 0) + prevVal;
+        data[currentMonth].items[item.key] = nextVal;
+        updatedCount++;
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      render();
+      showToast(`Added ${updatedCount} item amounts from ${prevMonth}`);
+      setAutosaveBadge("Saved", "saved", true);
+    }
+
+    function makeCustomExpenseKey(name) {
+      const base = slugify(name) || "expense";
+      const keys = new Set(getAllItems().map(i => i.key));
+      let key = `custom_${base}`;
+      let i = 2;
+      while (keys.has(key)) {
+        key = `custom_${base}_${i++}`;
+      }
+      return key;
+    }
+
+    function addCustomExpense() {
+      const name = (prompt("Expense name:") || "").trim();
+      if (!name) return;
+
+      const categories = Object.keys(CATEGORY_MAP);
+      const pick = prompt(
+        `Choose category number:\n${categories.map((c, i) => `${i + 1}. ${c}`).join("\n")}`,
+        "1"
+      );
+      const catIndex = Number(pick);
+      const category = categories[catIndex - 1] || categories[0];
+
+      const amountRaw = prompt("Default amount (optional, number):", "");
+      const amountNum = amountRaw === null || amountRaw.trim() === "" ? null : Number(amountRaw);
+
+      const meta = getMeta();
+      const key = makeCustomExpenseKey(name);
+      meta.customItems.push({
+        category,
+        name,
+        key,
+        kind: "expense",
+        fixed: false,
+        defaultAmount: Number.isFinite(amountNum) ? amountNum : null,
+      });
+
+      const month = monthPicker.value;
+      data[month] = data[month] || { salary: "", items: {}, paid: {} };
+      data[month].items = data[month].items || {};
+      if (Number.isFinite(amountNum)) data[month].items[key] = amountNum;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      syncDataToCloudBestEffort();
+      render();
+      showToast(`Added expense: ${name}`);
+      setAutosaveBadge("Saved", "saved", true);
+    }
+
+    function renameExpenseItem(key) {
+      const item = getAllItems().find(i => i.key === key);
+      if (!item) return;
+      const nextName = (prompt("Rename expense:", item.name) || "").trim();
+      if (!nextName || nextName === item.name) return;
+
+      const meta = getMeta();
+      const custom = meta.customItems.find(i => i.key === key);
+      if (custom) {
+        custom.name = nextName;
+      } else {
+        meta.nameOverrides[key] = nextName;
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      syncDataToCloudBestEffort();
+      render();
+      showToast("Expense renamed");
       setAutosaveBadge("Saved", "saved", true);
     }
 
@@ -3024,6 +3175,7 @@
           const parsed = JSON.parse(evt.target.result);
           if (typeof parsed === "object") {
             data = parsed;
+            ensureDataShape();
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             render();
             showToast("Backup restored successfully!");
@@ -3096,7 +3248,14 @@
     function loadData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : {};
+        const parsed = raw ? JSON.parse(raw) : {};
+        if (!parsed || typeof parsed !== "object") return {};
+        if (!parsed.__meta || typeof parsed.__meta !== "object") {
+          parsed.__meta = { customItems: [], nameOverrides: {} };
+        }
+        if (!Array.isArray(parsed.__meta.customItems)) parsed.__meta.customItems = [];
+        if (!parsed.__meta.nameOverrides || typeof parsed.__meta.nameOverrides !== "object") parsed.__meta.nameOverrides = {};
+        return parsed;
       } catch {
         return {};
       }
@@ -3218,6 +3377,7 @@
       const res = await api("/api/data");
       if (res?.data && typeof res.data === "object") {
         data = res.data;
+        ensureDataShape();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
     }
@@ -3233,6 +3393,13 @@
       }
       await api("/api/data", { method: "POST", body: JSON.stringify({ data: localData }) });
       localStorage.setItem(syncKey, "1");
+    }
+
+    async function syncDataToCloudBestEffort() {
+      if (!isAuthenticated()) return;
+      try {
+        await api("/api/data", { method: "POST", body: JSON.stringify({ data }) });
+      } catch {}
     }
 
     async function syncMonthToCloud(month) {
