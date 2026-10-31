@@ -1438,6 +1438,34 @@
       .auth-shell .auth-card { padding: 24px 18px; border-radius: 20px; }
       .auth-card h2 { font-size: 30px; }
     }
+
+    .expense-modal.hidden { display: none !important; }
+    .expense-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1300;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(2, 6, 23, 0.55);
+      backdrop-filter: blur(4px);
+    }
+    .expense-modal-card {
+      width: min(100%, 460px);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .expense-modal-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .expense-modal-head h3 { margin:0; font-size:18px; letter-spacing:-.02em; }
+    .expense-modal-form { display:grid; gap:10px; }
+    .expense-modal-form label { font-size:12px; font-weight:700; color:var(--muted); }
+    .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+    .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
   </style>
 </head>
 <body class="app-locked">
@@ -1711,6 +1739,34 @@
     </div>
   </div>
 
+  <div id="expenseModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="expenseModalTitle">
+    <div class="expense-modal-card">
+      <div class="expense-modal-head">
+        <h3 id="expenseModalTitle">Add Expense</h3>
+        <button id="expenseModalCloseBtn" class="btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <form id="expenseModalForm" class="expense-modal-form">
+        <div>
+          <label for="expenseNameInput">Expense name</label>
+          <input id="expenseNameInput" type="text" placeholder="e.g. Gym membership" />
+        </div>
+        <div id="expenseCategoryWrap">
+          <label for="expenseCategorySelect">Category</label>
+          <select id="expenseCategorySelect"></select>
+        </div>
+        <div id="expenseAmountWrap">
+          <label for="expenseDefaultAmountInput">Default amount (optional)</label>
+          <input id="expenseDefaultAmountInput" type="number" min="0" step="1" placeholder="e.g. 1500" />
+        </div>
+        <p id="expenseModalError" class="expense-modal-error" aria-live="polite"></p>
+        <div class="expense-modal-actions">
+          <button id="expenseModalCancelBtn" class="btn" type="button">Cancel</button>
+          <button id="expenseModalSubmitBtn" class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" role="status" aria-live="polite">Saved</div>
 
   <script>
@@ -1892,6 +1948,18 @@
     const authSwitchText = document.getElementById("authSwitchText");
     const authSwitchBtn = document.getElementById("authSwitchBtn");
     const authError = document.getElementById("authError");
+    const expenseModal = document.getElementById("expenseModal");
+    const expenseModalForm = document.getElementById("expenseModalForm");
+    const expenseModalTitle = document.getElementById("expenseModalTitle");
+    const expenseModalCloseBtn = document.getElementById("expenseModalCloseBtn");
+    const expenseModalCancelBtn = document.getElementById("expenseModalCancelBtn");
+    const expenseModalSubmitBtn = document.getElementById("expenseModalSubmitBtn");
+    const expenseNameInput = document.getElementById("expenseNameInput");
+    const expenseCategoryWrap = document.getElementById("expenseCategoryWrap");
+    const expenseCategorySelect = document.getElementById("expenseCategorySelect");
+    const expenseAmountWrap = document.getElementById("expenseAmountWrap");
+    const expenseDefaultAmountInput = document.getElementById("expenseDefaultAmountInput");
+    const expenseModalError = document.getElementById("expenseModalError");
 
     let authMode = "login"; // login | register | changepassword | resetaccount
     let cloudHasUsers = null;
@@ -1903,11 +1971,14 @@
     let turnstileToken = "";
     let authCooldownUntil = 0;
     let authCooldownTimer = null;
+    let expenseModalMode = "add";
+    let expenseRenameKey = null;
 
     init();
 
     async function init() {
       restorePreferences();
+      setupExpenseModal();
       renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
       bindCoreListeners();
@@ -1949,6 +2020,12 @@
       addExpenseBtn.addEventListener("click", addCustomExpense);
       addPrevMoneyBtn.addEventListener("click", addPreviousMonthAmounts);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
+      expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
+      expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
+      expenseModal.addEventListener("click", (e) => {
+        if (e.target === expenseModal) closeExpenseModal();
+      });
+      expenseModalForm.addEventListener("submit", submitExpenseModal);
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
       viewTableBtn.addEventListener("click", () => switchView("table"));
@@ -1970,6 +2047,10 @@
       });
 
       document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !expenseModal.classList.contains("hidden")) {
+          closeExpenseModal();
+          return;
+        }
         if (!isAuthenticated()) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
           e.preventDefault();
@@ -2381,6 +2462,9 @@
         catItems.forEach(item => {
           const val = getItemValue(item, current, prev);
           const isPaid = !!(current.paid && current.paid[item.key]);
+          const deleteBtn = item.isCustom
+            ? `<button class="btn btn-danger" style="padding:3px 7px; font-size:11px;" data-delete="${item.key}">Delete</button>`
+            : "";
 
           const row = document.createElement("div");
           row.className = "cat-item-row";
@@ -2397,6 +2481,7 @@
                 ${editState[item.key] ? 'Save' : 'Edit'}
               </button>
               <button class="btn" style="padding:3px 7px; font-size:11px;" data-rename="${item.key}">Rename</button>
+              ${deleteBtn}
             </div>
           `;
           listEl.appendChild(row);
@@ -2429,6 +2514,9 @@
         const val = getItemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
+        const deleteBtn = item.isCustom
+          ? `<button class="btn btn-danger" style="padding:3px 8px; font-size:11px; margin-left:4px;" data-delete="${item.key}">Delete</button>`
+          : "";
 
         const tr = document.createElement("tr");
         tr.dataset.search = (item.name + " " + item.category).toLowerCase();
@@ -2452,6 +2540,7 @@
               ${editState[item.key] ? 'Save' : 'Edit'}
             </button>
             <button class="btn" style="padding:3px 8px; font-size:11px; margin-left:4px;" data-rename="${item.key}">Rename</button>
+            ${deleteBtn}
           </td>
         `;
         tableRows.appendChild(tr);
@@ -2588,6 +2677,14 @@
         btn.onclick = (e) => {
           const key = e.currentTarget.dataset.rename;
           renameExpenseItem(key);
+        };
+      });
+
+      document.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.setAttribute("aria-label", `Delete ${btn.dataset.delete?.replaceAll("_", " ") || "item"}`);
+        btn.onclick = (e) => {
+          const key = e.currentTarget.dataset.delete;
+          deleteCustomExpense(key);
         };
       });
     }
@@ -3097,62 +3194,163 @@
       return key;
     }
 
-    function addCustomExpense() {
-      const name = (prompt("Expense name:") || "").trim();
-      if (!name) return;
-
+    function setupExpenseModal() {
       const categories = Object.keys(CATEGORY_MAP);
-      const pick = prompt(
-        `Choose category number:\n${categories.map((c, i) => `${i + 1}. ${c}`).join("\n")}`,
-        "1"
-      );
-      const catIndex = Number(pick);
-      const category = categories[catIndex - 1] || categories[0];
+      expenseCategorySelect.innerHTML = categories
+        .map((cat) => `<option value="${cat}">${cat}</option>`)
+        .join("");
+    }
 
-      const amountRaw = prompt("Default amount (optional, number):", "");
-      const amountNum = amountRaw === null || amountRaw.trim() === "" ? null : Number(amountRaw);
+    function openExpenseModal({ mode = "add", key = null } = {}) {
+      expenseModalMode = mode;
+      expenseRenameKey = key;
+      expenseModalError.textContent = "";
+      expenseModalForm.reset();
 
-      const meta = getMeta();
-      const key = makeCustomExpenseKey(name);
-      meta.customItems.push({
-        category,
-        name,
-        key,
-        kind: "expense",
-        fixed: false,
-        defaultAmount: Number.isFinite(amountNum) ? amountNum : null,
-      });
+      if (mode === "rename") {
+        const item = getAllItems().find((i) => i.key === key);
+        if (!item) return;
+        expenseModalTitle.textContent = "Rename Expense";
+        expenseModalSubmitBtn.textContent = "Rename";
+        expenseNameInput.value = item.name;
+        expenseCategoryWrap.classList.add("hidden");
+        expenseAmountWrap.classList.add("hidden");
+      } else {
+        expenseModalTitle.textContent = "Add Expense";
+        expenseModalSubmitBtn.textContent = "Add";
+        expenseCategoryWrap.classList.remove("hidden");
+        expenseAmountWrap.classList.remove("hidden");
+      }
 
-      const month = monthPicker.value;
-      data[month] = data[month] || { salary: "", items: {}, paid: {} };
-      data[month].items = data[month].items || {};
-      if (Number.isFinite(amountNum)) data[month].items[key] = amountNum;
+      expenseModal.classList.remove("hidden");
+      expenseNameInput.focus();
+      expenseNameInput.select();
+    }
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      syncDataToCloudBestEffort();
-      render();
-      showToast(`Added expense: ${name}`);
-      setAutosaveBadge("Saved", "saved", true);
+    function closeExpenseModal() {
+      expenseModal.classList.add("hidden");
+      expenseModalError.textContent = "";
+      expenseRenameKey = null;
+    }
+
+    function validateExpenseModal() {
+      const name = (expenseNameInput.value || "").trim();
+      if (!name) return "Expense name is required.";
+      if (name.length < 2) return "Expense name must be at least 2 characters.";
+      if (name.length > 60) return "Expense name is too long (max 60).";
+
+      if (expenseModalMode === "add") {
+        const exists = getAllItems().some((i) => i.name.toLowerCase() === name.toLowerCase());
+        if (exists) return "An expense with this name already exists.";
+
+        const amountRaw = (expenseDefaultAmountInput.value || "").trim();
+        if (amountRaw !== "") {
+          const amountNum = Number(amountRaw);
+          if (!Number.isFinite(amountNum) || amountNum < 0) return "Default amount must be a valid number ≥ 0.";
+        }
+      }
+
+      if (expenseModalMode === "rename") {
+        const item = getAllItems().find((i) => i.key === expenseRenameKey);
+        if (!item) return "Expense not found.";
+        const exists = getAllItems().some((i) => i.key !== expenseRenameKey && i.name.toLowerCase() === name.toLowerCase());
+        if (exists) return "Another expense already has this name.";
+      }
+
+      return "";
+    }
+
+    function submitExpenseModal(e) {
+      e.preventDefault();
+      expenseModalError.textContent = "";
+      const error = validateExpenseModal();
+      if (error) {
+        expenseModalError.textContent = error;
+        return;
+      }
+
+      if (expenseModalMode === "add") {
+        const name = expenseNameInput.value.trim();
+        const category = expenseCategorySelect.value;
+        const amountRaw = (expenseDefaultAmountInput.value || "").trim();
+        const amountNum = amountRaw === "" ? null : Number(amountRaw);
+        const meta = getMeta();
+        const key = makeCustomExpenseKey(name);
+        meta.customItems.push({
+          category,
+          name,
+          key,
+          kind: "expense",
+          fixed: false,
+          defaultAmount: Number.isFinite(amountNum) ? amountNum : null,
+        });
+
+        const month = monthPicker.value;
+        data[month] = data[month] || { salary: "", items: {}, paid: {} };
+        data[month].items = data[month].items || {};
+        if (Number.isFinite(amountNum)) data[month].items[key] = amountNum;
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        syncDataToCloudBestEffort();
+        render();
+        showToast(`Added expense: ${name}`);
+        setAutosaveBadge("Saved", "saved", true);
+      } else {
+        const key = expenseRenameKey;
+        const item = getAllItems().find((i) => i.key === key);
+        const nextName = expenseNameInput.value.trim();
+        if (!item) {
+          expenseModalError.textContent = "Expense not found.";
+          return;
+        }
+        const meta = getMeta();
+        const custom = meta.customItems.find((i) => i.key === key);
+        if (custom) custom.name = nextName;
+        else meta.nameOverrides[key] = nextName;
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        syncDataToCloudBestEffort();
+        render();
+        showToast("Expense renamed");
+        setAutosaveBadge("Saved", "saved", true);
+      }
+
+      closeExpenseModal();
+    }
+
+    function addCustomExpense() {
+      openExpenseModal({ mode: "add" });
     }
 
     function renameExpenseItem(key) {
-      const item = getAllItems().find(i => i.key === key);
-      if (!item) return;
-      const nextName = (prompt("Rename expense:", item.name) || "").trim();
-      if (!nextName || nextName === item.name) return;
+      openExpenseModal({ mode: "rename", key });
+    }
 
+    function deleteCustomExpense(key) {
       const meta = getMeta();
-      const custom = meta.customItems.find(i => i.key === key);
-      if (custom) {
-        custom.name = nextName;
-      } else {
-        meta.nameOverrides[key] = nextName;
+      const item = meta.customItems.find((i) => i.key === key);
+      if (!item) {
+        showToast("Only custom expenses can be deleted");
+        return;
       }
+
+      const ok = confirm(`Delete custom expense "${item.name}"? This removes it from all months.`);
+      if (!ok) return;
+
+      meta.customItems = meta.customItems.filter((i) => i.key !== key);
+      delete meta.nameOverrides[key];
+      Object.keys(data).forEach((monthKey) => {
+        if (monthKey === "__meta") return;
+        const monthData = data[monthKey];
+        if (!monthData || typeof monthData !== "object") return;
+        if (monthData.items && Object.prototype.hasOwnProperty.call(monthData.items, key)) delete monthData.items[key];
+        if (monthData.paid && Object.prototype.hasOwnProperty.call(monthData.paid, key)) delete monthData.paid[key];
+      });
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       syncDataToCloudBestEffort();
       render();
-      showToast("Expense renamed");
+      showToast("Custom expense deleted");
       setAutosaveBadge("Saved", "saved", true);
     }
 
