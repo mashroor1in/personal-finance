@@ -5,7 +5,7 @@ export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
-  const userID = session.userID || "default";
+  const userID = session.userID;
   const rows = await context.env.DB.prepare(
     "SELECT month, salary, items_json, paid_json FROM months WHERE user_id = ? ORDER BY month"
   )
@@ -33,7 +33,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "Invalid payload" }, { status: 400 });
   }
 
-  const userID = session.userID || "default";
+  const userID = session.userID;
   const entries = Object.entries(source);
   for (const [month, val] of entries) {
     if (!/^\d{4}-\d{2}$/.test(month)) continue;

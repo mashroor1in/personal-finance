@@ -988,8 +988,8 @@
         <label for="monthPicker" class="sr-only">Select month</label>
         <input id="monthPicker" type="month" aria-label="Select planning month" />
         <button id="authLockBtn" class="btn" title="Lock app">🔒 Lock</button>
-        <button id="changePinBtn" class="btn" title="Change PIN">🔑 Change PIN</button>
-        <button id="resetAppBtn" class="btn btn-danger" title="Reset local planner data">🗑️ Reset</button>
+        <button id="changePinBtn" class="btn" title="Change Password">🔑 Change Password</button>
+        <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
         <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
         <button id="themeToggle" class="btn" aria-pressed="false">🌙 Dark</button>
         <button id="copyPrevBtn" class="btn" title="Copy amounts from previous month">📋 Copy Last Month</button>
@@ -1110,13 +1110,13 @@
         <h3 id="securityTitle">Security Settings</h3>
         <div class="security-meta">
           <span id="securitySessionChip" class="security-chip">Session: Locked</span>
-          <span id="securityPinUpdatedChip" class="security-chip">PIN: Not set</span>
+          <span id="securityPinUpdatedChip" class="security-chip">Password: Not set</span>
         </div>
       </div>
       <div class="security-actions">
         <button id="securityLockBtn" class="btn" type="button">🔒 Lock Now</button>
-        <button id="securityChangePinBtn" class="btn" type="button">🔑 Change PIN</button>
-        <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Local Data</button>
+        <button id="securityChangePinBtn" class="btn" type="button">🔑 Change Password</button>
+        <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Account Data</button>
       </div>
     </section>
 
@@ -1154,21 +1154,26 @@
 
   <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
-      <h2 id="authTitle">Unlock Planner</h2>
-      <p id="authSubtitle">Enter your PIN to access your finance dashboard.</p>
+      <h2 id="authTitle">Sign in</h2>
+      <p id="authSubtitle">Use your username and password to access your finance dashboard.</p>
 
       <form id="authForm" class="auth-form">
-        <div id="authCurrentWrap" class="hidden">
-          <label id="authCurrentLabel" for="authCurrentPin">Current PIN</label>
-          <input id="authCurrentPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter current PIN" />
+        <div id="authUsernameWrap">
+          <label id="authUsernameLabel" for="authUsername">Username</label>
+          <input id="authUsername" type="text" autocomplete="username" placeholder="Enter username" />
         </div>
 
-        <label id="authPinLabel" for="authPin">PIN</label>
-        <input id="authPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter PIN" required />
+        <div id="authCurrentWrap" class="hidden">
+          <label id="authCurrentLabel" for="authCurrentPin">Current Password</label>
+          <input id="authCurrentPin" type="password" autocomplete="current-password" placeholder="Enter current password" />
+        </div>
+
+        <label id="authPinLabel" for="authPin">Password</label>
+        <input id="authPin" type="password" autocomplete="current-password" placeholder="Enter password" required />
 
         <div id="authConfirmWrap" class="hidden">
-          <label id="authPinConfirmLabel" for="authPinConfirm">Confirm PIN</label>
-          <input id="authPinConfirm" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Confirm PIN" />
+          <label id="authPinConfirmLabel" for="authPinConfirm">Confirm Password</label>
+          <input id="authPinConfirm" type="password" autocomplete="new-password" placeholder="Confirm password" />
         </div>
 
         <div id="authResetWrap" class="hidden">
@@ -1176,7 +1181,7 @@
           <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
         </div>
 
-        <button id="authSubmitBtn" class="btn btn-primary" type="submit">Unlock</button>
+        <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
         <p id="authError" class="auth-error" aria-live="polite"></p>
       </form>
     </div>
@@ -1309,6 +1314,9 @@
     const authForm = document.getElementById("authForm");
     const authTitle = document.getElementById("authTitle");
     const authSubtitle = document.getElementById("authSubtitle");
+    const authUsernameWrap = document.getElementById("authUsernameWrap");
+    const authUsernameLabel = document.getElementById("authUsernameLabel");
+    const authUsername = document.getElementById("authUsername");
     const authCurrentWrap = document.getElementById("authCurrentWrap");
     const authCurrentPin = document.getElementById("authCurrentPin");
     const authPinLabel = document.getElementById("authPinLabel");
@@ -1321,8 +1329,10 @@
     const authSubmitBtn = document.getElementById("authSubmitBtn");
     const authError = document.getElementById("authError");
 
-    let authMode = "login"; // login | setup | changepin | reset
-    let cloudHasPin = null;
+    let authMode = "login"; // login | register | changepassword | resetaccount
+    let cloudHasUsers = null;
+    const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
+    let cloudProfile = null;
 
     init();
 
@@ -1349,20 +1359,20 @@
       authLockBtn.addEventListener("click", lockApp);
       changePinBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
-        showAuthOverlay("changepin");
+        showAuthOverlay("changepassword");
       });
       resetAppBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
-        showAuthOverlay("reset");
+        showAuthOverlay("resetaccount");
       });
       securityLockBtn.addEventListener("click", lockApp);
       securityChangePinBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
-        showAuthOverlay("changepin");
+        showAuthOverlay("changepassword");
       });
       securityResetBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
-        showAuthOverlay("reset");
+        showAuthOverlay("resetaccount");
       });
       themeToggle.addEventListener("click", toggleTheme);
       incognitoBtn.addEventListener("click", togglePrivacy);
@@ -1437,8 +1447,8 @@
     function lockApp(silent = false) {
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       document.body.classList.add("app-locked");
-      const needsSetup = cloudHasPin === false;
-      showAuthOverlay(needsSetup ? "setup" : "login");
+      const needsRegister = cloudHasUsers === false;
+      showAuthOverlay(needsRegister ? "register" : "login");
       updateSecurityCard();
       if (!silent) showToast("Planner locked");
     }
@@ -1460,50 +1470,62 @@
       authError.textContent = "";
       authForm.reset();
 
+      authUsernameWrap.classList.add("hidden");
       authCurrentWrap.classList.add("hidden");
       authConfirmWrap.classList.add("hidden");
       authResetWrap.classList.add("hidden");
+
+      authUsername.required = false;
       authCurrentPin.required = false;
       authPinConfirm.required = false;
       authResetConfirm.required = false;
 
-      if (mode === "setup") {
-        authTitle.textContent = "Set up your PIN";
-        authSubtitle.textContent = "Create a 4+ digit PIN to protect your planner.";
-        authPinLabel.textContent = "New PIN";
-        authPinConfirmLabel.textContent = "Confirm PIN";
-        authSubmitBtn.textContent = "Create PIN";
+      if (mode === "register") {
+        authTitle.textContent = "Create account";
+        authSubtitle.textContent = "Set up your username and password.";
+        authUsernameWrap.classList.remove("hidden");
+        authUsernameLabel.textContent = "Username";
+        authUsername.required = true;
+        authPinLabel.textContent = "Password";
+        authPinConfirmLabel.textContent = "Confirm password";
+        authSubmitBtn.textContent = "Sign up";
         authConfirmWrap.classList.remove("hidden");
         authPinConfirm.required = true;
         authPin.setAttribute("autocomplete", "new-password");
-      } else if (mode === "changepin") {
-        authTitle.textContent = "Change PIN";
-        authSubtitle.textContent = "Enter current PIN and set a new one.";
+      } else if (mode === "changepassword") {
+        authTitle.textContent = "Change password";
+        authSubtitle.textContent = "Enter current password and set a new one.";
         authCurrentWrap.classList.remove("hidden");
-        authPinLabel.textContent = "New PIN";
-        authPinConfirmLabel.textContent = "Confirm new PIN";
-        authSubmitBtn.textContent = "Update PIN";
+        authPinLabel.textContent = "New password";
+        authPinConfirmLabel.textContent = "Confirm new password";
+        authSubmitBtn.textContent = "Update password";
         authConfirmWrap.classList.remove("hidden");
         authCurrentPin.required = true;
         authPinConfirm.required = true;
         authPin.setAttribute("autocomplete", "new-password");
-      } else if (mode === "reset") {
-        authTitle.textContent = "Reset Planner Data";
-        authSubtitle.textContent = "This wipes all local data. Enter PIN and confirm.";
-        authPinLabel.textContent = "Current PIN";
-        authSubmitBtn.textContent = "Reset & Wipe";
+      } else if (mode === "resetaccount") {
+        authTitle.textContent = "Reset account data";
+        authSubtitle.textContent = "This wipes your cloud and local data.";
+        authPinLabel.textContent = "Current password";
+        authSubmitBtn.textContent = "Reset account";
         authResetWrap.classList.remove("hidden");
         authResetConfirm.required = true;
         authPin.setAttribute("autocomplete", "current-password");
       } else {
-        authTitle.textContent = "Unlock Planner";
-        authSubtitle.textContent = "Enter your PIN to access your finance dashboard.";
-        authPinLabel.textContent = "PIN";
-        authSubmitBtn.textContent = "Unlock";
+        authTitle.textContent = "Sign in";
+        authSubtitle.textContent = "Use your username and password to access your finance dashboard.";
+        authUsernameWrap.classList.remove("hidden");
+        authUsername.required = true;
+        authPinLabel.textContent = "Password";
+        authSubmitBtn.textContent = "Sign in";
         authPin.setAttribute("autocomplete", "current-password");
       }
 
-      requestAnimationFrame(() => authPin.focus());
+      requestAnimationFrame(() => {
+        if (!authUsernameWrap.classList.contains("hidden")) authUsername.focus();
+        else if (!authCurrentWrap.classList.contains("hidden")) authCurrentPin.focus();
+        else authPin.focus();
+      });
     }
 
     async function onAuthSubmit(e) {
@@ -1631,15 +1653,14 @@
       const authenticated = isAuthenticated();
       securitySessionChip.textContent = `Session: ${authenticated ? "Unlocked" : "Locked"}`;
 
-      const cfg = getAuthConfig();
-      if (!cfg) {
-        securityPinUpdatedChip.textContent = "PIN: Not set";
-      } else if (cfg.updatedAt) {
-        const dt = new Date(cfg.updatedAt);
+      if (cloudProfile?.passwordUpdatedAt) {
+        const dt = new Date(cloudProfile.passwordUpdatedAt);
         const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        securityPinUpdatedChip.textContent = `PIN updated: ${label}`;
+        securityPinUpdatedChip.textContent = `Password updated: ${label}`;
+      } else if (cloudHasUsers === false) {
+        securityPinUpdatedChip.textContent = "Password: Not set";
       } else {
-        securityPinUpdatedChip.textContent = "PIN: Configured";
+        securityPinUpdatedChip.textContent = "Password: Configured";
       }
     }
 
@@ -2505,9 +2526,6 @@
     // ==============================
     // Phase 2: Cloudflare D1 + KV
     // ==============================
-    const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
-    let cloudProfile = null;
-
     async function api(path, options = {}) {
       const res = await fetch(path, {
         credentials: "include",
@@ -2524,14 +2542,15 @@
     }
 
     async function cloudLoginFlow(mode) {
-      const pin = (authPin.value || "").trim();
-      const currentPin = (authCurrentPin?.value || "").trim();
-      const confirmPin = (authPinConfirm?.value || "").trim();
+      const username = (authUsername?.value || "").trim().toLowerCase();
+      const password = (authPin.value || "").trim();
+      const currentPassword = (authCurrentPin?.value || "").trim();
+      const confirmPassword = (authPinConfirm?.value || "").trim();
       const resetConfirm = (authResetConfirm?.value || "").trim();
 
       const payload = await api("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ mode, pin, currentPin, confirmPin, resetConfirm }),
+        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm }),
       });
       return payload;
     }
@@ -2545,15 +2564,16 @@
     }
 
     async function migrateLocalStorageToCloudOnce() {
-      const already = localStorage.getItem(CLOUD_SYNC_KEY) === "1";
+      const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
+      const already = localStorage.getItem(syncKey) === "1";
       if (already) return;
       const localData = loadData();
       if (!localData || !Object.keys(localData).length) {
-        localStorage.setItem(CLOUD_SYNC_KEY, "1");
+        localStorage.setItem(syncKey, "1");
         return;
       }
       await api("/api/data", { method: "POST", body: JSON.stringify({ data: localData }) });
-      localStorage.setItem(CLOUD_SYNC_KEY, "1");
+      localStorage.setItem(syncKey, "1");
     }
 
     async function syncMonthToCloud(month) {
@@ -2578,17 +2598,17 @@
     async function fetchAuthStatus() {
       try {
         const res = await api("/api/auth/status");
-        cloudHasPin = !!res?.hasPin;
+        cloudHasUsers = !!res?.hasUsers;
       } catch {
-        cloudHasPin = true;
+        cloudHasUsers = true;
       }
-      return cloudHasPin;
+      return cloudHasUsers;
     }
 
     async function bootstrapCloudSession() {
       const me = await refreshCloudProfile();
       if (me?.authenticated) {
-        cloudHasPin = true;
+        cloudHasUsers = true;
         sessionStorage.setItem(AUTH_SESSION_KEY, "1");
         unlockApp();
         await hydrateFromCloud();
@@ -2610,24 +2630,32 @@
       try {
         const payload = await cloudLoginFlow(authMode);
 
-        if (authMode === "reset") {
-          cloudHasPin = false;
+        if (authMode === "resetaccount") {
+          cloudHasUsers = false;
           cloudProfile = null;
           wipePlannerData();
-          localStorage.removeItem(CLOUD_SYNC_KEY);
-          showAuthOverlay("setup");
-          showToast(payload?.message || "Planner reset complete");
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith(`${CLOUD_SYNC_KEY}:`))
+            .forEach((k) => localStorage.removeItem(k));
+          showAuthOverlay("register");
+          showToast(payload?.message || "Account reset complete");
           return;
         }
 
-        cloudHasPin = true;
+        cloudHasUsers = true;
         cloudProfile = payload || null;
         unlockApp();
 
         await migrateLocalStorageToCloudOnce();
         await hydrateFromCloud();
         render();
-        showToast(authMode === "changepin" ? "PIN updated" : authMode === "setup" ? "PIN created" : "Welcome back");
+        showToast(
+          authMode === "changepassword"
+            ? "Password updated"
+            : authMode === "register"
+              ? "Account created"
+              : "Welcome back"
+        );
       } catch (err) {
         authError.textContent = err.message || "Authentication failed";
       }
@@ -2663,19 +2691,6 @@
     securityLockBtn.addEventListener("click", async () => {
       try { await api("/api/auth/logout", { method: "POST" }); } catch {}
     });
-
-    // enhance security card metadata with cloud profile
-    const _origUpdateSecurityCard = updateSecurityCard;
-    updateSecurityCard = function () {
-      _origUpdateSecurityCard();
-      if (!securityPinUpdatedChip) return;
-      const ts = cloudProfile?.pinUpdatedAt;
-      if (ts) {
-        const dt = new Date(ts);
-        const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        securityPinUpdatedChip.textContent = `PIN updated: ${label}`;
-      }
-    };
   </script>
 </body>
 </html>

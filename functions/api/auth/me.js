@@ -5,14 +5,17 @@ export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, authenticated: false }, { status: 401 });
 
-  const row = await context.env.DB.prepare("SELECT updated_at FROM users WHERE id = ?")
-    .bind(session.userID || "default")
+  const row = await context.env.DB.prepare("SELECT id, updated_at FROM users WHERE id = ?")
+    .bind(session.userID)
     .first();
+
+  if (!row) return json({ ok: false, authenticated: false }, { status: 401 });
 
   return json({
     ok: true,
     authenticated: true,
-    userID: session.userID || "default",
-    pinUpdatedAt: row?.updated_at || null,
+    userID: row.id,
+    username: row.id,
+    passwordUpdatedAt: row.updated_at || null,
   });
 }

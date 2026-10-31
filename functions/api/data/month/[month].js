@@ -11,7 +11,7 @@ export async function onRequestPut(context) {
   }
 
   const body = await readJson(context.request);
-  const userID = session.userID || "default";
+  const userID = session.userID;
   const salaryRaw = body?.salary;
   const salaryNum = Number(salaryRaw);
   const salary = salaryRaw === "" || salaryRaw == null ? null : (Number.isFinite(salaryNum) ? salaryNum : null);
@@ -45,7 +45,7 @@ export async function onRequestGet(context) {
   const row = await context.env.DB.prepare(
     "SELECT salary, items_json, paid_json FROM months WHERE user_id = ? AND month = ?"
   )
-    .bind(session.userID || "default", month)
+    .bind(session.userID, month)
     .first();
 
   if (!row) return json({ ok: true, month, data: null });
