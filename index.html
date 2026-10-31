@@ -1322,6 +1322,7 @@
     const authError = document.getElementById("authError");
 
     let authMode = "login"; // login | setup | changepin | reset
+    let cloudHasPin = null;
 
     init();
 
@@ -1330,16 +1331,8 @@
       renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
       bindCoreListeners();
-      setupAuthState();
       updateSecurityCard();
-      if (!isAuthenticated()) {
-        const needsSetup = !getAuthConfig();
-        showAuthOverlay(needsSetup ? "setup" : "login");
-        return;
-      }
-
-      unlockApp();
-      render();
+      await bootstrapCloudSession();
     }
 
     function bindCoreListeners() {
@@ -1444,7 +1437,7 @@
     function lockApp(silent = false) {
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       document.body.classList.add("app-locked");
-      const needsSetup = !getAuthConfig();
+      const needsSetup = cloudHasPin === false;
       showAuthOverlay(needsSetup ? "setup" : "login");
       updateSecurityCard();
       if (!silent) showToast("Planner locked");
@@ -2508,6 +2501,181 @@
         return {};
       }
     }
+
+    // ==============================
+    // Phase 2: Cloudflare D1 + KV
+    // ==============================
+    const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
+    let cloudProfile = null;
+
+    async function api(path, options = {}) {
+      const res = await fetch(path, {
+        credentials: "include",
+        headers: { "content-type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      let payload = {};
+      try { payload = await res.json(); } catch {}
+      if (!res.ok) {
+        const msg = payload?.error || `Request failed (${res.status})`;
+        throw new Error(msg);
+      }
+      return payload;
+    }
+
+    async function cloudLoginFlow(mode) {
+      const pin = (authPin.value || "").trim();
+      const currentPin = (authCurrentPin?.value || "").trim();
+      const confirmPin = (authPinConfirm?.value || "").trim();
+      const resetConfirm = (authResetConfirm?.value || "").trim();
+
+      const payload = await api("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ mode, pin, currentPin, confirmPin, resetConfirm }),
+      });
+      return payload;
+    }
+
+    async function hydrateFromCloud() {
+      const res = await api("/api/data");
+      if (res?.data && typeof res.data === "object") {
+        data = res.data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    }
+
+    async function migrateLocalStorageToCloudOnce() {
+      const already = localStorage.getItem(CLOUD_SYNC_KEY) === "1";
+      if (already) return;
+      const localData = loadData();
+      if (!localData || !Object.keys(localData).length) {
+        localStorage.setItem(CLOUD_SYNC_KEY, "1");
+        return;
+      }
+      await api("/api/data", { method: "POST", body: JSON.stringify({ data: localData }) });
+      localStorage.setItem(CLOUD_SYNC_KEY, "1");
+    }
+
+    async function syncMonthToCloud(month) {
+      const monthData = data[month] || { salary: "", items: {}, paid: {} };
+      await api(`/api/data/month/${month}`, {
+        method: "PUT",
+        body: JSON.stringify(monthData),
+      });
+    }
+
+    async function refreshCloudProfile() {
+      try {
+        const me = await api("/api/auth/me");
+        cloudProfile = me;
+        return me;
+      } catch {
+        cloudProfile = null;
+        return null;
+      }
+    }
+
+    async function fetchAuthStatus() {
+      try {
+        const res = await api("/api/auth/status");
+        cloudHasPin = !!res?.hasPin;
+      } catch {
+        cloudHasPin = true;
+      }
+      return cloudHasPin;
+    }
+
+    async function bootstrapCloudSession() {
+      const me = await refreshCloudProfile();
+      if (me?.authenticated) {
+        cloudHasPin = true;
+        sessionStorage.setItem(AUTH_SESSION_KEY, "1");
+        unlockApp();
+        await hydrateFromCloud();
+        render();
+        return;
+      }
+
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      await fetchAuthStatus();
+      lockApp(true);
+    }
+
+    // replace auth submit with cloud-backed auth
+    authForm.removeEventListener("submit", onAuthSubmit);
+    authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      authError.textContent = "";
+
+      try {
+        const payload = await cloudLoginFlow(authMode);
+
+        if (authMode === "reset") {
+          cloudHasPin = false;
+          cloudProfile = null;
+          wipePlannerData();
+          localStorage.removeItem(CLOUD_SYNC_KEY);
+          showAuthOverlay("setup");
+          showToast(payload?.message || "Planner reset complete");
+          return;
+        }
+
+        cloudHasPin = true;
+        cloudProfile = payload || null;
+        unlockApp();
+
+        await migrateLocalStorageToCloudOnce();
+        await hydrateFromCloud();
+        render();
+        showToast(authMode === "changepin" ? "PIN updated" : authMode === "setup" ? "PIN created" : "Welcome back");
+      } catch (err) {
+        authError.textContent = err.message || "Authentication failed";
+      }
+    });
+
+    // wrap save handlers to sync with D1
+    saveMonthBtn.removeEventListener("click", saveCurrentMonth);
+    saveMonthBtn.addEventListener("click", async () => {
+      saveCurrentMonth();
+      try {
+        await syncMonthToCloud(monthPicker.value);
+      } catch (e) {
+        showToast(`Saved locally. Cloud sync failed: ${e.message}`);
+      }
+    });
+
+    if (typeof saveCheckedItems === "function") {
+      saveChecksBtn.removeEventListener("click", saveCheckedItems);
+      saveChecksBtn.addEventListener("click", async () => {
+        saveCheckedItems();
+        try {
+          await syncMonthToCloud(monthPicker.value);
+        } catch (e) {
+          showToast(`Checks saved locally. Cloud sync failed: ${e.message}`);
+        }
+      });
+    }
+
+    // lock should also invalidate KV session
+    authLockBtn.addEventListener("click", async () => {
+      try { await api("/api/auth/logout", { method: "POST" }); } catch {}
+    });
+    securityLockBtn.addEventListener("click", async () => {
+      try { await api("/api/auth/logout", { method: "POST" }); } catch {}
+    });
+
+    // enhance security card metadata with cloud profile
+    const _origUpdateSecurityCard = updateSecurityCard;
+    updateSecurityCard = function () {
+      _origUpdateSecurityCard();
+      if (!securityPinUpdatedChip) return;
+      const ts = cloudProfile?.pinUpdatedAt;
+      if (ts) {
+        const dt = new Date(ts);
+        const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        securityPinUpdatedChip.textContent = `PIN updated: ${label}`;
+      }
+    };
   </script>
 </body>
 </html>
