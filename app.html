@@ -1919,8 +1919,8 @@
 
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       cloudProfile = null;
-      lockApp(true);
       if (!quiet) showToast(reason);
+      window.location.replace("/login.html");
     }
 
     function ensureTurnstileRendered() {
@@ -3189,7 +3189,7 @@
 
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       await fetchAuthStatus();
-      lockApp(true);
+      window.location.replace("/login.html");
     }
 
     async function ensureSessionAlive() {
