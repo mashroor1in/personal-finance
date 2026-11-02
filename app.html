@@ -1455,6 +1455,8 @@
     }
     .expense-modal-card {
       width: min(100%, 460px);
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 14px;
@@ -1732,6 +1734,81 @@
       th:nth-child(4), td:nth-child(4) { display: none; }
       th, td { padding: 9px 10px; }
     }
+
+    /* ============================================================
+       Category budgets + month-over-month insights
+       ============================================================ */
+    .modal-wide { width: min(100%, 580px) !important; }
+    .modal-hint { margin: 0 0 4px; font-size: 12px; color: var(--muted); }
+    .budget-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 9px;
+      max-height: 46vh; overflow-y: auto; padding-right: 2px;
+    }
+    .budget-field { display: grid; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+    .budget-field-name {
+      display: flex; align-items: center; gap: 6px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .budget-field input { width: 100%; }
+
+    .cat-budget { padding: 0 12px 9px; }
+    .cat-budget-top {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      font-size: 10.5px; font-weight: 700; color: var(--muted);
+    }
+    .cat-budget-track {
+      height: 4px; border-radius: 999px; background: var(--line);
+      overflow: hidden; margin-top: 5px;
+    }
+    .cat-budget-fill {
+      display: block; height: 100%; width: 0%; border-radius: 999px;
+      background: var(--green); transition: width 0.25s ease;
+    }
+    .cat-budget.is-warn .cat-budget-fill { background: var(--amber); }
+    .cat-budget.is-over .cat-budget-fill { background: var(--red); }
+    .cat-budget.is-over .cat-budget-pct,
+    .cat-budget.is-over .cat-budget-label { color: var(--red); }
+    .cat-budget.is-warn .cat-budget-pct { color: var(--amber); }
+
+    .insights-section { margin-bottom: 14px; }
+    .insights-head {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      gap: 10px; margin-bottom: 9px;
+    }
+    .insights-head h2 { margin: 0; font-size: 15px; letter-spacing: -0.02em; }
+    .insights-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+    .insights-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .insights-grid.is-single { grid-template-columns: 1fr; }
+    .insight-card {
+      background: var(--card); border: 1px solid var(--line);
+      border-left: 3px solid var(--line); border-radius: 12px;
+      padding: 11px 13px; box-shadow: var(--shadow); min-width: 0;
+    }
+    .insight-card.positive { border-left-color: var(--green); }
+    .insight-card.negative { border-left-color: var(--red); }
+    .insight-card.warning { border-left-color: var(--amber); }
+    .insight-card.neutral { border-left-color: var(--accent); }
+    .insight-top {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .insight-value {
+      margin: 6px 0 2px; font-size: 19px; font-weight: 800;
+      letter-spacing: -0.02em; overflow-wrap: anywhere;
+    }
+    .insight-card.negative .insight-value { color: var(--red); }
+    .insight-card.positive .insight-value { color: var(--green); }
+    .insight-card.warning .insight-value { color: var(--amber); }
+    .insight-sub { font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+
+    @media (max-width: 1040px) {
+      .insights-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .budget-fields { grid-template-columns: 1fr; max-height: none; }
+      .insights-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body class="app-locked">
@@ -1900,6 +1977,17 @@
       </div>
     </section>
 
+    <!-- Month-over-month insights -->
+    <section class="insights-section" aria-labelledby="insightsTitle">
+      <div class="insights-head">
+        <div>
+          <h2 id="insightsTitle">Month-over-month insights</h2>
+          <p id="insightsSubtitle">How this month compares to last month</p>
+        </div>
+      </div>
+      <div id="insightsGrid" class="insights-grid"></div>
+    </section>
+
     <!-- Settlement Tracking Progress Bar -->
     <div class="settlement-card">
       <div>
@@ -1925,6 +2013,7 @@
           <label for="searchInput" class="sr-only">Search items</label>
           <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" />
         </div>
+        <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets">🎯 Budgets</button>
         <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save checked</button>
         <details class="action-menu" id="dataMenu">
           <summary class="btn" title="Backup and restore" aria-haspopup="menu"><span aria-hidden="true">⋯</span></summary>
@@ -2088,6 +2177,24 @@
     </div>
   </div>
 
+  <div id="budgetModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+    <div class="expense-modal-card modal-wide">
+      <div class="expense-modal-head">
+        <h3 id="budgetModalTitle">Monthly category budgets</h3>
+        <button id="budgetModalCloseBtn" class="btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-hint">Set a monthly cap for each category. Leave blank for no budget.</p>
+      <form id="budgetModalForm" class="expense-modal-form">
+        <div id="budgetFields" class="budget-fields"></div>
+        <p id="budgetModalError" class="expense-modal-error" aria-live="polite"></p>
+        <div class="expense-modal-actions">
+          <button id="budgetModalCancelBtn" class="btn" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save budgets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast" role="status" aria-live="polite">Saved</div>
 
   <script>
@@ -2176,6 +2283,9 @@
       }
       if (!Array.isArray(data.__meta.customItems)) data.__meta.customItems = [];
       if (!data.__meta.nameOverrides || typeof data.__meta.nameOverrides !== "object") data.__meta.nameOverrides = {};
+      if (!data.__meta.categoryBudgets || typeof data.__meta.categoryBudgets !== "object" || Array.isArray(data.__meta.categoryBudgets)) {
+        data.__meta.categoryBudgets = {};
+      }
       return data.__meta;
     }
 
@@ -2288,6 +2398,15 @@
     const expenseAmountWrap = document.getElementById("expenseAmountWrap");
     const expenseDefaultAmountInput = document.getElementById("expenseDefaultAmountInput");
     const expenseModalError = document.getElementById("expenseModalError");
+    const budgetsBtn = document.getElementById("budgetsBtn");
+    const budgetModal = document.getElementById("budgetModal");
+    const budgetModalForm = document.getElementById("budgetModalForm");
+    const budgetModalCloseBtn = document.getElementById("budgetModalCloseBtn");
+    const budgetModalCancelBtn = document.getElementById("budgetModalCancelBtn");
+    const budgetFields = document.getElementById("budgetFields");
+    const budgetModalError = document.getElementById("budgetModalError");
+    const insightsGrid = document.getElementById("insightsGrid");
+    const insightsSubtitle = document.getElementById("insightsSubtitle");
 
     let authMode = "login"; // login | register | changepassword | resetaccount
     let cloudHasUsers = null;
@@ -2346,6 +2465,15 @@
         if (e.target === expenseModal) closeExpenseModal();
       });
       expenseModalForm.addEventListener("submit", submitExpenseModal);
+
+      budgetsBtn.addEventListener("click", openBudgetModal);
+      budgetModalCloseBtn.addEventListener("click", closeBudgetModal);
+      budgetModalCancelBtn.addEventListener("click", closeBudgetModal);
+      budgetModal.addEventListener("click", (e) => {
+        if (e.target === budgetModal) closeBudgetModal();
+      });
+      budgetModalForm.addEventListener("submit", saveBudgetModal);
+
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
       viewTableBtn.addEventListener("click", () => switchView("table"));
@@ -2395,6 +2523,10 @@
       });
 
       document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !budgetModal.classList.contains("hidden")) {
+          closeBudgetModal();
+          return;
+        }
         if (e.key === "Escape" && !expenseModal.classList.contains("hidden")) {
           closeExpenseModal();
           return;
@@ -2784,6 +2916,7 @@
         box.style.borderLeftColor = catColor;
 
         const isCollapsed = !!collapsedState[cat];
+        const budget = getCategoryBudget(cat);
 
         let catSum = 0;
         let paidCount = 0;
@@ -2792,6 +2925,18 @@
           if (val) catSum += Number(val);
           if (current.paid && current.paid[item.key]) paidCount++;
         });
+
+        const budgetRow = budget > 0
+          ? `
+            <div class="cat-budget" data-budget-for="${cat}">
+              <div class="cat-budget-top">
+                <span class="cat-budget-label tnum">₹0 of ₹${formatNumber(budget)}</span>
+                <span class="cat-budget-pct tnum">0%</span>
+              </div>
+              <div class="cat-budget-track"><span class="cat-budget-fill"></span></div>
+            </div>
+          `
+          : "";
 
         box.innerHTML = `
           <div class="cat-box-header" data-toggle="${cat}" tabindex="0" role="button" aria-expanded="${!isCollapsed}" aria-controls="cat_items_${slugify(cat)}">
@@ -2802,6 +2947,7 @@
             </div>
             <div class="cat-total tnum hideable-val" data-total-for="${cat}">₹${formatNumber(catSum)}</div>
           </div>
+          ${budgetRow}
           <div id="cat_items_${slugify(cat)}" class="cat-items-list ${isCollapsed ? 'collapsed' : ''}"></div>
         `;
 
@@ -3141,6 +3287,9 @@
       updateDiagTile("Wants", wPct, 30, false);
       updateDiagTile("Savings", sPct, 20, true);
 
+      updateCategoryBudgetBars(totals);
+      renderInsights(totals);
+
       queueChartDraw(totals);
     }
 
@@ -3160,6 +3309,181 @@
         ? "On target"
         : `${diff > 0 ? "+" : "−"}${Math.abs(diff).toFixed(0)} pts`;
       statusEl.className = `diag-status ${bad ? (higherIsBetter ? "under" : "over") : good ? "ok" : "under"}`;
+    }
+
+    function getMonthTotals(monthKey) {
+      const monthData = data[monthKey];
+      if (!monthData || typeof monthData !== "object") return null;
+
+      const current = {
+        salary: monthData.salary,
+        items: monthData.items || {},
+        paid: monthData.paid || {}
+      };
+      const prevKey = getPreviousMonth(monthKey);
+      const prevRaw = prevKey ? data[prevKey] : null;
+      const prev = prevRaw && typeof prevRaw === "object"
+        ? { items: prevRaw.items || {}, paid: prevRaw.paid || {} }
+        : { items: {}, paid: {} };
+
+      const byCategory = {};
+      let outflow = 0;
+      let invest = 0;
+      getAllItems().forEach((item) => {
+        const value = Number(getItemValue(item, current, prev)) || 0;
+        if (!value) return;
+        outflow += value;
+        byCategory[item.category] = (byCategory[item.category] || 0) + value;
+        if (item.kind === "investment") invest += value;
+      });
+
+      const salary = Number(monthData.salary) || 0;
+      return {
+        month: monthKey,
+        salary,
+        outflow,
+        invest,
+        byCategory,
+        savingsRate: salary > 0 ? (invest / salary) * 100 : 0
+      };
+    }
+
+    function insightCard(tone, label, value, sub) {
+      return `
+        <article class="insight-card ${tone}">
+          <div class="insight-top">${label}</div>
+          <div class="insight-value tnum">${value}</div>
+          <div class="insight-sub">${sub}</div>
+        </article>
+      `;
+    }
+
+    function renderInsights(totals) {
+      if (!insightsGrid) return;
+      const month = monthPicker.value;
+      const prevKey = getPreviousMonth(month);
+      const prev = prevKey ? getMonthTotals(prevKey) : null;
+      const prevLabel = prevKey ? monthShort(prevKey) : "last month";
+
+      insightsSubtitle.textContent = prev
+        ? `Comparing ${monthShort(month)} with ${prevLabel}`
+        : "How this month compares to last month";
+
+      if (!prev || (prev.outflow === 0 && prev.salary === 0)) {
+        insightsGrid.classList.add("is-single");
+        insightsGrid.innerHTML = insightCard(
+          "neutral",
+          "No comparison yet",
+          prevKey ? `Add ${prevLabel} data` : "Add a previous month",
+          "Once last month has figures, you'll see spending changes and category movers here."
+        );
+        return;
+      }
+      insightsGrid.classList.remove("is-single");
+
+      const cards = [];
+
+      // 1. Total outflow change
+      const delta = totals.outflow - prev.outflow;
+      const deltaPct = prev.outflow > 0 ? (delta / prev.outflow) * 100 : null;
+      const same = Math.abs(delta) < 1;
+      const lower = delta < 0;
+      cards.push(insightCard(
+        same ? "neutral" : lower ? "positive" : "negative",
+        "Total outflow",
+        same ? "No change" : `${lower ? "−" : "+"}₹${formatNumber(Math.abs(delta))}`,
+        same
+          ? `Same spend as ${prevLabel}`
+          : deltaPct === null
+            ? `Compared with ${prevLabel}`
+            : `${Math.abs(deltaPct).toFixed(1)}% ${lower ? "lower" : "higher"} than ${prevLabel}`
+      ));
+
+      // 2 & 3. Biggest category movers
+      const deltas = Object.keys(CATEGORY_MAP).map((cat) => ({
+        cat,
+        now: totals.categoryTotals[cat] || 0,
+        before: prev.byCategory[cat] || 0
+      })).map((row) => ({ ...row, delta: row.now - row.before }));
+
+      const ups = deltas.filter((d) => d.delta > 0).sort((a, b) => b.delta - a.delta);
+      const downs = deltas.filter((d) => d.delta < 0).sort((a, b) => a.delta - b.delta);
+
+      if (ups.length) {
+        const top = ups[0];
+        const pct = top.before > 0 ? (top.delta / top.before) * 100 : null;
+        cards.push(insightCard(
+          "negative",
+          "Biggest increase",
+          `+₹${formatNumber(top.delta)}`,
+          `${top.cat}${pct === null ? " added this month" : ` up ${pct.toFixed(0)}%`} vs ${prevLabel}`
+        ));
+      } else {
+        cards.push(insightCard(
+          "neutral",
+          "Biggest increase",
+          "None",
+          `No category spent more than in ${prevLabel}`
+        ));
+      }
+
+      if (downs.length) {
+        const top = downs[0];
+        const pct = top.before > 0 ? (Math.abs(top.delta) / top.before) * 100 : null;
+        cards.push(insightCard(
+          "positive",
+          "Biggest decrease",
+          `−₹${formatNumber(Math.abs(top.delta))}`,
+          `${top.cat}${pct === null ? " came down" : ` down ${pct.toFixed(0)}%`} vs ${prevLabel}`
+        ));
+      } else {
+        cards.push(insightCard(
+          "neutral",
+          "Biggest decrease",
+          "None",
+          "No category came in lower than last month"
+        ));
+      }
+
+      // 4. Budget health when budgets exist, otherwise savings-rate change
+      const budgets = getCategoryBudgets();
+      const budgetCats = Object.keys(budgets);
+      if (budgetCats.length) {
+        const over = budgetCats.filter((cat) => (totals.categoryTotals[cat] || 0) > budgets[cat]);
+        const budgetSum = budgetCats.reduce((sum, cat) => sum + budgets[cat], 0);
+        const spendSum = budgetCats.reduce((sum, cat) => sum + (totals.categoryTotals[cat] || 0), 0);
+        const usedPct = budgetSum > 0 ? (spendSum / budgetSum) * 100 : 0;
+
+        if (over.length) {
+          cards.push(insightCard(
+            "negative",
+            "Budget health",
+            `${over.length} over budget`,
+            `${usedPct.toFixed(0)}% of budgets used · ${over.slice(0, 2).join(", ")}${over.length > 2 ? "…" : ""}`
+          ));
+        } else {
+          cards.push(insightCard(
+            usedPct > 90 ? "warning" : "positive",
+            "Budget health",
+            `${usedPct.toFixed(0)}% used`,
+            `All ${budgetCats.length} budget${budgetCats.length === 1 ? "" : "s"} on track`
+          ));
+        }
+      } else {
+        const rateDelta = totals.savingsRate - prev.savingsRate;
+        const up = rateDelta > 0.05;
+        const flat = Math.abs(rateDelta) <= 0.05;
+        cards.push(insightCard(
+          flat ? "neutral" : up ? "positive" : "warning",
+          "Savings rate",
+          flat ? "No change" : `${up ? "+" : "−"}${Math.abs(rateDelta).toFixed(1)} pts`,
+          flat
+            ? `Held at ${totals.savingsRate.toFixed(1)}% of income`
+            : `Now ${totals.savingsRate.toFixed(1)}% vs ${prev.savingsRate.toFixed(1)}% in ${prevLabel}`
+        ));
+      }
+
+      insightsGrid.innerHTML = cards.join("");
     }
 
     function getCurrentTotals() {
@@ -3225,6 +3549,28 @@
       document.querySelectorAll("[data-total-for]").forEach(el => {
         const cat = el.getAttribute("data-total-for");
         el.textContent = `₹${formatNumber(sums[cat] || 0)}`;
+      });
+    }
+
+    function updateCategoryBudgetBars(totals) {
+      const budgets = getCategoryBudgets();
+      document.querySelectorAll("[data-budget-for]").forEach(el => {
+        const cat = el.getAttribute("data-budget-for");
+        const budget = budgets[cat];
+        if (!budget) return;
+
+        const spent = totals.categoryTotals[cat] || 0;
+        const pct = (spent / budget) * 100;
+        const labelEl = el.querySelector(".cat-budget-label");
+        const pctEl = el.querySelector(".cat-budget-pct");
+        const fillEl = el.querySelector(".cat-budget-fill");
+
+        if (labelEl) labelEl.textContent = `₹${formatNumber(spent)} of ₹${formatNumber(budget)}`;
+        if (pctEl) pctEl.textContent = `${Math.round(pct)}%`;
+        if (fillEl) fillEl.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+
+        el.classList.toggle("is-over", pct > 100);
+        el.classList.toggle("is-warn", pct > 85 && pct <= 100);
       });
     }
 
@@ -3673,6 +4019,80 @@
       expenseRenameKey = null;
     }
 
+    function getCategoryBudgets() {
+      const meta = getMeta();
+      const budgets = {};
+      Object.keys(CATEGORY_MAP).forEach((cat) => {
+        const value = Number(meta.categoryBudgets[cat]);
+        if (Number.isFinite(value) && value > 0) budgets[cat] = value;
+      });
+      return budgets;
+    }
+
+    function getCategoryBudget(cat) {
+      return getCategoryBudgets()[cat] || 0;
+    }
+
+    function openBudgetModal() {
+      const budgets = getCategoryBudgets();
+      budgetFields.innerHTML = Object.keys(CATEGORY_MAP).map((cat) => {
+        const catMeta = CATEGORY_MAP[cat];
+        const value = budgets[cat] ? String(budgets[cat]) : "";
+        return `
+          <label class="budget-field">
+            <span class="budget-field-name">
+              <span style="color:${catMeta.color};">${iconNode(catMeta.icon, 13)}</span>
+              ${cat}
+            </span>
+            <input type="number" min="0" step="500" placeholder="No budget"
+              data-budget-cat="${cat}" value="${value}"
+              aria-label="Monthly budget for ${cat}" />
+          </label>
+        `;
+      }).join("");
+
+      budgetModalError.textContent = "";
+      budgetModal.classList.remove("hidden");
+      const first = budgetFields.querySelector("input");
+      if (first) {
+        first.focus();
+        first.select();
+      }
+    }
+
+    function closeBudgetModal() {
+      budgetModal.classList.add("hidden");
+      budgetModalError.textContent = "";
+    }
+
+    function saveBudgetModal(e) {
+      e.preventDefault();
+      budgetModalError.textContent = "";
+
+      const budgets = {};
+      const inputs = [...budgetFields.querySelectorAll("[data-budget-cat]")];
+      for (const input of inputs) {
+        const cat = input.getAttribute("data-budget-cat");
+        const raw = (input.value || "").trim();
+        if (raw === "") continue;
+        const value = Number(raw);
+        if (!Number.isFinite(value) || value < 0) {
+          budgetModalError.textContent = `Enter a valid budget for ${cat}.`;
+          input.focus();
+          return;
+        }
+        if (value > 0) budgets[cat] = Math.round(value);
+      }
+
+      getMeta().categoryBudgets = budgets;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      syncDataToCloudBestEffort();
+      closeBudgetModal();
+      render();
+      setAutosaveBadge("Saved", "saved", true);
+      showToast("Category budgets saved");
+    }
+
     function validateExpenseModal() {
       const name = (expenseNameInput.value || "").trim();
       if (!name) return "Expense name is required.";
@@ -3893,6 +4313,9 @@
         }
         if (!Array.isArray(parsed.__meta.customItems)) parsed.__meta.customItems = [];
         if (!parsed.__meta.nameOverrides || typeof parsed.__meta.nameOverrides !== "object") parsed.__meta.nameOverrides = {};
+        if (!parsed.__meta.categoryBudgets || typeof parsed.__meta.categoryBudgets !== "object" || Array.isArray(parsed.__meta.categoryBudgets)) {
+          parsed.__meta.categoryBudgets = {};
+        }
         return parsed;
       } catch {
         return {};
