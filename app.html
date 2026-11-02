@@ -1043,96 +1043,89 @@
       font-weight: 600;
     }
 
-    /* Row kebab + inline disclosure menu */
+    /* Row kebab + floating disclosure menu (inline-disclosure design) */
     .item-menu-btn {
-      width: 30px; height: 30px; flex: 0 0 auto;
+      width: 34px; height: 34px; flex: 0 0 auto;
       display: grid; place-items: center;
-      padding: 0; border: 1px solid var(--line); border-radius: 9px; background: var(--card);
+      padding: 0; border: 2px solid var(--line); border-radius: 12px; background: var(--card);
       color: var(--muted); cursor: pointer;
       transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
     }
-    .item-menu-btn:hover { border-color: var(--muted); color: var(--text); }
-    .item-menu-btn:active { transform: scale(0.94); }
+    .item-menu-btn:hover { border-color: color-mix(in srgb, var(--muted) 55%, var(--line)); color: var(--text); }
+    .item-menu-btn:active { transform: scale(0.95); }
     .item-menu-btn[aria-expanded="true"] {
-      background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
       color: var(--accent);
     }
     .item-menu-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .item-menu-btn svg { display: block; }
+    .item-menu-btn svg { display: block; width: 18px; height: 18px; }
 
-    .item-menu {
-      display: grid; grid-template-rows: 0fr;
-      margin: 0 4px 0 6px;
-      transition: grid-template-rows 380ms cubic-bezier(0.22, 1, 0.36, 1);
-      transition: grid-template-rows 420ms var(--sileo-spring);
-    }
-    .item-menu[data-open="true"] { grid-template-rows: 1fr; }
-    .item-menu-inner {
-      overflow: hidden; min-height: 0;
-      opacity: 0;
-      transition: opacity 160ms ease;
-    }
-    .item-menu[data-open="true"] .item-menu-inner {
-      opacity: 1;
-      transition: opacity 200ms ease 120ms;
-    }
-
-    /* Menu card (matches the inline disclosure design) */
+    #itemMenuLayer { position: fixed; inset: 0; z-index: 1500; pointer-events: none; }
+    .item-menu { position: fixed; inset: 0; pointer-events: none; }
     .item-menu-card {
-      width: min(268px, 100%);
-      margin: 6px 0 8px auto;
+      position: absolute;
+      width: 268px; max-width: calc(100vw - 24px);
       background: var(--card);
-      border: 1px solid var(--line);
+      border: 2px solid var(--line);
       border-radius: 16px;
       overflow: hidden;
-      opacity: 0; transform: scale(0.96) translateY(-4px);
-      transition: opacity 180ms ease, transform 320ms var(--sileo-spring);
+      box-shadow: 0 28px 64px -24px rgba(15, 23, 42, 0.5), 0 8px 22px -12px rgba(15, 23, 42, 0.28);
+      opacity: 0; transform: scale(0.94);
+      transform-origin: center;
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 320ms var(--sileo-spring);
     }
-    .item-menu[data-open="true"] .item-menu-card { opacity: 1; transform: none; }
+    .item-menu[data-open="true"] .item-menu-card {
+      opacity: 1; transform: scale(1); pointer-events: auto;
+    }
+    body.dark-theme .item-menu-card {
+      box-shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.85), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    }
     .item-menu-head {
-      padding: 7px 14px;
+      padding: 8px 16px;
       background: var(--card-muted);
-      border-bottom: 1px solid var(--line);
-      font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+      border-bottom: 2px solid var(--line);
+      font-size: 13px; font-weight: 600;
       color: var(--muted);
     }
-    .item-menu-list { display: grid; gap: 1px; padding: 6px; }
+    .item-menu-list { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
     .item-menu-action {
-      display: flex; align-items: center; gap: 10px;
-      width: 100%; padding: 9px 10px;
-      border: 0; border-radius: 10px; background: transparent;
-      color: var(--text); font: inherit; font-size: 13px; font-weight: 500;
-      text-align: left; white-space: nowrap; cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; padding: 9px 12px;
+      border: 0; border-radius: 12px; background: transparent;
+      color: var(--text); font: inherit; font-size: 14.5px; font-weight: 500;
+      letter-spacing: -0.005em; text-align: left; white-space: nowrap; cursor: pointer;
       transition: background 0.13s ease, color 0.13s ease;
     }
     .item-menu-action:hover { background: var(--card-muted); }
     .item-menu-action:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-    .item-menu-action svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); }
+    .item-menu-action svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--muted); }
     .item-menu-action:hover svg { color: var(--text); }
     .item-menu-action.btn-active { background: var(--accent-soft); color: var(--accent); }
     .item-menu-action.btn-active svg { color: var(--accent); }
 
     /* Bottom delete strip with a two-step confirmation */
     .item-menu-delete {
-      position: relative; height: 52px; overflow: hidden;
-      border-top: 1px solid var(--line);
+      position: relative; height: 56px; overflow: hidden;
+      border-top: 2px solid var(--line);
     }
     .item-menu-delete-layer {
-      position: absolute; inset: 0; display: flex; align-items: center; gap: 6px;
-      padding: 5px;
+      position: absolute; inset: 0; display: flex; align-items: center; gap: 8px;
+      padding: 0 8px;
       transition: transform 400ms var(--sileo-spring), opacity 200ms ease;
     }
     .item-menu-delete-row { transform: translateY(0); opacity: 1; }
     .item-menu-confirm { transform: translateY(60px); opacity: 0; pointer-events: none; }
     .item-menu.is-confirming .item-menu-delete-row { transform: translateY(-60px); opacity: 0; }
     .item-menu.is-confirming .item-menu-confirm { transform: translateY(0); opacity: 1; pointer-events: auto; }
-    .item-menu-delete-row .item-menu-action { height: 100%; }
+    .item-menu-delete-row .item-menu-action { height: 100%; padding-left: 12px; }
     .item-menu-action.is-danger { color: #e94447; }
     .item-menu-action.is-danger svg { color: #e94447; }
     .item-menu-action.is-danger:hover { background: var(--red-soft); }
     .item-menu-confirm-yes, .item-menu-confirm-no {
-      flex: 1; height: 38px; border-radius: 10px;
-      border: 1px solid transparent; font: inherit; font-size: 12.5px; font-weight: 650;
+      flex: 1; height: 40px; border-radius: 12px;
+      border: 1px solid transparent; font: inherit; font-size: 13px; font-weight: 600;
       cursor: pointer; transition: background 0.14s ease, border-color 0.14s ease;
     }
     .item-menu-confirm-yes { background: #f24140; color: #fff; }
@@ -1141,10 +1134,6 @@
     .item-menu-confirm-no:hover { background: var(--card-muted); }
     .item-menu-confirm-yes:focus-visible,
     .item-menu-confirm-no:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-    /* Table view: the disclosure lives in its own row */
-    .item-menu-row > td { padding: 0 12px; border-bottom: 1px solid var(--line); }
-    .item-menu-row .item-menu-card { margin: 6px 0 8px auto; }
 
     /* Table View */
     .table-panel {
@@ -2868,6 +2857,7 @@
   </div>
 
   <div id="sileoViewport" data-sileo-viewport data-position="top-center" role="region" aria-label="Notifications" aria-live="polite" aria-atomic="false"></div>
+  <div id="itemMenuLayer"></div>
 
   <!--
     blobatar v2.7.0 — deterministic geometric avatars from any string.
@@ -3451,10 +3441,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (isMonthPopoverOpen() && monthPickerWrap && !monthPickerWrap.contains(e.target)) {
           setMonthPopoverOpen(false);
         }
-        if (!e.target.closest("[data-menu-toggle]") && !e.target.closest("[data-menu-for]")) {
-          closeAllItemMenus();
+        if (openItemMenu
+          && !e.target.closest(".item-menu-card")
+          && !e.target.closest("[data-menu-toggle]")) {
+          closeItemMenu();
         }
       });
+
+      window.addEventListener("scroll", () => { if (openItemMenu) closeItemMenu(); }, true);
+      window.addEventListener("resize", () => { if (openItemMenu) closeItemMenu(); });
 
       budgetAlertAction.addEventListener("click", () => {
         const targetCat = "Family / Personal";
@@ -3499,16 +3494,16 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           monthTrigger?.focus();
           return;
         }
-        if (e.key === "Escape" && document.querySelector('[data-menu-toggle][aria-expanded="true"]')) {
-          const openBtn = document.querySelector('[data-menu-toggle][aria-expanded="true"]');
-          const openMenu = document.getElementById(openBtn.dataset.menuTarget || "");
-          if (openMenu?.classList.contains("is-confirming")) {
-            openMenu.classList.remove("is-confirming");
-            openMenu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
+        if (e.key === "Escape" && openItemMenu) {
+          const menu = openItemMenu.menu;
+          if (menu.classList.contains("is-confirming")) {
+            menu.classList.remove("is-confirming");
+            menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
             return;
           }
-          closeAllItemMenus();
-          openBtn.focus();
+          const btn = openItemMenu.btn;
+          closeItemMenu();
+          btn.focus();
           return;
         }
         if (e.key === "Escape" && profileMenu && !profileMenu.classList.contains("hidden")) {
@@ -4082,6 +4077,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function render() {
+      closeItemMenu();
       const month = monthPicker.value;
       const current = data[month] || { salary: "", items: {}, paid: {} };
       const prevMonth = getPreviousMonth(month);
@@ -4099,7 +4095,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     /* Row actions: kebab toggle + inline disclosure menu */
-    let itemMenuUid = 0;
     const ITEM_MENU_ICONS = {
       dots: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
@@ -4110,68 +4105,141 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function itemMenuMarkup(item) {
       const editing = !!editState[item.key];
       return `
-        <div class="item-menu-inner">
-          <div class="item-menu-card">
-            <div class="item-menu-head">More options</div>
-            <div class="item-menu-list">
-              <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" data-edit="${item.key}" title="${editing ? "Save amount" : "Edit amount"}">
-                ${ITEM_MENU_ICONS.edit}<span data-edit-label>${editing ? "Done editing" : "Edit amount"}</span>
-              </button>
-              <button class="item-menu-action" type="button" data-rename="${item.key}" title="Rename expense">
-                ${ITEM_MENU_ICONS.tag}<span>Rename</span>
+        <div class="item-menu-card" role="menu" aria-label="More options">
+          <div class="item-menu-head">More Options</div>
+          <div class="item-menu-list">
+            <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" role="menuitem" data-edit="${item.key}" title="${editing ? "Save amount" : "Edit amount"}">
+              ${ITEM_MENU_ICONS.edit}<span data-edit-label>${editing ? "Done editing" : "Edit amount"}</span>
+            </button>
+            <button class="item-menu-action" type="button" role="menuitem" data-rename="${item.key}" title="Rename expense">
+              ${ITEM_MENU_ICONS.tag}<span>Rename</span>
+            </button>
+          </div>
+          ${item.isCustom ? `
+          <div class="item-menu-delete">
+            <div class="item-menu-delete-layer item-menu-delete-row">
+              <button class="item-menu-action is-danger" type="button" role="menuitem" data-delete-start="${item.key}" title="Delete custom expense">
+                ${ITEM_MENU_ICONS.trash}<span>Delete</span>
               </button>
             </div>
-            ${item.isCustom ? `
-            <div class="item-menu-delete">
-              <div class="item-menu-delete-layer item-menu-delete-row">
-                <button class="item-menu-action is-danger" type="button" data-delete-start="${item.key}" title="Delete custom expense">
-                  ${ITEM_MENU_ICONS.trash}<span>Delete</span>
-                </button>
-              </div>
-              <div class="item-menu-delete-layer item-menu-confirm">
-                <button class="item-menu-confirm-yes" type="button" data-delete="${item.key}">Yes, Delete</button>
-                <button class="item-menu-confirm-no" type="button" data-delete-cancel>Cancel</button>
-              </div>
-            </div>` : ""}
-          </div>
+            <div class="item-menu-delete-layer item-menu-confirm">
+              <button class="item-menu-confirm-yes" type="button" data-delete="${item.key}">Yes, Delete</button>
+              <button class="item-menu-confirm-no" type="button" data-delete-cancel>Cancel</button>
+            </div>
+          </div>` : ""}
         </div>`;
     }
 
+    const itemMenuLayer = document.getElementById("itemMenuLayer");
+    let openItemMenu = null; // { key, btn, menu }
+
     function closeAllItemMenus(exceptBtn) {
-      document.querySelectorAll('[data-menu-toggle][aria-expanded="true"]').forEach((btn) => {
-        if (exceptBtn && btn === exceptBtn) return;
-        setItemMenuOpen(btn, document.getElementById(btn.dataset.menuTarget || ""), false);
-      });
+      const current = openItemMenu;
+      if (!current) return;
+      if (exceptBtn && current.btn === exceptBtn) return;
+      closeItemMenu();
     }
 
-    function setItemMenuOpen(btn, menu, open) {
-      if (!btn || !menu) return;
-      btn.setAttribute("aria-expanded", String(open));
-      menu.dataset.open = String(open);
-      if (!open) menu.classList.remove("is-confirming");
-      const inner = menu.querySelector(".item-menu-inner");
-      if (inner) inner.inert = !open;
-
-      const menuRow = menu.closest(".item-menu-row");
-      if (menuRow) {
-        clearTimeout(menuRow._hideTimer);
-        if (open) menuRow.style.display = "";
-        else menuRow._hideTimer = setTimeout(() => {
-          if (menu.dataset.open !== "true") menuRow.style.display = "none";
-        }, 420);
+    function closeItemMenu() {
+      const current = openItemMenu;
+      if (!current) return;
+      openItemMenu = null;
+      current.btn.setAttribute("aria-expanded", "false");
+      const card = current.menu.querySelector(".item-menu-card");
+      current.menu.dataset.open = "false";
+      if (card) {
+        card.style.pointerEvents = "none";
+        card.style.opacity = "0";
+        card.style.transform = "scale(0.94)";
       }
+      const menu = current.menu;
+      setTimeout(() => {
+        if (openItemMenu && openItemMenu.menu === menu) return;
+        menu.remove();
+      }, 200);
+    }
+
+    function positionItemMenu(menu, btn) {
+      const card = menu.querySelector(".item-menu-card");
+      if (!card) return;
+      const b = btn.getBoundingClientRect();
+      const width = Math.min(268, window.innerWidth - 24);
+      card.style.width = `${width}px`;
+      const height = card.getBoundingClientRect().height;
+
+      let left = b.left + b.width / 2 - width / 2;
+      left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+
+      let top = b.top + b.height / 2 - height / 2;
+      top = Math.max(12, Math.min(top, window.innerHeight - height - 12));
+
+      card.style.left = `${Math.round(left)}px`;
+      card.style.top = `${Math.round(top)}px`;
     }
 
     function toggleItemMenu(btn) {
-      const menu = document.getElementById(btn.dataset.menuTarget || "");
-      if (!menu) return;
-      const willOpen = btn.getAttribute("aria-expanded") !== "true";
-      closeAllItemMenus(btn);
-      setItemMenuOpen(btn, menu, willOpen);
-      if (willOpen) {
-        const action = menu.querySelector(".item-menu-action");
-        if (action) action.focus({ preventScroll: true });
+      if (openItemMenu && openItemMenu.btn === btn) {
+        closeItemMenu();
+        return;
       }
+      closeItemMenu();
+
+      const key = btn.dataset.menuToggle;
+      const item = getAllItems().find((i) => i.key === key);
+      if (!item) return;
+
+      const menu = document.createElement("div");
+      menu.className = "item-menu";
+      menu.dataset.open = "false";
+      menu.dataset.menuFor = key;
+      menu.innerHTML = itemMenuMarkup(item);
+      itemMenuLayer.appendChild(menu);
+
+      bindItemMenuActions(menu);
+      positionItemMenu(menu, btn);
+
+      btn.setAttribute("aria-expanded", "true");
+      openItemMenu = { key, btn, menu };
+      // Re-measure happens in positionItemMenu (forces layout), so flipping the
+      // state synchronously still plays the spring transition.
+      menu.dataset.open = "true";
+      menu.querySelector(".item-menu-action")?.focus({ preventScroll: true });
+    }
+
+    function bindItemMenuActions(menu) {
+      menu.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.edit;
+          closeItemMenu();
+          setEditMode(key, !editState[key], true);
+        };
+      });
+      menu.querySelectorAll("[data-rename]").forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.rename;
+          closeItemMenu();
+          renameExpenseItem(key);
+        };
+      });
+      menu.querySelectorAll("[data-delete-start]").forEach(btn => {
+        btn.onclick = () => {
+          menu.classList.add("is-confirming");
+          menu.querySelector(".item-menu-confirm-yes")?.focus({ preventScroll: true });
+        };
+      });
+      menu.querySelectorAll("[data-delete-cancel]").forEach(btn => {
+        btn.onclick = () => {
+          menu.classList.remove("is-confirming");
+          menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
+        };
+      });
+      menu.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.onclick = () => {
+          const key = btn.dataset.delete;
+          closeItemMenu();
+          performDeleteExpense(key);
+        };
+      });
     }
 
     function renderBoxes(current, prev) {
@@ -4228,7 +4296,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         catItems.forEach((item) => {
           const val = getItemValue(item, current, prev);
           const isPaid = !!(current.paid && current.paid[item.key]);
-          const menuId = `itemMenu_box_${++itemMenuUid}`;
 
           const row = document.createElement("div");
           row.className = "cat-item-row";
@@ -4241,23 +4308,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
             </div>
             <div class="cat-item-right">
               <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
-              <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" data-menu-target="${menuId}" aria-expanded="false" aria-controls="${menuId}" aria-label="Actions for ${item.name}" title="Item actions">
+              <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${item.name}" title="Item actions">
                 ${ITEM_MENU_ICONS.dots}
               </button>
             </div>
           `;
           listEl.appendChild(row);
-
-          const menu = document.createElement("div");
-          menu.className = "item-menu";
-          menu.id = menuId;
-          menu.dataset.menuFor = item.key;
-          menu.dataset.search = "";
-          menu.dataset.open = "false";
-          menu.innerHTML = itemMenuMarkup(item);
-          const menuInner = menu.querySelector(".item-menu-inner");
-          if (menuInner) menuInner.inert = true;
-          listEl.appendChild(menu);
         });
 
         const headerEl = box.querySelector(".cat-box-header");
@@ -4287,7 +4343,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const val = getItemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
-        const menuId = `itemMenu_table_${++itemMenuUid}`;
 
         const tr = document.createElement("tr");
         tr.dataset.search = (item.name + " " + item.category).toLowerCase();
@@ -4307,21 +4362,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
             <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
           </td>
           <td style="text-align:center;">
-            <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" data-menu-target="${menuId}" aria-expanded="false" aria-controls="${menuId}" aria-label="Actions for ${item.name}" title="Item actions">
+            <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${item.name}" title="Item actions">
               ${ITEM_MENU_ICONS.dots}
             </button>
           </td>
         `;
         tableRows.appendChild(tr);
-
-        const menuRow = document.createElement("tr");
-        menuRow.className = "item-menu-row";
-        menuRow.dataset.search = "";
-        menuRow.style.display = "none";
-        menuRow.innerHTML = `<td colspan="6"><div class="item-menu" id="${menuId}" data-menu-for="${item.key}" data-open="false">${itemMenuMarkup(item)}</div></td>`;
-        const menuInner = menuRow.querySelector(".item-menu-inner");
-        if (menuInner) menuInner.inert = true;
-        tableRows.appendChild(menuRow);
       });
 
       attachInputListeners();
@@ -4447,52 +4493,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         btn.onclick = (e) => {
           e.stopPropagation();
           toggleItemMenu(btn);
-        };
-      });
-
-      document.querySelectorAll("[data-edit]").forEach(btn => {
-        btn.setAttribute("aria-label", `Toggle edit for ${btn.dataset.edit?.replaceAll("_", " ") || "item"}`);
-        btn.onclick = (e) => {
-          const key = e.currentTarget.dataset.edit;
-          closeAllItemMenus();
-          setEditMode(key, !editState[key], true);
-        };
-      });
-
-      document.querySelectorAll("[data-rename]").forEach(btn => {
-        btn.setAttribute("aria-label", `Rename ${btn.dataset.rename?.replaceAll("_", " ") || "item"}`);
-        btn.onclick = (e) => {
-          const key = e.currentTarget.dataset.rename;
-          closeAllItemMenus();
-          renameExpenseItem(key);
-        };
-      });
-
-      document.querySelectorAll("[data-delete-start]").forEach(btn => {
-        btn.setAttribute("aria-label", `Delete ${btn.dataset.deleteStart?.replaceAll("_", " ") || "item"}`);
-        btn.onclick = (e) => {
-          const menu = e.currentTarget.closest(".item-menu");
-          if (!menu) return;
-          menu.classList.add("is-confirming");
-          menu.querySelector(".item-menu-confirm-yes")?.focus({ preventScroll: true });
-        };
-      });
-
-      document.querySelectorAll("[data-delete-cancel]").forEach(btn => {
-        btn.onclick = (e) => {
-          const menu = e.currentTarget.closest(".item-menu");
-          if (!menu) return;
-          menu.classList.remove("is-confirming");
-          menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
-        };
-      });
-
-      document.querySelectorAll("[data-delete]").forEach(btn => {
-        btn.setAttribute("aria-label", `Delete ${btn.dataset.delete?.replaceAll("_", " ") || "item"}`);
-        btn.onclick = (e) => {
-          const key = e.currentTarget.dataset.delete;
-          closeAllItemMenus();
-          performDeleteExpense(key);
         };
       });
     }
@@ -5167,7 +5167,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function applyFilters() {
       const q = searchInput.value.trim().toLowerCase();
-      if (q) closeAllItemMenus();
+      if (q) closeItemMenu();
 
       document.querySelectorAll(".cat-box").forEach(box => {
         let boxHasMatch = false;
@@ -5176,21 +5176,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           row.style.display = match ? "flex" : "none";
           if (match) boxHasMatch = true;
         });
-        box.querySelectorAll(".item-menu").forEach(menu => {
-          const row = menu.previousElementSibling;
-          const rowVisible = !!row && row.classList.contains("cat-item-row") && row.style.display !== "none";
-          menu.style.display = rowVisible ? "" : "none";
-        });
         box.style.display = boxHasMatch ? "block" : "none";
       });
 
       document.querySelectorAll("#tableRows tr").forEach(row => {
-        if (row.classList.contains("item-menu-row")) {
-          const menu = row.querySelector(".item-menu");
-          const isOpen = !!menu && menu.dataset.open === "true";
-          row.style.display = !q && isOpen ? "" : "none";
-          return;
-        }
         const match = !q || row.dataset.search.includes(q);
         row.style.display = match ? "" : "none";
       });
