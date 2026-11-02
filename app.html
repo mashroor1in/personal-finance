@@ -1961,13 +1961,6 @@
             <div class="sheet-handle" aria-hidden="true"></div>
 
             <p class="action-menu-title">Month management</p>
-            <button id="addPrevMoneyBtn" class="menu-item" type="button" role="menuitem">
-              <span class="menu-item-icon"><iconify-icon icon="lucide:calendar-plus" width="17" height="17" aria-hidden="true"></iconify-icon></span>
-              <span class="menu-item-copy">
-                <strong>Add previous month amounts</strong>
-                <small>Bring forward last month's planned expenses</small>
-              </span>
-            </button>
             <button id="copyPrevBtn" class="menu-item" type="button" role="menuitem">
               <span class="menu-item-icon"><iconify-icon icon="lucide:copy" width="17" height="17" aria-hidden="true"></iconify-icon></span>
               <span class="menu-item-copy">
@@ -2549,7 +2542,6 @@
     const appearanceValue = document.getElementById("appearanceValue");
     const securityStatusLine = document.getElementById("securityStatusLine");
     const addExpenseBtn = document.getElementById("addExpenseBtn");
-    const addPrevMoneyBtn = document.getElementById("addPrevMoneyBtn");
     const copyPrevBtn = document.getElementById("copyPrevBtn");
     const searchInput = document.getElementById("searchInput");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
@@ -2678,7 +2670,6 @@
       });
       incognitoBtn.addEventListener("click", togglePrivacy);
       addExpenseBtn.addEventListener("click", addCustomExpense);
-      addPrevMoneyBtn.addEventListener("click", addPreviousMonthAmounts);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
       expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
       expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
@@ -4200,34 +4191,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       render();
       showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
-      setAutosaveBadge("Saved on this device", "saved");
-    }
-
-    function addPreviousMonthAmounts() {
-      const currentMonth = monthPicker.value;
-      const prevMonth = getPreviousMonth(currentMonth);
-      if (!prevMonth || !data[prevMonth]) {
-        alert("No previous month record found to add from.");
-        return;
-      }
-
-      data[currentMonth] = data[currentMonth] || { salary: "", items: {}, paid: {} };
-      data[currentMonth].items = data[currentMonth].items || {};
-
-      const allItems = getAllItems();
-      let updatedCount = 0;
-      allItems.forEach(item => {
-        const prevVal = Number(data[prevMonth]?.items?.[item.key]);
-        if (!Number.isFinite(prevVal) || prevVal === 0) return;
-        const currentVal = Number(data[currentMonth].items[item.key]);
-        const nextVal = (Number.isFinite(currentVal) ? currentVal : 0) + prevVal;
-        data[currentMonth].items[item.key] = nextVal;
-        updatedCount++;
-      });
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      render();
-      showToast(`Added ${updatedCount} item amounts from ${prevMonth}`);
       setAutosaveBadge("Saved on this device", "saved");
     }
 
