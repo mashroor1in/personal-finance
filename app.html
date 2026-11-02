@@ -1495,6 +1495,54 @@
     .title-area p { font-size: 13px; margin-top: 2px; }
 
     .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* Profile avatar + account popover */
+    .profile-wrap { position: relative; flex: 0 0 auto; }
+    .profile-btn {
+      position: relative; width: 36px; height: 36px; padding: 0;
+      border: 1px solid var(--line); border-radius: 50%; background: var(--card);
+      display: grid; place-items: center; cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .profile-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+    .profile-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .profile-avatar {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 13px; font-weight: 800; text-transform: uppercase;
+    }
+    .profile-avatar-lg { width: 36px; height: 36px; flex: 0 0 auto; font-size: 14px; }
+    .profile-dot {
+      position: absolute; right: 0; bottom: 0; width: 10px; height: 10px;
+      border-radius: 50%; background: var(--green);
+      border: 2px solid var(--card);
+    }
+    .profile-dot.is-locked { background: var(--amber); }
+    .profile-popover {
+      position: absolute; right: 0; top: calc(100% + 8px); z-index: 1110;
+      width: 250px; padding: 8px; display: grid; gap: 2px;
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(15, 23, 42, 0.05);
+      animation: menuIn 0.14s ease-out;
+    }
+    .profile-popover.hidden { display: none; }
+    .profile-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 7px 9px; margin-bottom: 4px;
+      border-bottom: 1px solid var(--line);
+    }
+    .profile-head-copy { display: grid; gap: 1px; min-width: 0; }
+    .profile-head-copy strong {
+      font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .profile-head-copy small { font-size: 10.5px; color: var(--muted); }
+    .menu-item:disabled { opacity: 0.5; cursor: default; }
+    .menu-item:disabled:hover { background: transparent; }
+
     .month-picker-wrap {
       display: flex; align-items: center; gap: 7px; padding: 0 10px;
       border: 1px solid var(--line); background: var(--card);
@@ -1812,8 +1860,10 @@
       .header-actions { width: 100%; justify-content: flex-start; }
       .header-actions .month-picker-wrap { flex: 1 1 100%; }
       .header-actions .btn { flex: 1 1 auto; justify-content: center; }
-      .header-actions .action-menu { flex: 0 0 auto; }
+      .header-actions .action-menu,
+      .header-actions .profile-wrap { flex: 0 0 auto; }
       #dataMenu .action-menu-panel { width: min(86vw, 300px); }
+      .profile-popover { width: min(86vw, 250px); }
 
       /* More menu becomes a bottom sheet on phones */
       #mainMenu .action-menu-panel {
@@ -2043,6 +2093,36 @@
             </div>
           </div>
         </details>
+
+        <div class="profile-wrap">
+          <button id="profileBtn" class="profile-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu" title="Account">
+            <span id="profileAvatar" class="profile-avatar" aria-hidden="true">?</span>
+            <span id="profileDot" class="profile-dot is-locked" aria-hidden="true"></span>
+          </button>
+          <div id="profileMenu" class="profile-popover hidden" role="menu" aria-label="Account menu">
+            <div class="profile-head">
+              <span id="profileMenuAvatar" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</span>
+              <div class="profile-head-copy">
+                <strong id="profileMenuName">Local workspace</strong>
+                <small id="profileMenuMeta">Session locked</small>
+              </div>
+            </div>
+            <button id="profileChangePasswordBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:key-round" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Change password</strong>
+                <small>Update your account password</small>
+              </span>
+            </button>
+            <button id="profileLogoutBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:log-out" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Log out</strong>
+                <small>End this session securely</small>
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -2543,6 +2623,16 @@
     const securityStatusLine = document.getElementById("securityStatusLine");
     const addExpenseBtn = document.getElementById("addExpenseBtn");
     const copyPrevBtn = document.getElementById("copyPrevBtn");
+    const profileWrap = document.querySelector(".profile-wrap");
+    const profileBtn = document.getElementById("profileBtn");
+    const profileAvatar = document.getElementById("profileAvatar");
+    const profileDot = document.getElementById("profileDot");
+    const profileMenu = document.getElementById("profileMenu");
+    const profileMenuAvatar = document.getElementById("profileMenuAvatar");
+    const profileMenuName = document.getElementById("profileMenuName");
+    const profileMenuMeta = document.getElementById("profileMenuMeta");
+    const profileChangePasswordBtn = document.getElementById("profileChangePasswordBtn");
+    const profileLogoutBtn = document.getElementById("profileLogoutBtn");
     const searchInput = document.getElementById("searchInput");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
     const viewTableBtn = document.getElementById("viewTableBtn");
@@ -2671,6 +2761,19 @@
       incognitoBtn.addEventListener("click", togglePrivacy);
       addExpenseBtn.addEventListener("click", addCustomExpense);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
+
+      profileBtn.addEventListener("click", () => {
+        setProfileMenuOpen(profileMenu.classList.contains("hidden"));
+      });
+      profileChangePasswordBtn.addEventListener("click", () => {
+        setProfileMenuOpen(false);
+        if (!isAuthenticated()) return;
+        showAuthOverlay("changepassword");
+      });
+      profileLogoutBtn.addEventListener("click", () => {
+        setProfileMenuOpen(false);
+        logoutUser();
+      });
       expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
       expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
       expenseModal.addEventListener("click", (e) => {
@@ -2707,6 +2810,7 @@
         [mainMenu, dataMenu].forEach(menu => {
           if (menu && menu.open && !menu.contains(e.target)) menu.open = false;
         });
+        if (profileWrap && !profileWrap.contains(e.target)) setProfileMenuOpen(false);
       });
 
       budgetAlertAction.addEventListener("click", () => {
@@ -2745,6 +2849,11 @@
         }
         if (e.key === "Escape" && !expenseModal.classList.contains("hidden")) {
           closeExpenseModal();
+          return;
+        }
+        if (e.key === "Escape" && profileMenu && !profileMenu.classList.contains("hidden")) {
+          setProfileMenuOpen(false);
+          profileBtn.focus();
           return;
         }
         if (e.key === "Escape" && (mainMenu.open || dataMenu.open)) {
@@ -2797,6 +2906,7 @@
 
     function lockApp(silent = false) {
       sessionStorage.removeItem(AUTH_SESSION_KEY);
+      setProfileMenuOpen(false);
       document.body.classList.add("app-locked");
       const needsRegister = cloudHasUsers === false;
       showAuthOverlay(needsRegister ? "register" : "login");
@@ -3053,6 +3163,33 @@
       } else {
         securityPasswordUpdatedChip.textContent = "Password configured";
       }
+      updateProfileUi();
+    }
+
+    function setProfileMenuOpen(open) {
+      if (!profileMenu || !profileBtn) return;
+      profileMenu.classList.toggle("hidden", !open);
+      profileBtn.setAttribute("aria-expanded", String(open));
+    }
+
+    function updateProfileUi() {
+      if (!profileBtn) return;
+      const authenticated = isAuthenticated();
+      const username = String(cloudProfile?.username || cloudProfile?.userID || "").trim();
+      const displayName = authenticated ? (username || "Signed in") : "Local workspace";
+      const initial = displayName.charAt(0).toUpperCase() || "?";
+
+      if (profileAvatar) profileAvatar.textContent = initial;
+      if (profileMenuAvatar) profileMenuAvatar.textContent = initial;
+      if (profileMenuName) profileMenuName.textContent = displayName;
+      if (profileMenuMeta) profileMenuMeta.textContent = authenticated ? "Session active" : "Session locked";
+      if (profileDot) profileDot.classList.toggle("is-locked", !authenticated);
+      profileBtn.title = authenticated ? `Account: ${displayName}` : "Account";
+      profileBtn.setAttribute("aria-label", authenticated ? `Account menu for ${displayName}` : "Account menu");
+
+      [profileChangePasswordBtn, profileLogoutBtn].forEach((btn) => {
+        if (btn) btn.disabled = !authenticated;
+      });
     }
 
     function resolveTheme(mode) {
