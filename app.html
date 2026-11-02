@@ -1045,14 +1045,18 @@
 
     /* Row kebab + inline disclosure menu */
     .item-menu-btn {
-      width: 28px; height: 28px; flex: 0 0 auto;
+      width: 30px; height: 30px; flex: 0 0 auto;
       display: grid; place-items: center;
-      padding: 0; border: 0; border-radius: 8px; background: transparent;
+      padding: 0; border: 1px solid var(--line); border-radius: 9px; background: var(--card);
       color: var(--muted); cursor: pointer;
-      transition: background 0.14s ease, color 0.14s ease;
+      transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
     }
-    .item-menu-btn:hover { background: var(--card-muted); color: var(--text); }
-    .item-menu-btn[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); }
+    .item-menu-btn:hover { border-color: var(--muted); color: var(--text); }
+    .item-menu-btn:active { transform: scale(0.94); }
+    .item-menu-btn[aria-expanded="true"] {
+      background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+      color: var(--accent);
+    }
     .item-menu-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .item-menu-btn svg { display: block; }
 
@@ -1066,41 +1070,77 @@
     .item-menu-inner {
       overflow: hidden; min-height: 0;
       opacity: 0;
-      transition: opacity 180ms ease;
+      transition: opacity 160ms ease;
     }
     .item-menu[data-open="true"] .item-menu-inner {
       opacity: 1;
-      transition: opacity 240ms ease 120ms;
+      transition: opacity 200ms ease 120ms;
     }
+
+    /* Menu card (matches the inline disclosure design) */
     .item-menu-card {
-      display: grid; gap: 1px;
-      width: min(210px, 100%);
-      margin: 2px 0 4px auto;
-      padding: 6px;
+      width: min(268px, 100%);
+      margin: 6px 0 8px auto;
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      opacity: 0; transform: scale(0.96) translateY(-4px);
+      transition: opacity 180ms ease, transform 320ms var(--sileo-spring);
     }
+    .item-menu[data-open="true"] .item-menu-card { opacity: 1; transform: none; }
+    .item-menu-head {
+      padding: 7px 14px;
+      background: var(--card-muted);
+      border-bottom: 1px solid var(--line);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+      color: var(--muted);
+    }
+    .item-menu-list { display: grid; gap: 1px; padding: 6px; }
     .item-menu-action {
-      display: flex; align-items: center; gap: 9px;
-      width: 100%; padding: 8px 10px;
-      border: 0; border-radius: 8px; background: transparent;
-      color: var(--text); font: inherit; font-size: 12.8px; font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 9px 10px;
+      border: 0; border-radius: 10px; background: transparent;
+      color: var(--text); font: inherit; font-size: 13px; font-weight: 500;
       text-align: left; white-space: nowrap; cursor: pointer;
       transition: background 0.13s ease, color 0.13s ease;
     }
     .item-menu-action:hover { background: var(--card-muted); }
     .item-menu-action:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-    .item-menu-action svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--muted); }
-    .item-menu-action:hover svg { color: var(--accent); }
-    .item-menu-action.btn-active {
-      background: var(--accent-soft); color: var(--accent);
-    }
+    .item-menu-action svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); }
+    .item-menu-action:hover svg { color: var(--text); }
+    .item-menu-action.btn-active { background: var(--accent-soft); color: var(--accent); }
     .item-menu-action.btn-active svg { color: var(--accent); }
-    .item-menu-sep { height: 1px; background: var(--line); margin: 4px 2px; }
-    .item-menu-action.is-danger { color: var(--red); }
-    .item-menu-action.is-danger svg { color: var(--red); }
+
+    /* Bottom delete strip with a two-step confirmation */
+    .item-menu-delete {
+      position: relative; height: 52px; overflow: hidden;
+      border-top: 1px solid var(--line);
+    }
+    .item-menu-delete-layer {
+      position: absolute; inset: 0; display: flex; align-items: center; gap: 6px;
+      padding: 5px;
+      transition: transform 400ms var(--sileo-spring), opacity 200ms ease;
+    }
+    .item-menu-delete-row { transform: translateY(0); opacity: 1; }
+    .item-menu-confirm { transform: translateY(60px); opacity: 0; pointer-events: none; }
+    .item-menu.is-confirming .item-menu-delete-row { transform: translateY(-60px); opacity: 0; }
+    .item-menu.is-confirming .item-menu-confirm { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .item-menu-delete-row .item-menu-action { height: 100%; }
+    .item-menu-action.is-danger { color: #e94447; }
+    .item-menu-action.is-danger svg { color: #e94447; }
     .item-menu-action.is-danger:hover { background: var(--red-soft); }
+    .item-menu-confirm-yes, .item-menu-confirm-no {
+      flex: 1; height: 38px; border-radius: 10px;
+      border: 1px solid transparent; font: inherit; font-size: 12.5px; font-weight: 650;
+      cursor: pointer; transition: background 0.14s ease, border-color 0.14s ease;
+    }
+    .item-menu-confirm-yes { background: #f24140; color: #fff; }
+    .item-menu-confirm-yes:hover { background: #e0322f; }
+    .item-menu-confirm-no { background: transparent; border-color: var(--line); color: var(--text); }
+    .item-menu-confirm-no:hover { background: var(--card-muted); }
+    .item-menu-confirm-yes:focus-visible,
+    .item-menu-confirm-no:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* Table view: the disclosure lives in its own row */
     .item-menu-row > td { padding: 0 12px; border-bottom: 1px solid var(--line); }
@@ -1663,19 +1703,6 @@
     .expense-modal-form label { font-size:12px; font-weight:700; color:var(--muted); }
     .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
     .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
-
-    /* Confirm dialog (replaces native confirm/alert dialogs) */
-    .confirm-card { width: min(100%, 404px); gap: 14px; }
-    .confirm-head { display: flex; gap: 12px; align-items: flex-start; }
-    .confirm-icon {
-      width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px;
-      display: grid; place-items: center;
-      background: var(--red-soft); color: var(--red);
-    }
-    .confirm-copy { display: grid; gap: 3px; min-width: 0; }
-    .confirm-copy h3 { margin: 0; font-size: 16px; letter-spacing: -0.015em; }
-    .confirm-text { margin: 0; font-size: 12.8px; line-height: 1.5; color: var(--muted); }
-    .confirm-text strong { color: var(--text); font-weight: 700; }
 
     /* ============================================================
        UI refresh: hierarchy, grouped actions, calmer palette
@@ -2822,22 +2849,6 @@
     </div>
   </div>
 
-  <div id="confirmModal" class="expense-modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
-    <div class="expense-modal-card confirm-card">
-      <div class="confirm-head">
-        <span id="confirmIcon" class="confirm-icon" aria-hidden="true"><iconify-icon icon="lucide:trash-2" width="19" height="19"></iconify-icon></span>
-        <div class="confirm-copy">
-          <h3 id="confirmTitle">Delete this expense?</h3>
-          <p id="confirmText" class="confirm-text"></p>
-        </div>
-      </div>
-      <div class="expense-modal-actions">
-        <button id="confirmCancelBtn" class="btn" type="button">Cancel</button>
-        <button id="confirmAcceptBtn" class="btn btn-danger" type="button">Delete</button>
-      </div>
-    </div>
-  </div>
-
   <div id="budgetModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
     <div class="expense-modal-card modal-wide">
       <div class="expense-modal-head">
@@ -3136,12 +3147,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const budgetModalCancelBtn = document.getElementById("budgetModalCancelBtn");
     const budgetFields = document.getElementById("budgetFields");
     const budgetModalError = document.getElementById("budgetModalError");
-    const confirmModal = document.getElementById("confirmModal");
-    const confirmTitle = document.getElementById("confirmTitle");
-    const confirmText = document.getElementById("confirmText");
-    const confirmIcon = document.getElementById("confirmIcon");
-    const confirmAcceptBtn = document.getElementById("confirmAcceptBtn");
-    const confirmCancelBtn = document.getElementById("confirmCancelBtn");
     const insightsGrid = document.getElementById("insightsGrid");
     const insightsSubtitle = document.getElementById("insightsSubtitle");
 
@@ -3420,12 +3425,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
       budgetModalForm.addEventListener("submit", saveBudgetModal);
 
-      confirmAcceptBtn.addEventListener("click", () => settleConfirm(true));
-      confirmCancelBtn.addEventListener("click", () => settleConfirm(false));
-      confirmModal.addEventListener("click", (e) => {
-        if (e.target === confirmModal) settleConfirm(false);
-      });
-
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
       viewTableBtn.addEventListener("click", () => switchView("table"));
@@ -3487,10 +3486,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
 
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !confirmModal.classList.contains("hidden")) {
-          settleConfirm(false);
-          return;
-        }
         if (e.key === "Escape" && !budgetModal.classList.contains("hidden")) {
           closeBudgetModal();
           return;
@@ -3506,6 +3501,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
         if (e.key === "Escape" && document.querySelector('[data-menu-toggle][aria-expanded="true"]')) {
           const openBtn = document.querySelector('[data-menu-toggle][aria-expanded="true"]');
+          const openMenu = document.getElementById(openBtn.dataset.menuTarget || "");
+          if (openMenu?.classList.contains("is-confirming")) {
+            openMenu.classList.remove("is-confirming");
+            openMenu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
+            return;
+          }
           closeAllItemMenus();
           openBtn.focus();
           return;
@@ -4111,16 +4112,27 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       return `
         <div class="item-menu-inner">
           <div class="item-menu-card">
-            <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" data-edit="${item.key}" title="${editing ? "Save amount" : "Edit amount"}">
-              ${ITEM_MENU_ICONS.edit}<span data-edit-label>${editing ? "Done editing" : "Edit amount"}</span>
-            </button>
-            <button class="item-menu-action" type="button" data-rename="${item.key}" title="Rename expense">
-              ${ITEM_MENU_ICONS.tag}<span>Rename</span>
-            </button>
-            ${item.isCustom ? `<span class="item-menu-sep" aria-hidden="true"></span>
-            <button class="item-menu-action is-danger" type="button" data-delete="${item.key}" title="Delete custom expense">
-              ${ITEM_MENU_ICONS.trash}<span>Delete</span>
-            </button>` : ""}
+            <div class="item-menu-head">More options</div>
+            <div class="item-menu-list">
+              <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" data-edit="${item.key}" title="${editing ? "Save amount" : "Edit amount"}">
+                ${ITEM_MENU_ICONS.edit}<span data-edit-label>${editing ? "Done editing" : "Edit amount"}</span>
+              </button>
+              <button class="item-menu-action" type="button" data-rename="${item.key}" title="Rename expense">
+                ${ITEM_MENU_ICONS.tag}<span>Rename</span>
+              </button>
+            </div>
+            ${item.isCustom ? `
+            <div class="item-menu-delete">
+              <div class="item-menu-delete-layer item-menu-delete-row">
+                <button class="item-menu-action is-danger" type="button" data-delete-start="${item.key}" title="Delete custom expense">
+                  ${ITEM_MENU_ICONS.trash}<span>Delete</span>
+                </button>
+              </div>
+              <div class="item-menu-delete-layer item-menu-confirm">
+                <button class="item-menu-confirm-yes" type="button" data-delete="${item.key}">Yes, Delete</button>
+                <button class="item-menu-confirm-no" type="button" data-delete-cancel>Cancel</button>
+              </div>
+            </div>` : ""}
           </div>
         </div>`;
     }
@@ -4136,6 +4148,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!btn || !menu) return;
       btn.setAttribute("aria-expanded", String(open));
       menu.dataset.open = String(open);
+      if (!open) menu.classList.remove("is-confirming");
       const inner = menu.querySelector(".item-menu-inner");
       if (inner) inner.inert = !open;
 
@@ -4455,12 +4468,31 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         };
       });
 
+      document.querySelectorAll("[data-delete-start]").forEach(btn => {
+        btn.setAttribute("aria-label", `Delete ${btn.dataset.deleteStart?.replaceAll("_", " ") || "item"}`);
+        btn.onclick = (e) => {
+          const menu = e.currentTarget.closest(".item-menu");
+          if (!menu) return;
+          menu.classList.add("is-confirming");
+          menu.querySelector(".item-menu-confirm-yes")?.focus({ preventScroll: true });
+        };
+      });
+
+      document.querySelectorAll("[data-delete-cancel]").forEach(btn => {
+        btn.onclick = (e) => {
+          const menu = e.currentTarget.closest(".item-menu");
+          if (!menu) return;
+          menu.classList.remove("is-confirming");
+          menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
+        };
+      });
+
       document.querySelectorAll("[data-delete]").forEach(btn => {
         btn.setAttribute("aria-label", `Delete ${btn.dataset.delete?.replaceAll("_", " ") || "item"}`);
         btn.onclick = (e) => {
           const key = e.currentTarget.dataset.delete;
           closeAllItemMenus();
-          deleteCustomExpense(key);
+          performDeleteExpense(key);
         };
       });
     }
@@ -5289,47 +5321,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       expenseRenameKey = null;
     }
 
-    /* Custom confirm dialog (replaces the native confirm/alert popups) */
-    let confirmResolver = null;
-    let confirmReturnFocus = null;
-
-    function confirmAction(options = {}) {
-      const {
-        title = "Are you sure?",
-        message = "",
-        confirmLabel = "Confirm",
-        cancelLabel = "Cancel",
-        danger = true,
-        icon = "lucide:trash-2",
-      } = options;
-      return new Promise((resolve) => {
-        confirmTitle.textContent = title;
-        confirmText.textContent = message;
-        confirmAcceptBtn.textContent = confirmLabel;
-        confirmCancelBtn.textContent = cancelLabel;
-        confirmAcceptBtn.className = danger ? "btn btn-danger" : "btn btn-primary";
-        confirmIcon.innerHTML = `<iconify-icon icon="${icon}" width="19" height="19" aria-hidden="true"></iconify-icon>`;
-        confirmReturnFocus = document.activeElement;
-        confirmResolver = resolve;
-        confirmModal.classList.remove("hidden");
-        confirmCancelBtn.focus({ preventScroll: true });
-      });
-    }
-
-    function settleConfirm(value) {
-      if (!confirmResolver) return false;
-      const resolve = confirmResolver;
-      confirmResolver = null;
-      confirmModal.classList.add("hidden");
-      const target = confirmReturnFocus;
-      confirmReturnFocus = null;
-      if (target && typeof target.focus === "function") {
-        try { target.focus({ preventScroll: true }); } catch { /* ignore */ }
-      }
-      resolve(value);
-      return true;
-    }
-
     function getCategoryBudgets() {
       const meta = getMeta();
       const budgets = {};
@@ -5522,22 +5513,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       openExpenseModal({ mode: "rename", key });
     }
 
-    async function deleteCustomExpense(key) {
+    function performDeleteExpense(key) {
       const meta = getMeta();
       const item = meta.customItems.find((i) => i.key === key);
       if (!item) {
         showToast("Only custom expenses can be deleted", "warning");
         return;
       }
-
-      const ok = await confirmAction({
-        title: "Delete this expense?",
-        message: `“${item.name}” will be removed from every month. This can't be undone.`,
-        confirmLabel: "Delete expense",
-        cancelLabel: "Keep it",
-        danger: true,
-      });
-      if (!ok) return;
 
       meta.customItems = meta.customItems.filter((i) => i.key !== key);
       delete meta.nameOverrides[key];
