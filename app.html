@@ -5207,24 +5207,34 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         render();
-        if (isAuthenticated()) {
+        const persist = (async () => {
+          if (!isAuthenticated()) {
+            setAutosaveBadge("Saved on this device", "saved");
+            return { synced: false };
+          }
           setAutosaveBadge("Saving…", "saving");
-          const cloudTask = syncDataToCloud().then(
-            () => setAutosaveBadge("Saved to cloud", "saved"),
-            (err) => { setAutosaveBadge("Save failed", "error"); throw err; }
-          );
-          sileo.promise(cloudTask, {
-            loading: { title: "Adding expense…", description: `${name} · ${category}` },
-            success: { title: "Expense added", description: `${name} saved to ${category} and synced to your account.` },
-            error: (err) => ({
-              title: "Saved on this device",
-              description: `Cloud sync failed: ${err?.message || "unknown error"}`,
-            }),
-          });
-        } else {
-          setAutosaveBadge("Saved on this device", "saved");
-          sileo.success({ title: "Expense added", description: `${name} saved to ${category}.` });
-        }
+          try {
+            await syncDataToCloud();
+            setAutosaveBadge("Saved to cloud", "saved");
+            return { synced: true };
+          } catch (err) {
+            setAutosaveBadge("Save failed", "error");
+            throw err;
+          }
+        })();
+        sileo.promise(withToastDelay(persist), {
+          loading: { title: "Adding expense…", description: `${name} · ${category}` },
+          success: (result) => ({
+            title: "Expense added",
+            description: result.synced
+              ? `${name} saved to ${category} and synced to your account.`
+              : `${name} saved to ${category} on this device.`,
+          }),
+          error: (err) => ({
+            title: "Saved on this device",
+            description: `Cloud sync failed: ${err?.message || "unknown error"}`,
+          }),
+        });
       } else {
         const key = expenseRenameKey;
         const item = getAllItems().find((i) => i.key === key);
@@ -5313,6 +5323,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
       };
       reader.readAsText(file);
+    }
+
+    // Keeps the loading state visible long enough to read on very fast operations.
+    function withToastDelay(task, ms = 480) {
+      const wait = new Promise((resolve) => setTimeout(resolve, ms));
+      return Promise.resolve(task).then(
+        (value) => wait.then(() => value),
+        (error) => wait.then(() => { throw error; })
+      );
     }
 
     function showToast(msg, tone = "success", options = {}) {
@@ -5688,18 +5707,33 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       saveCurrentMonth({ silent: true });
       const month = monthPicker.value;
       const label = monthTriggerLabel?.textContent || month;
-      if (!isAuthenticated()) {
-        sileo.success({ title: "Month saved", description: `${label} saved on this device.` });
-        return;
-      }
-      setAutosaveBadge("Saving…", "saving");
-      const cloudTask = syncMonthToCloud(month).then(
-        () => setAutosaveBadge("Saved to cloud", "saved"),
-        (err) => { setAutosaveBadge("Save failed", "error"); throw err; }
-      );
-      sileo.promise(cloudTask, {
-        loading: { title: "Saving month…", description: `Syncing ${label} to your account.` },
-        success: { title: "Month saved", description: `${label} is saved and synced.` },
+      const authed = isAuthenticated();
+      const persist = (async () => {
+        if (!authed) {
+          setAutosaveBadge("Saved on this device", "saved");
+          return { synced: false };
+        }
+        setAutosaveBadge("Saving…", "saving");
+        try {
+          await syncMonthToCloud(month);
+          setAutosaveBadge("Saved to cloud", "saved");
+          return { synced: true };
+        } catch (err) {
+          setAutosaveBadge("Save failed", "error");
+          throw err;
+        }
+      })();
+      sileo.promise(withToastDelay(persist), {
+        loading: {
+          title: "Saving month…",
+          description: authed ? `Syncing ${label} to your account.` : `Saving ${label} on this device.`,
+        },
+        success: (result) => ({
+          title: "Month saved",
+          description: result.synced
+            ? `${label} is saved and synced.`
+            : `${label} saved on this device.`,
+        }),
         error: (err) => ({
           title: "Saved on this device",
           description: `Cloud sync failed: ${err?.message || "unknown error"}`,
@@ -5713,18 +5747,33 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         saveCheckedItems({ silent: true });
         const month = monthPicker.value;
         const label = monthTriggerLabel?.textContent || month;
-        if (!isAuthenticated()) {
-          sileo.success({ title: "Checkmarks saved", description: `${label} updated on this device.` });
-          return;
-        }
-        setAutosaveBadge("Saving…", "saving");
-        const cloudTask = syncMonthToCloud(month).then(
-          () => setAutosaveBadge("Saved to cloud", "saved"),
-          (err) => { setAutosaveBadge("Save failed", "error"); throw err; }
-        );
-        sileo.promise(cloudTask, {
-          loading: { title: "Saving checkmarks…", description: `Syncing ${label} to your account.` },
-          success: { title: "Checkmarks saved", description: `${label} is up to date.` },
+        const authed = isAuthenticated();
+        const persist = (async () => {
+          if (!authed) {
+            setAutosaveBadge("Saved on this device", "saved");
+            return { synced: false };
+          }
+          setAutosaveBadge("Saving…", "saving");
+          try {
+            await syncMonthToCloud(month);
+            setAutosaveBadge("Saved to cloud", "saved");
+            return { synced: true };
+          } catch (err) {
+            setAutosaveBadge("Save failed", "error");
+            throw err;
+          }
+        })();
+        sileo.promise(withToastDelay(persist), {
+          loading: {
+            title: "Saving checkmarks…",
+            description: authed ? `Syncing ${label} to your account.` : `Saving ${label} on this device.`,
+          },
+          success: (result) => ({
+            title: "Checkmarks saved",
+            description: result.synced
+              ? `${label} is up to date.`
+              : `${label} updated on this device.`,
+          }),
           error: (err) => ({
             title: "Saved on this device",
             description: `Cloud sync failed: ${err?.message || "unknown error"}`,
