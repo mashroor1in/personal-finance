@@ -1574,24 +1574,165 @@
     .menu-item:disabled { opacity: 0.5; cursor: default; }
     .menu-item:disabled:hover { background: transparent; }
 
+    /* Month picker (custom popover) */
     .month-picker-wrap {
+      position: relative;
       display: flex; align-items: center; gap: 7px; padding: 0 10px;
       border: 1px solid var(--line); background: var(--card);
       border-radius: 10px; color: var(--muted);
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     .month-picker-wrap:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
-    .month-picker-wrap:focus-within { border-color: var(--accent); }
-    .month-picker-wrap input {
-      border: 0; padding: 8px 0; background: transparent;
-      font-weight: 700; color: var(--text); font-size: 13px;
+    .month-picker-wrap:focus-within,
+    .month-picker-wrap.is-open {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
     }
-    .month-picker-wrap input::-webkit-calendar-picker-indicator {
-      cursor: pointer; opacity: 0.7; transition: opacity 0.15s ease;
+    .month-picker-icon {
+      display: grid; place-items: center; color: var(--muted); flex-shrink: 0;
+      transition: color 0.15s ease;
     }
-    .month-picker-wrap input:hover::-webkit-calendar-picker-indicator,
-    .month-picker-wrap input:focus::-webkit-calendar-picker-indicator { opacity: 1; }
-    .month-picker-wrap input:focus-visible { outline: none; }
+    .month-picker-wrap:hover .month-picker-icon,
+    .month-picker-wrap.is-open .month-picker-icon { color: var(--accent); }
+    .month-trigger {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 0; border: 0; background: transparent;
+      color: var(--text); font: inherit; font-size: 13px; font-weight: 700;
+      letter-spacing: -0.005em; white-space: nowrap; cursor: pointer;
+    }
+    .month-trigger:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px;
+    }
+    .month-trigger-label.is-placeholder { color: var(--muted); font-weight: 600; }
+    .month-trigger-chevron {
+      color: var(--muted); flex-shrink: 0;
+      transition: transform 0.18s ease, color 0.15s ease;
+    }
+    .month-picker-wrap.is-open .month-trigger-chevron {
+      transform: rotate(180deg); color: var(--accent);
+    }
+
+    .month-popover {
+      position: absolute; left: 0; top: calc(100% + 8px); z-index: 1115;
+      width: 300px; max-width: calc(100vw - 24px); padding: 12px;
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(15, 23, 42, 0.05);
+      transform-origin: top left;
+      animation: monthPopIn 0.16s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+    @keyframes monthPopIn {
+      from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    }
+    .month-popover-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .month-year-label {
+      font-size: 13.5px; font-weight: 800; letter-spacing: 0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .month-nav-btn {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border: 1px solid var(--line); border-radius: 9px;
+      background: var(--card-muted); color: var(--muted);
+      cursor: pointer; transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+    }
+    .month-nav-btn:hover {
+      color: var(--accent); background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    }
+    .month-nav-btn:active { transform: scale(0.92); }
+    .month-nav-btn:focus-visible,
+    .month-cell:focus-visible,
+    .month-shortcut:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+    }
+
+    .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .month-cell {
+      position: relative; padding: 9px 0 10px;
+      border: 1px solid transparent; border-radius: 9px;
+      background: var(--card-muted); color: var(--text);
+      font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+      transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.12s ease, box-shadow 0.14s ease;
+    }
+    .month-cell:hover {
+      background: var(--accent-soft); color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    }
+    .month-cell:active { transform: scale(0.96); }
+    .month-cell.is-current:not(.is-selected) {
+      background: var(--accent-soft); color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+    }
+    .month-cell.is-current::after {
+      content: ""; position: absolute; left: 50%; bottom: 4px;
+      width: 4px; height: 4px; border-radius: 50%;
+      background: currentColor; transform: translateX(-50%); opacity: 0.85;
+    }
+    .month-cell.is-selected {
+      background: var(--accent); border-color: transparent; color: #fff;
+      box-shadow: 0 6px 14px -7px color-mix(in srgb, var(--accent) 75%, transparent);
+    }
+    .month-cell.is-selected:hover { background: var(--accent); filter: brightness(1.07); }
+    .month-cell.is-selected.is-current::after { background: #fff; opacity: 0.95; }
+
+    .month-popover-foot {
+      display: flex; gap: 8px; margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+    .month-shortcut {
+      flex: 1; padding: 7px 8px; border-radius: 8px;
+      border: 1px solid var(--line); background: transparent;
+      color: var(--muted); font: inherit; font-size: 11.5px; font-weight: 700;
+      cursor: pointer;
+      transition: color 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+    }
+    .month-shortcut:hover {
+      color: var(--accent); background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+    }
+    .month-shortcut.is-primary {
+      color: var(--accent); background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    }
+    .month-shortcut.is-primary:hover { filter: brightness(1.03); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .month-popover { animation: none; }
+      .month-picker-wrap,
+      .month-picker-icon,
+      .month-trigger-chevron,
+      .month-nav-btn,
+      .month-cell,
+      .month-shortcut { transition: none; }
+    }
+
+    @media (max-width: 720px) {
+      .month-picker-wrap { padding-right: 12px; }
+      .month-trigger { flex: 1; justify-content: flex-start; }
+      .month-trigger-chevron { margin-left: auto; }
+      .month-popover {
+        position: fixed; left: 8px; right: 8px; top: auto;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        width: auto; max-width: none; padding: 13px 13px 15px;
+        border-radius: 18px;
+        transform-origin: bottom center;
+        animation: monthSheetIn 0.18s ease-out;
+      }
+      @keyframes monthSheetIn { from { opacity: 0; transform: translateY(16px); } }
+      .month-popover .sheet-handle {
+        display: block; width: 36px; height: 4px; border-radius: 999px;
+        background: var(--line); margin: 0 auto 10px;
+      }
+      .month-cell { padding: 11px 0 12px; font-size: 13px; }
+      .month-shortcut { padding: 9px 8px; }
+      body.month-open { overflow: hidden; }
+      body.month-open::before {
+        content: ""; position: fixed; inset: 0; z-index: 1090;
+        background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
+      }
+    }
 
     /* Command menu */
     .action-menu { position: relative; }
@@ -2022,8 +2163,30 @@
 
       <div class="header-actions">
         <div class="month-picker-wrap">
-          <label for="monthPicker" class="sr-only">Select month</label>
-          <input id="monthPicker" type="month" aria-label="Select planning month" />
+          <input id="monthPicker" type="month" class="sr-only" tabindex="-1" aria-hidden="true" />
+          <button id="monthTrigger" class="month-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="monthPopover" aria-label="Select planning month">
+            <span class="month-picker-icon" aria-hidden="true"><iconify-icon icon="ph:calendar-blank-bold" width="17" height="17"></iconify-icon></span>
+            <span id="monthTriggerLabel" class="month-trigger-label">Select month</span>
+            <svg class="month-trigger-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+
+          <div id="monthPopover" class="month-popover hidden" role="dialog" aria-label="Choose planning month">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <div class="month-popover-head">
+              <button id="monthPrevYear" class="month-nav-btn" type="button" aria-label="Previous year">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span id="monthYearLabel" class="month-year-label" aria-live="polite">2026</span>
+              <button id="monthNextYear" class="month-nav-btn" type="button" aria-label="Next year">
+                <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+            <div id="monthGrid" class="month-grid" role="group" aria-label="Months"></div>
+            <div class="month-popover-foot">
+              <button id="monthThisBtn" class="month-shortcut is-primary" type="button">This month</button>
+              <button id="monthClearBtn" class="month-shortcut" type="button">Clear</button>
+            </div>
+          </div>
         </div>
         <button id="addExpenseBtn" class="btn" title="Add a new expense item">➕ Add expense</button>
         <button id="saveMonthBtn" class="btn btn-primary" title="Save this month">💾 Save month</button>
@@ -2655,6 +2818,16 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     let currentThemeMode = "light";
 
     const monthPicker = document.getElementById("monthPicker");
+    const monthTrigger = document.getElementById("monthTrigger");
+    const monthTriggerLabel = document.getElementById("monthTriggerLabel");
+    const monthPopover = document.getElementById("monthPopover");
+    const monthGrid = document.getElementById("monthGrid");
+    const monthYearLabel = document.getElementById("monthYearLabel");
+    const monthPrevYear = document.getElementById("monthPrevYear");
+    const monthNextYear = document.getElementById("monthNextYear");
+    const monthThisBtn = document.getElementById("monthThisBtn");
+    const monthClearBtn = document.getElementById("monthClearBtn");
+    const monthPickerWrap = monthPicker?.closest(".month-picker-wrap") || null;
     const logoutBtn = document.getElementById("logoutBtn");
     const changePasswordBtn = document.getElementById("changePasswordBtn");
     const resetAppBtn = document.getElementById("resetAppBtn");
@@ -2785,6 +2958,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       setupExpenseModal();
       renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
+      updateMonthTriggerLabel();
       bindCoreListeners();
       updateSecurityCard();
       await bootstrapCloudSession();
@@ -2796,6 +2970,42 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       listenersBound = true;
 
       monthPicker.addEventListener("change", render);
+      monthTrigger?.addEventListener("click", () => {
+        const open = !isMonthPopoverOpen();
+        if (open) setProfileMenuOpen(false);
+        setMonthPopoverOpen(open);
+      });
+      monthPrevYear?.addEventListener("click", () => {
+        monthViewYear -= 1;
+        renderMonthGrid();
+      });
+      monthNextYear?.addEventListener("click", () => {
+        monthViewYear += 1;
+        renderMonthGrid();
+      });
+      monthGrid?.addEventListener("click", (event) => {
+        const cell = event.target.closest(".month-cell");
+        if (!cell) return;
+        const month = String(Number(cell.dataset.month)).padStart(2, "0");
+        selectPlanningMonth(`${monthViewYear}-${month}`);
+      });
+      monthGrid?.addEventListener("keydown", (event) => {
+        const cells = [...monthGrid.querySelectorAll(".month-cell")];
+        const index = cells.indexOf(document.activeElement);
+        if (index < 0) return;
+        let next = index;
+        if (event.key === "ArrowRight") next = (index + 1) % 12;
+        else if (event.key === "ArrowLeft") next = (index + 11) % 12;
+        else if (event.key === "ArrowDown") next = (index + 4) % 12;
+        else if (event.key === "ArrowUp") next = (index + 8) % 12;
+        else if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = 11;
+        else return;
+        event.preventDefault();
+        cells[next]?.focus();
+      });
+      monthThisBtn?.addEventListener("click", () => selectPlanningMonth(toMonthString(new Date())));
+      monthClearBtn?.addEventListener("click", () => selectPlanningMonth(""));
       salaryInput.addEventListener("input", () => {
         syncSalaryToData();
         markDirtyAndAutosave();
@@ -2819,6 +3029,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (currentThemeMode === "system") {
           applyTheme("system", { persist: false, redraw: true });
         }
+      });
+      window.matchMedia?.("(max-width: 720px)")?.addEventListener?.("change", () => {
+        if (!isMonthPopoverOpen()) return;
+        document.body.classList.toggle("month-open", !!window.matchMedia("(max-width: 720px)").matches);
       });
       incognitoBtn.addEventListener("click", togglePrivacy);
       addExpenseBtn.addEventListener("click", addCustomExpense);
@@ -2865,6 +3079,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       document.addEventListener("click", (e) => {
         if (dataMenu && dataMenu.open && !dataMenu.contains(e.target)) dataMenu.open = false;
         if (profileWrap && !profileWrap.contains(e.target)) setProfileMenuOpen(false);
+        if (isMonthPopoverOpen() && monthPickerWrap && !monthPickerWrap.contains(e.target)) {
+          setMonthPopoverOpen(false);
+        }
       });
 
       budgetAlertAction.addEventListener("click", () => {
@@ -2903,6 +3120,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
         if (e.key === "Escape" && !expenseModal.classList.contains("hidden")) {
           closeExpenseModal();
+          return;
+        }
+        if (e.key === "Escape" && isMonthPopoverOpen()) {
+          setMonthPopoverOpen(false);
+          monthTrigger?.focus();
           return;
         }
         if (e.key === "Escape" && profileMenu && !profileMenu.classList.contains("hidden")) {
@@ -3219,6 +3441,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       incognitoBtn.classList.remove("btn-active");
       renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
+      updateMonthTriggerLabel();
       updateSecurityCard();
     }
 
@@ -3246,6 +3469,97 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       profileMenu.classList.toggle("hidden", !open);
       profileBtn.setAttribute("aria-expanded", String(open));
       document.body.classList.toggle("profile-open", open);
+    }
+
+    /* Month picker --------------------------------------------------------- */
+    const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let monthViewYear = new Date().getFullYear();
+
+    function parseMonthValue(value) {
+      const match = /^(\d{4})-(\d{2})$/.exec(String(value || ""));
+      if (!match) return null;
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      if (!year || month < 1 || month > 12) return null;
+      return { year, month };
+    }
+
+    function isMonthPopoverOpen() {
+      return !!monthPopover && !monthPopover.classList.contains("hidden");
+    }
+
+    function updateMonthTriggerLabel() {
+      if (!monthTriggerLabel) return;
+      const parsed = parseMonthValue(monthPicker?.value || "");
+      if (!parsed) {
+        monthTriggerLabel.textContent = "Select month";
+        monthTriggerLabel.classList.add("is-placeholder");
+        return;
+      }
+      monthTriggerLabel.classList.remove("is-placeholder");
+      monthTriggerLabel.textContent = new Date(parsed.year, parsed.month - 1, 1)
+        .toLocaleString("en-US", { month: "long", year: "numeric" });
+    }
+
+    function renderMonthGrid() {
+      if (!monthGrid || !monthYearLabel) return;
+      const selected = parseMonthValue(monthPicker?.value || "");
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+      monthYearLabel.textContent = String(monthViewYear);
+      monthGrid.innerHTML = MONTH_ABBR.map((name, index) => {
+        const month = index + 1;
+        const isSelected = !!selected && selected.year === monthViewYear && selected.month === month;
+        const isCurrent = monthViewYear === currentYear && month === currentMonth;
+        const classes = ["month-cell"];
+        if (isSelected) classes.push("is-selected");
+        if (isCurrent) classes.push("is-current");
+        return `<button type="button" class="${classes.join(" ")}" data-month="${month}" aria-pressed="${isSelected}"${isCurrent ? ' aria-current="date"' : ""}>${name}</button>`;
+      }).join("");
+    }
+
+    function setMonthPopoverOpen(open) {
+      if (!monthPopover || !monthTrigger) return;
+      if (open) {
+        const parsed = parseMonthValue(monthPicker?.value || "");
+        monthViewYear = parsed ? parsed.year : new Date().getFullYear();
+        updateMonthTriggerLabel();
+        renderMonthGrid();
+      }
+      monthPopover.classList.toggle("hidden", !open);
+      monthTrigger.setAttribute("aria-expanded", String(open));
+      monthPickerWrap?.classList.toggle("is-open", open);
+      const isMobile = !!window.matchMedia?.("(max-width: 720px)")?.matches;
+      document.body.classList.toggle("month-open", !!open && isMobile);
+
+      if (open) {
+        requestAnimationFrame(() => {
+          if (!isMonthPopoverOpen()) return;
+          const target = monthGrid?.querySelector(".month-cell.is-selected")
+            || monthGrid?.querySelector(".month-cell.is-current")
+            || monthGrid?.querySelector(".month-cell");
+          target?.focus({ preventScroll: true });
+        });
+      }
+    }
+
+    // Keeps the native month input as the single source of truth so existing
+    // change listeners, monthly data loading and D1 sync keep working untouched.
+    function applyPlanningMonth(value) {
+      if (!monthPicker) return;
+      monthPicker.value = value;
+      monthPicker.dispatchEvent(new Event("change", { bubbles: true }));
+      const parsed = parseMonthValue(monthPicker.value);
+      if (parsed) monthViewYear = parsed.year;
+      updateMonthTriggerLabel();
+      renderMonthGrid();
+    }
+
+    function selectPlanningMonth(value) {
+      applyPlanningMonth(value);
+      setMonthPopoverOpen(false);
+      monthTrigger?.focus({ preventScroll: true });
     }
 
     function blobatarMarkup(seed) {
