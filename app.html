@@ -1574,36 +1574,40 @@
     .menu-item:disabled { opacity: 0.5; cursor: default; }
     .menu-item:disabled:hover { background: transparent; }
 
-    /* Month picker (custom popover) */
+    /* Month picker (custom popover) — same shell as .btn */
     .month-picker-wrap {
       position: relative;
-      display: flex; align-items: center; gap: 7px; padding: 0 10px;
+      display: inline-flex; align-items: center; gap: 0;
+      padding: 8px 12px;
       border: 1px solid var(--line); background: var(--card);
-      border-radius: 10px; color: var(--muted);
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      border-radius: 9px; color: var(--text);
+      font-size: 13.5px;
+      transition: all 0.15s ease;
     }
-    .month-picker-wrap:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
-    .month-picker-wrap:focus-within,
+    .month-picker-wrap:not(.is-open):hover {
+      background: var(--card-muted);
+      border-color: var(--muted);
+      transform: translateY(-1px);
+    }
+    .month-picker-wrap:not(.is-open):active { transform: translateY(0); }
     .month-picker-wrap.is-open {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
     }
+    .month-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0; border: 0; border-radius: 0; background: transparent;
+      color: var(--text); font: inherit; font-size: 13.5px; font-weight: 400;
+      line-height: normal; white-space: nowrap; cursor: pointer;
+    }
+    .month-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .month-picker-icon {
       display: grid; place-items: center; color: var(--muted); flex-shrink: 0;
       transition: color 0.15s ease;
     }
     .month-picker-wrap:hover .month-picker-icon,
     .month-picker-wrap.is-open .month-picker-icon { color: var(--accent); }
-    .month-trigger {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 8px 0; border: 0; background: transparent;
-      color: var(--text); font: inherit; font-size: 13px; font-weight: 700;
-      letter-spacing: -0.005em; white-space: nowrap; cursor: pointer;
-    }
-    .month-trigger:focus-visible {
-      outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px;
-    }
-    .month-trigger-label.is-placeholder { color: var(--muted); font-weight: 600; }
+    .month-trigger-label.is-placeholder { color: var(--muted); font-weight: 400; }
     .month-trigger-chevron {
       color: var(--muted); flex-shrink: 0;
       transition: transform 0.18s ease, color 0.15s ease;
@@ -1709,7 +1713,7 @@
     }
 
     @media (max-width: 720px) {
-      .month-picker-wrap { padding-right: 12px; }
+      .month-picker-wrap { width: 100%; }
       .month-trigger { flex: 1; justify-content: flex-start; }
       .month-trigger-chevron { margin-left: auto; }
       .month-popover {
@@ -2165,7 +2169,7 @@
         <div class="month-picker-wrap">
           <input id="monthPicker" type="month" class="sr-only" tabindex="-1" aria-hidden="true" />
           <button id="monthTrigger" class="month-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="monthPopover" aria-label="Select planning month">
-            <span class="month-picker-icon" aria-hidden="true"><iconify-icon icon="ph:calendar-blank-bold" width="17" height="17"></iconify-icon></span>
+            <span class="month-picker-icon" aria-hidden="true"><iconify-icon icon="ph:calendar-blank-bold" width="16" height="16"></iconify-icon></span>
             <span id="monthTriggerLabel" class="month-trigger-label">Select month</span>
             <svg class="month-trigger-chevron" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
