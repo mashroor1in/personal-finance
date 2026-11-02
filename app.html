@@ -6098,7 +6098,16 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cloudProfile = payload || null;
         unlockApp();
 
-        await migrateLocalStorageToCloudOnce();
+        if (authMode === "register") {
+          // A brand-new account must start clean: never inherit leftover data
+          // from a previous local session or account on this browser.
+          data = {};
+          localStorage.removeItem(STORAGE_KEY);
+          const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
+          localStorage.setItem(syncKey, "1");
+        } else {
+          await migrateLocalStorageToCloudOnce();
+        }
         await hydrateFromCloud();
         render();
         showToast(
