@@ -305,7 +305,7 @@
       letter-spacing: 0.01em;
     }
 
-    /* Timed undo action (reset account) */
+    /* Timed undo action (delete account) */
     .timed-undo {
       display: block;
       width: 100%;
@@ -2559,8 +2559,8 @@
               <button id="resetAppBtn" class="menu-item is-danger" type="button" role="menuitem">
                 <span class="menu-item-icon"><iconify-icon icon="lucide:trash-2" width="17" height="17" aria-hidden="true"></iconify-icon></span>
                 <span class="menu-item-copy">
-                  <strong>Reset account data</strong>
-                  <small>Permanently delete all months and budgets</small>
+                  <strong>Delete account</strong>
+                  <small>Permanently delete this account and all data</small>
                 </span>
               </button>
             </div>
@@ -2883,7 +2883,7 @@
               <span id="authUndoIcon" class="timed-undo-undo" aria-hidden="true" hidden>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.9 3L3 13"/></svg>
               </span>
-              <span id="authUndoLabel" class="timed-undo-label">Reset account</span>
+              <span id="authUndoLabel" class="timed-undo-label">Delete account</span>
               <span id="authUndoCount" class="timed-undo-count" aria-hidden="true" hidden><span id="authUndoNum" class="timed-undo-num">10</span></span>
             </span>
           </button>
@@ -3685,7 +3685,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       updateSecurityCard();
     }
 
-    /* Timed undo action for reset account -------------------------------- */
+    /* Timed undo action for delete account -------------------------------- */
     const RESET_UNDO_SECONDS = 10;
     let resetUndoArmed = false;
     let resetUndoRemaining = RESET_UNDO_SECONDS;
@@ -3708,7 +3708,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (authUndoIcon) authUndoIcon.hidden = !resetUndoArmed;
       if (authUndoCount) authUndoCount.hidden = !resetUndoArmed;
       if (resetUndoArmed && authUndoNum) authUndoNum.textContent = String(resetUndoRemaining);
-      setResetUndoLabel(resetUndoArmed ? "Cancel Delete" : "Reset account");
+      setResetUndoLabel(resetUndoArmed ? "Cancel Delete" : "Delete account");
     }
 
     function cancelResetUndo(clearConfirm) {
@@ -3889,14 +3889,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         authPinConfirm.required = true;
         authPin.setAttribute("autocomplete", "new-password");
       } else if (mode === "resetaccount") {
-        authTitle.textContent = "Reset account data";
-        authSubtitle.textContent = "Permanently delete this account, every month and all saved backups. This cannot be undone.";
-        authPinLabel.textContent = "Current password";
+        authTitle.textContent = "Delete account";
+        authSubtitle.textContent = "Enter your password to permanently delete this account and all your data. This cannot be undone.";
+        authPinLabel.textContent = "Your password";
         authSubmitBtn.classList.add("hidden");
         authUndoBtn.classList.remove("hidden");
         authUndoBtn.disabled = false;
         authResetNote.classList.remove("hidden");
-        authResetNote.textContent = "Enter your password, then press the red button. You'll get 10 seconds to cancel.";
+        authResetNote.textContent = "Enter your password, then press Delete account. You'll get 10 seconds to cancel.";
         authPin.setAttribute("autocomplete", "current-password");
       } else {
         authTitle.textContent = "Sign in";
