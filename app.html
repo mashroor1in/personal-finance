@@ -1516,6 +1516,9 @@
       font-size: 13px; font-weight: 800; text-transform: uppercase;
     }
     .profile-avatar-lg { width: 36px; height: 36px; flex: 0 0 auto; font-size: 14px; }
+    .profile-btn .save-state-dot {
+      position: absolute; top: 3px; right: 3px; width: 7px; height: 7px;
+    }
     .profile-dot {
       position: absolute; right: 0; bottom: 0; width: 10px; height: 10px;
       border-radius: 50%; background: var(--green);
@@ -1524,12 +1527,19 @@
     .profile-dot.is-locked { background: var(--amber); }
     .profile-popover {
       position: absolute; right: 0; top: calc(100% + 8px); z-index: 1110;
-      width: 250px; padding: 8px; display: grid; gap: 2px;
+      width: 330px; max-height: min(72vh, 560px);
+      overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+      padding: 8px; display: grid; gap: 2px;
       background: var(--card); border: 1px solid var(--line); border-radius: 14px;
       box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(15, 23, 42, 0.05);
       animation: menuIn 0.14s ease-out;
     }
     .profile-popover.hidden { display: none; }
+    .profile-popover::-webkit-scrollbar { width: 6px; }
+    .profile-popover::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--muted) 32%, transparent);
+      border-radius: 999px;
+    }
     .profile-head {
       display: flex; align-items: center; gap: 10px;
       padding: 6px 7px 9px; margin-bottom: 4px;
@@ -1562,7 +1572,6 @@
     .action-menu > summary::-webkit-details-marker { display: none; }
     .action-menu[open] > summary { background: var(--card-muted); border-color: var(--muted); }
 
-    .more-trigger { gap: 7px; }
     .save-state-dot {
       width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
       background: var(--green);
@@ -1860,27 +1869,26 @@
       .header-actions { width: 100%; justify-content: flex-start; }
       .header-actions .month-picker-wrap { flex: 1 1 100%; }
       .header-actions .btn { flex: 1 1 auto; justify-content: center; }
-      .header-actions .action-menu,
       .header-actions .profile-wrap { flex: 0 0 auto; }
       #dataMenu .action-menu-panel { width: min(86vw, 300px); }
-      .profile-popover { width: min(86vw, 250px); }
 
-      /* More menu becomes a bottom sheet on phones */
-      #mainMenu .action-menu-panel {
-        position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); top: auto;
-        width: auto; max-height: min(80vh, 560px);
+      /* Profile menu becomes a bottom sheet on phones */
+      .profile-popover {
+        position: fixed; left: 8px; right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px)); top: auto;
+        width: auto; max-height: min(82vh, 640px);
         padding: 9px; border-radius: 18px;
         animation: sheetIn 0.18s ease-out;
       }
-      body.menu-open { overflow: hidden; }
-      .sheet-handle {
+      body.profile-open { overflow: hidden; }
+      .profile-popover .sheet-handle {
         display: block; width: 36px; height: 4px; border-radius: 999px;
         background: var(--line); margin: 2px auto 6px;
       }
       /* Roomier touch targets inside the sheet */
-      #mainMenu .menu-item { padding: 8px 10px; }
-      #mainMenu .theme-choice { padding: 8px 4px; }
-      body.menu-open::before {
+      .profile-popover .menu-item { padding: 8px 10px; }
+      .profile-popover .theme-choice { padding: 8px 4px; }
+      body.profile-open::before {
         content: ""; position: fixed; inset: 0; z-index: 1090;
         background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
       }
@@ -2001,14 +2009,21 @@
         <button id="addExpenseBtn" class="btn" title="Add a new expense item">➕ Add expense</button>
         <button id="saveMonthBtn" class="btn btn-primary" title="Save this month">💾 Save month</button>
 
-        <details class="action-menu" id="mainMenu">
-          <summary class="btn more-trigger" aria-haspopup="menu" title="More actions">
-            <iconify-icon icon="lucide:ellipsis" width="18" height="18" aria-hidden="true"></iconify-icon>
-            <span>More</span>
+        <div class="profile-wrap">
+          <button id="profileBtn" class="profile-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Account and actions" title="Account and actions">
+            <span id="profileAvatar" class="profile-avatar" aria-hidden="true">?</span>
+            <span id="profileDot" class="profile-dot is-locked" aria-hidden="true"></span>
             <span id="saveStateDot" class="save-state-dot" title="Saved on this device" aria-hidden="true"></span>
-          </summary>
-          <div class="action-menu-panel" role="menu" aria-label="More actions">
+          </button>
+          <div id="profileMenu" class="profile-popover hidden" role="menu" aria-label="Account and actions">
             <div class="sheet-handle" aria-hidden="true"></div>
+            <div class="profile-head">
+              <span id="profileMenuAvatar" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</span>
+              <div class="profile-head-copy">
+                <strong id="profileMenuName">Local workspace</strong>
+                <small id="profileMenuMeta">Session locked</small>
+              </div>
+            </div>
 
             <p class="action-menu-title">Month management</p>
             <button id="copyPrevBtn" class="menu-item" type="button" role="menuitem">
@@ -2091,36 +2106,6 @@
                 <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Saved on this device</span>
               </div>
             </div>
-          </div>
-        </details>
-
-        <div class="profile-wrap">
-          <button id="profileBtn" class="profile-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Account menu" title="Account">
-            <span id="profileAvatar" class="profile-avatar" aria-hidden="true">?</span>
-            <span id="profileDot" class="profile-dot is-locked" aria-hidden="true"></span>
-          </button>
-          <div id="profileMenu" class="profile-popover hidden" role="menu" aria-label="Account menu">
-            <div class="profile-head">
-              <span id="profileMenuAvatar" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</span>
-              <div class="profile-head-copy">
-                <strong id="profileMenuName">Local workspace</strong>
-                <small id="profileMenuMeta">Session locked</small>
-              </div>
-            </div>
-            <button id="profileChangePasswordBtn" class="menu-item" type="button" role="menuitem">
-              <span class="menu-item-icon"><iconify-icon icon="lucide:key-round" width="17" height="17" aria-hidden="true"></iconify-icon></span>
-              <span class="menu-item-copy">
-                <strong>Change password</strong>
-                <small>Update your account password</small>
-              </span>
-            </button>
-            <button id="profileLogoutBtn" class="menu-item" type="button" role="menuitem">
-              <span class="menu-item-icon"><iconify-icon icon="lucide:log-out" width="17" height="17" aria-hidden="true"></iconify-icon></span>
-              <span class="menu-item-copy">
-                <strong>Log out</strong>
-                <small>End this session securely</small>
-              </span>
-            </button>
           </div>
         </div>
       </div>
@@ -2284,7 +2269,7 @@
         <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets">🎯 Budgets</button>
         <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save checked</button>
         <details class="action-menu" id="dataMenu">
-          <summary class="btn more-trigger" title="Backup and restore" aria-haspopup="menu">
+          <summary class="btn" title="Backup and restore" aria-haspopup="menu">
             <iconify-icon icon="lucide:ellipsis" width="18" height="18" aria-hidden="true"></iconify-icon>
           </summary>
           <div class="action-menu-panel" role="menu">
@@ -2603,7 +2588,6 @@
     const resetAppBtn = document.getElementById("resetAppBtn");
     const securitySessionChip = document.getElementById("securitySessionChip");
     const securityPasswordUpdatedChip = document.getElementById("securityPasswordUpdatedChip");
-    const mainMenu = document.getElementById("mainMenu");
     const dataMenu = document.getElementById("dataMenu");
     const budgetAlert = document.getElementById("budgetAlert");
     const budgetAlertTitle = document.getElementById("budgetAlertTitle");
@@ -2631,8 +2615,6 @@
     const profileMenuAvatar = document.getElementById("profileMenuAvatar");
     const profileMenuName = document.getElementById("profileMenuName");
     const profileMenuMeta = document.getElementById("profileMenuMeta");
-    const profileChangePasswordBtn = document.getElementById("profileChangePasswordBtn");
-    const profileLogoutBtn = document.getElementById("profileLogoutBtn");
     const searchInput = document.getElementById("searchInput");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
     const viewTableBtn = document.getElementById("viewTableBtn");
@@ -2765,15 +2747,6 @@
       profileBtn.addEventListener("click", () => {
         setProfileMenuOpen(profileMenu.classList.contains("hidden"));
       });
-      profileChangePasswordBtn.addEventListener("click", () => {
-        setProfileMenuOpen(false);
-        if (!isAuthenticated()) return;
-        showAuthOverlay("changepassword");
-      });
-      profileLogoutBtn.addEventListener("click", () => {
-        setProfileMenuOpen(false);
-        logoutUser();
-      });
       expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
       expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
       expenseModal.addEventListener("click", (e) => {
@@ -2795,21 +2768,22 @@
       collapseAllBtn.addEventListener("click", toggleCollapseAll);
       saveChecksBtn.addEventListener("click", saveCheckedItems);
 
-      // Grouped action menus: close after choosing an action, or on outside click
-      [mainMenu, dataMenu].forEach(menu => {
-        if (!menu) return;
-        menu.querySelectorAll("button").forEach(btn => {
+      // Close the data menu after choosing an action
+      if (dataMenu) {
+        dataMenu.querySelectorAll("button").forEach(btn => {
           if (btn.hasAttribute("data-keep-open")) return;
-          btn.addEventListener("click", () => { menu.open = false; });
+          btn.addEventListener("click", () => { dataMenu.open = false; });
         });
+      }
+
+      // Profile menu: close after choosing an action unless it should stay open
+      profileMenu.querySelectorAll("button").forEach(btn => {
+        if (btn.hasAttribute("data-keep-open")) return;
+        btn.addEventListener("click", () => setProfileMenuOpen(false));
       });
-      mainMenu.addEventListener("toggle", () => {
-        document.body.classList.toggle("menu-open", mainMenu.open);
-      });
+
       document.addEventListener("click", (e) => {
-        [mainMenu, dataMenu].forEach(menu => {
-          if (menu && menu.open && !menu.contains(e.target)) menu.open = false;
-        });
+        if (dataMenu && dataMenu.open && !dataMenu.contains(e.target)) dataMenu.open = false;
         if (profileWrap && !profileWrap.contains(e.target)) setProfileMenuOpen(false);
       });
 
@@ -2856,10 +2830,9 @@
           profileBtn.focus();
           return;
         }
-        if (e.key === "Escape" && (mainMenu.open || dataMenu.open)) {
-          const openMenu = mainMenu.open ? mainMenu : dataMenu;
-          openMenu.open = false;
-          openMenu.querySelector("summary")?.focus();
+        if (e.key === "Escape" && dataMenu.open) {
+          dataMenu.open = false;
+          dataMenu.querySelector("summary")?.focus();
           return;
         }
         if (!isAuthenticated()) return;
@@ -3170,6 +3143,7 @@
       if (!profileMenu || !profileBtn) return;
       profileMenu.classList.toggle("hidden", !open);
       profileBtn.setAttribute("aria-expanded", String(open));
+      document.body.classList.toggle("profile-open", open);
     }
 
     function updateProfileUi() {
@@ -3184,12 +3158,8 @@
       if (profileMenuName) profileMenuName.textContent = displayName;
       if (profileMenuMeta) profileMenuMeta.textContent = authenticated ? "Session active" : "Session locked";
       if (profileDot) profileDot.classList.toggle("is-locked", !authenticated);
-      profileBtn.title = authenticated ? `Account: ${displayName}` : "Account";
-      profileBtn.setAttribute("aria-label", authenticated ? `Account menu for ${displayName}` : "Account menu");
-
-      [profileChangePasswordBtn, profileLogoutBtn].forEach((btn) => {
-        if (btn) btn.disabled = !authenticated;
-      });
+      profileBtn.title = authenticated ? `Account and actions: ${displayName}` : "Account and actions";
+      profileBtn.setAttribute("aria-label", authenticated ? `Account and actions for ${displayName}` : "Account and actions");
     }
 
     function resolveTheme(mode) {
