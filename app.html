@@ -100,6 +100,7 @@
       padding: 16px;
       background: rgba(2, 6, 23, 0.65);
       backdrop-filter: blur(6px);
+      overflow-y: auto;
     }
 
     .auth-shell {
@@ -109,6 +110,8 @@
       grid-template-columns: 1.05fr 1fr;
       gap: 14px;
       align-items: stretch;
+      margin: auto;
+      flex-shrink: 0;
     }
 
     .auth-hero {
@@ -1463,9 +1466,272 @@
     .expense-modal-head { display:flex; justify-content:space-between; align-items:center; gap:8px; }
     .expense-modal-head h3 { margin:0; font-size:18px; letter-spacing:-.02em; }
     .expense-modal-form { display:grid; gap:10px; }
+    .expense-modal-form > div:not(.expense-modal-actions) { display:grid; gap:6px; }
+    .expense-modal-form input,
+    .expense-modal-form select { width: 100%; }
     .expense-modal-form label { font-size:12px; font-weight:700; color:var(--muted); }
     .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
     .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
+
+    /* ============================================================
+       UI refresh: hierarchy, grouped actions, calmer palette
+       ============================================================ */
+    body { font-size: 15px; }
+
+    .planner-app { max-width: 1380px; padding: 22px 20px 56px; }
+
+    /* Header + grouped actions */
+    .top-header { align-items: flex-start; gap: 18px; padding-bottom: 18px; }
+    .title-area { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .app-mark {
+      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+      display: grid; place-items: center; color: #fff;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.55);
+    }
+    .title-area h1 { font-size: 25px; }
+    .title-area p { font-size: 13px; margin-top: 2px; }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .month-picker-wrap {
+      display: flex; align-items: center; gap: 7px; padding: 0 10px;
+      border: 1px solid var(--line); background: var(--card);
+      border-radius: 10px; color: var(--muted);
+      transition: border-color 0.15s ease;
+    }
+    .month-picker-wrap:focus-within { border-color: var(--accent); }
+    .month-picker-wrap input {
+      border: 0; padding: 8px 0; background: transparent;
+      font-weight: 700; color: var(--text); font-size: 13px;
+    }
+    .month-picker-wrap input:focus-visible { outline: none; }
+
+    .action-menu { position: relative; }
+    .action-menu > summary { list-style: none; user-select: none; }
+    .action-menu > summary::-webkit-details-marker { display: none; }
+    .action-menu[open] > summary { background: var(--card-muted); border-color: var(--muted); }
+    .action-menu-panel {
+      position: absolute; right: 0; top: calc(100% + 8px); z-index: 1100;
+      width: 278px; max-height: min(70vh, 480px); overflow-y: auto;
+      background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+      box-shadow: 0 22px 44px -14px rgba(15, 23, 42, 0.3);
+      padding: 7px; display: grid; gap: 2px;
+    }
+    .action-menu:not([open]) .action-menu-panel { display: none; }
+    .action-menu-title {
+      margin: 8px 8px 3px; font-size: 10px; font-weight: 800;
+      letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+    }
+    .menu-btn {
+      width: 100%; display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
+      color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600;
+      text-align: left; cursor: pointer; transition: background 0.13s ease, color 0.13s ease;
+    }
+    .menu-btn:hover { background: var(--card-muted); }
+    .menu-btn.btn-active { background: var(--accent-soft); color: var(--accent); }
+    .menu-danger { color: var(--red); }
+    .menu-danger:hover { background: var(--red-soft); }
+    .action-menu-status {
+      margin-top: 6px; padding: 8px 9px 3px; border-top: 1px solid var(--line);
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .action-menu-status .autosave-badge { opacity: 1; transform: none; }
+
+    /* KPI hierarchy */
+    .stats-grid { grid-template-columns: 1.18fr 1fr 1fr 1fr; gap: 12px; margin: 18px 0 14px; }
+    .stat-card { padding: 15px 16px; position: relative; overflow: hidden; }
+    .stat-card .card-head { font-size: 11.5px; letter-spacing: 0.055em; gap: 8px; }
+    .stat-card .value { font-size: 28px; margin: 10px 0 2px; }
+    .stat-card .meta { font-size: 12px; }
+    .stat-icon { font-size: 14px; opacity: 0.55; }
+    .stat-hero {
+      background: linear-gradient(135deg, #0d1b33 0%, #173a6e 58%, #1d4ed8 100%);
+      border-color: transparent; color: #fff;
+      box-shadow: 0 16px 30px -16px rgba(29, 78, 216, 0.7);
+    }
+    .stat-hero .card-head,
+    .stat-hero .meta { color: #a9c4ea; }
+    .stat-hero .value { color: #fff; font-size: 32px; }
+    .stat-hero.is-negative {
+      background: linear-gradient(135deg, #3f1216 0%, #7f1d1d 55%, #b91c1c 100%);
+      box-shadow: 0 16px 30px -16px rgba(185, 28, 28, 0.7);
+    }
+    .stat-hero.is-negative .card-head,
+    .stat-hero.is-negative .meta { color: #fecaca; }
+    .mini-meter {
+      margin-top: 11px; height: 5px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22); overflow: hidden;
+    }
+    .mini-meter span {
+      display: block; height: 100%; width: 0%; border-radius: 999px;
+      background: #6ee7b7; transition: width 0.3s ease;
+    }
+    .stat-hero.is-negative .mini-meter span { background: #fca5a5; }
+
+    .edit-hint {
+      font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em;
+      text-transform: none; color: var(--accent); background: var(--accent-soft);
+      border-radius: 999px; padding: 2px 7px;
+    }
+    .kpi-edit {
+      display: flex; align-items: baseline; gap: 5px;
+      margin: 7px 0 1px; border-bottom: 1.5px dashed transparent;
+      transition: border-color 0.15s ease;
+    }
+    .kpi-edit:focus-within { border-bottom-color: var(--accent); }
+    .kpi-edit .currency { font-size: 21px; font-weight: 800; color: var(--muted); }
+    .kpi-edit input {
+      width: 100%; min-width: 0; padding: 0; border: 0; background: transparent;
+      color: var(--text); font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
+    }
+    .kpi-edit input:focus-visible { outline: none; }
+    .kpi-edit input::-webkit-outer-spin-button,
+    .kpi-edit input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .kpi-edit input { -moz-appearance: textfield; appearance: textfield; }
+
+    /* Overspend alert */
+    .budget-alert {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; margin-bottom: 16px; border-radius: 12px;
+      border: 1px solid #fecaca; background: #fef2f2; color: #991b1b;
+    }
+    .budget-alert.hidden { display: none; }
+    .budget-alert-icon { font-size: 18px; line-height: 1; }
+    .budget-alert-copy { display: grid; gap: 1px; flex: 1; min-width: 0; }
+    .budget-alert-copy strong { font-size: 13.5px; }
+    .budget-alert-copy span { font-size: 12.5px; color: #b91c1c; }
+    .budget-alert .btn {
+      background: #fff; border-color: #fecaca; color: #b91c1c;
+      font-weight: 700; white-space: nowrap;
+    }
+    .budget-alert .btn:hover { background: #fff5f5; border-color: #f87171; }
+    body.dark-theme .budget-alert { background: #2a1114; border-color: #7f1d1d; color: #fecaca; }
+    body.dark-theme .budget-alert-copy span { color: #fca5a5; }
+    body.dark-theme .budget-alert .btn { background: #3a1518; border-color: #7f1d1d; color: #fecaca; }
+
+    /* Charts: compact + readable */
+    .analytics-grid { grid-template-columns: 1.22fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .chart-panel { padding: 16px; display: flex; flex-direction: column; min-height: 340px; }
+    .chart-panel-head { margin-bottom: 10px; flex-shrink: 0; }
+    .chart-panel-head h2 { font-size: 15px; }
+    .donut-layout { grid-template-columns: 190px 1fr; gap: 14px; }
+    #expenseChart { width: 190px; height: 190px; display: block; }
+    .breakdown-legend { gap: 3px; max-height: 250px; }
+    .breakdown-row {
+      grid-template-columns: 1fr auto auto; row-gap: 3px;
+      padding: 4px 8px; font-size: 12px;
+    }
+    .breakdown-row .breakdown-label { min-width: 0; }
+    .breakdown-row .breakdown-label span:last-child {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .breakdown-track {
+      grid-column: 1 / -1; height: 3px; border-radius: 999px;
+      background: var(--line); overflow: hidden;
+    }
+    .breakdown-track span { display: block; height: 100%; border-radius: 999px; }
+    .chart-legend { display: flex; gap: 12px; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+    .chart-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+    #trendChart { width: 100%; height: auto; min-height: 200px; flex: 1 1 200px; display: block; }
+
+    /* Budget diagnostic: three informative tiles */
+    .budget-diagnostic { padding: 15px 16px; margin-bottom: 14px; }
+    .diag-head { align-items: flex-start; gap: 12px; margin-bottom: 9px; }
+    .diag-head strong { font-size: 14px; letter-spacing: -0.01em; }
+    .diag-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+    .diag-summary { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .diag-bar { height: 10px; }
+    .diag-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+    .diag-tile {
+      border: 1px solid var(--line); background: var(--card-muted);
+      border-radius: 10px; padding: 10px 11px; display: grid; gap: 6px;
+    }
+    .diag-tile-top { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
+    .diag-tile-top strong { margin-left: auto; font-size: 14px; letter-spacing: -0.01em; }
+    .diag-tile-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: var(--muted); }
+    .diag-status { font-weight: 800; }
+    .diag-status.ok { color: var(--green); }
+    .diag-status.over { color: var(--red); }
+    .diag-status.under { color: var(--amber); }
+    .diag-tile-track { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+    .diag-tile-track span { display: block; height: 100%; width: 0%; border-radius: 999px; transition: width 0.3s ease; }
+
+    /* View toolbar grouping */
+    .view-toolbar { margin-bottom: 14px; gap: 10px; }
+    .view-tabs {
+      display: inline-flex; gap: 2px; padding: 3px; flex-wrap: wrap;
+      background: var(--card-muted); border: 1px solid var(--line); border-radius: 10px;
+    }
+    .view-tab {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border: 0; border-radius: 7px; background: transparent;
+      color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 600;
+      cursor: pointer; transition: background 0.13s ease, color 0.13s ease;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.btn-active {
+      background: var(--card); color: var(--text);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.09);
+    }
+    .view-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .search-wrap {
+      display: flex; align-items: center; gap: 7px; padding: 0 10px;
+      border: 1px solid var(--line); background: var(--card);
+      border-radius: 10px; color: var(--muted);
+    }
+    .search-wrap:focus-within { border-color: var(--accent); }
+    .search-wrap input { border: 0; background: transparent; padding: 8px 0; width: 150px; color: var(--text); }
+    .search-wrap input:focus-visible { outline: none; }
+
+    /* Compact row actions */
+    .cat-box-header { padding: 12px 14px; }
+    .cat-title { font-size: 13.5px; gap: 9px; }
+    .cat-item-row { padding: 8px 4px; }
+    .item-name { font-size: 13.5px; }
+    .amount-input { width: 88px; }
+    .row-action {
+      padding: 4px 7px !important; font-size: 11px !important;
+      min-width: 28px; justify-content: center !important;
+    }
+    .cat-box.highlight {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+      transition: box-shadow 0.2s ease;
+    }
+
+    @media (max-width: 1040px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-hero { grid-column: 1 / -1; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .donut-layout { grid-template-columns: 180px 1fr; }
+      .chart-panel { min-height: 0; }
+    }
+
+    @media (max-width: 720px) {
+      .planner-app { padding: 18px 14px 44px; }
+      .header-actions { width: 100%; justify-content: flex-start; }
+      .header-actions .month-picker-wrap { flex: 1 1 100%; }
+      .header-actions .btn { flex: 1 1 auto; justify-content: center; }
+      .header-actions .action-menu { flex: 0 0 auto; }
+      .action-menu-panel { right: 0; left: auto; width: min(86vw, 278px); }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-hero { grid-column: auto; }
+      .diag-tiles { grid-template-columns: 1fr; }
+      .donut-layout { grid-template-columns: 1fr; }
+      #expenseChart { margin: 0 auto; }
+      .breakdown-legend { max-height: none; }
+      .view-actions { width: 100%; }
+      .search-wrap { flex: 1 1 auto; }
+      .search-wrap input { width: 100%; }
+      .budget-alert { flex-wrap: wrap; }
+      .budget-alert .btn { width: 100%; justify-content: center; }
+
+      /* Keep the amount + actions reachable on small screens */
+      table { min-width: 100%; }
+      th:nth-child(2), td:nth-child(2),
+      th:nth-child(4), td:nth-child(4) { display: none; }
+      th, td { padding: 9px 10px; }
+    }
   </style>
 </head>
 <body class="app-locked">
@@ -1474,55 +1740,86 @@
     <!-- Header -->
     <header class="top-header">
       <div class="title-area">
-        <h1>Monthly Finance Planner</h1>
-        <p>Cloud-synced monthly finance planner with secure account access</p>
+        <span class="app-mark" aria-hidden="true"><iconify-icon icon="ph:chart-line-up-bold" width="20" height="20"></iconify-icon></span>
+        <div>
+          <h1>Monthly Finance Planner</h1>
+          <p>Plan, track and settle your monthly money in one place</p>
+        </div>
       </div>
 
-      <div class="controls-bar">
-        <label for="monthPicker" class="sr-only">Select month</label>
-        <input id="monthPicker" type="month" aria-label="Select planning month" />
-        <button id="logoutBtn" class="btn" title="Log out">🚪 Log out</button>
-        <button id="changePasswordBtn" class="btn" title="Change Password">🔑 Change Password</button>
-        <button id="resetAppBtn" class="btn btn-danger" title="Reset account data">🗑️ Reset Account</button>
-        <button id="incognitoBtn" class="btn" title="Toggle Privacy Mode" aria-pressed="false">👁️ Privacy</button>
-        <button id="themeToggle" class="btn" aria-pressed="false">🌙 Dark</button>
-        <button id="addExpenseBtn" class="btn" title="Add a new expense item">➕ Add Expense</button>
-        <button id="addPrevMoneyBtn" class="btn" title="Add previous month amounts into this month">➕ Add Prev Money</button>
-        <button id="copyPrevBtn" class="btn" title="Copy amounts from previous month">📋 Copy Last Month</button>
-        <button id="saveMonthBtn" class="btn btn-primary">💾 Save Month</button>
-        <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Draft saved</span>
+      <div class="header-actions">
+        <div class="month-picker-wrap">
+          <label for="monthPicker" class="sr-only">Select month</label>
+          <input id="monthPicker" type="month" aria-label="Select planning month" />
+        </div>
+        <button id="addExpenseBtn" class="btn" title="Add a new expense item">➕ Add expense</button>
+        <button id="saveMonthBtn" class="btn btn-primary" title="Save this month">💾 Save month</button>
+
+        <details class="action-menu" id="mainMenu">
+          <summary class="btn" aria-haspopup="menu" title="More actions"><span aria-hidden="true">⋯</span> More</summary>
+          <div class="action-menu-panel" role="menu">
+            <p class="action-menu-title">Month</p>
+            <button id="addPrevMoneyBtn" class="menu-btn" type="button">➕ Add previous month amounts</button>
+            <button id="copyPrevBtn" class="menu-btn" type="button">📋 Copy last month</button>
+
+            <p class="action-menu-title">Account</p>
+            <button id="changePasswordBtn" class="menu-btn" type="button">🔑 Change password</button>
+            <button id="resetAppBtn" class="menu-btn menu-danger" type="button">🗑️ Reset account data</button>
+            <button id="logoutBtn" class="menu-btn" type="button">🚪 Log out</button>
+
+            <p class="action-menu-title">Display</p>
+            <button id="incognitoBtn" class="menu-btn" type="button" aria-pressed="false">👁️ Privacy mode</button>
+            <button id="themeToggle" class="menu-btn" type="button" aria-pressed="false">🌙 Dark mode</button>
+
+            <div class="action-menu-status">
+              <span id="securitySessionChip" class="security-chip">Session: Locked</span>
+              <span id="securityPasswordUpdatedChip" class="security-chip">Password: Not set</span>
+              <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Draft saved</span>
+            </div>
+          </div>
+        </details>
       </div>
     </header>
 
     <!-- Top KPI Stats -->
     <section class="stats-grid">
-      <div class="stat-card">
-        <div class="card-head">Salary / Inflow</div>
-        <div id="statSalary" class="value hideable-val tnum">₹0</div>
-        <div class="meta">
-            <label for="salaryInput" class="sr-only">Monthly salary input</label>
-            <input id="salaryInput" type="number" min="0" step="500" placeholder="Set Monthly Salary" aria-label="Set monthly salary" style="padding:4px 8px; width:100%; margin-top:4px;" />
-        </div>
+      <div id="balanceCard" class="stat-card stat-hero">
+        <div class="card-head"><span>Net Balance</span><span class="stat-icon" aria-hidden="true">◔</span></div>
+        <div id="statRemaining" class="value hideable-val tnum">₹0</div>
+        <div id="remainingMeta" class="meta">Set income to calculate</div>
+        <div class="mini-meter" aria-hidden="true"><span id="balanceMeter"></span></div>
       </div>
 
       <div class="stat-card">
-        <div class="card-head">Total Outflow</div>
+        <div class="card-head"><span>Salary / Inflow</span><span class="edit-hint">editable</span></div>
+        <label class="kpi-edit" for="salaryInput">
+          <span class="currency" aria-hidden="true">₹</span>
+          <input id="salaryInput" class="tnum hideable-val" type="number" min="0" step="500" placeholder="0" aria-label="Set monthly salary" />
+        </label>
+        <div id="statSalaryMeta" class="meta">Tap the amount to set income</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="card-head"><span>Total Outflow</span><span class="stat-icon" aria-hidden="true">↗</span></div>
         <div id="statExpense" class="value hideable-val tnum" style="color:var(--red);">₹0</div>
-        <div id="expenseMeta" class="meta">Expenses + Investments</div>
+        <div id="expenseMeta" class="meta">Expenses + investments</div>
       </div>
 
       <div class="stat-card">
-        <div class="card-head">Net Balance</div>
-        <div id="statRemaining" class="value hideable-val tnum" style="color:var(--green);">₹0</div>
-        <div id="remainingMeta" class="meta">0% left</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="card-head">Savings Rate</div>
+        <div class="card-head"><span>Savings Rate</span><span class="stat-icon" aria-hidden="true">◎</span></div>
         <div id="statSavingsRate" class="value hideable-val tnum" style="color:var(--accent);">0%</div>
-        <div id="savingsMeta" class="meta">Investments / Salary</div>
+        <div id="savingsMeta" class="meta">Investments / income</div>
       </div>
     </section>
+
+    <div id="budgetAlert" class="budget-alert hidden" role="status" aria-live="polite">
+      <span class="budget-alert-icon" aria-hidden="true">⚠️</span>
+      <div class="budget-alert-copy">
+        <strong id="budgetAlertTitle">Spending exceeds income</strong>
+        <span id="budgetAlertText"></span>
+      </div>
+      <button id="budgetAlertAction" class="btn" type="button">Review wants</button>
+    </div>
 
     <!-- Analytics Grid (Expense & Allocation Breakdown + Monthly Trend) -->
     <section class="analytics-grid">
@@ -1531,12 +1828,12 @@
         <div class="chart-panel-head">
           <div>
             <h2>Expense & Allocation Breakdown</h2>
-            <p>Spending distribution across household categories</p>
+            <p>Where this month's outflow goes</p>
           </div>
         </div>
         <div class="donut-layout">
           <div class="donut-canvas-wrap">
-            <canvas id="expenseChart" width="220" height="220" role="img" aria-label="Expense and allocation donut chart"></canvas>
+            <canvas id="expenseChart" width="190" height="190" role="img" aria-label="Expense and allocation donut chart"></canvas>
           </div>
           <div id="breakdownLegend" class="breakdown-legend"></div>
         </div>
@@ -1547,28 +1844,59 @@
         <div class="chart-panel-head">
           <div>
             <h2>Monthly Trend</h2>
-            <p>Income vs Total Outflow (Last 6 Months)</p>
+            <p>Income vs total outflow</p>
+          </div>
+          <div class="chart-legend" aria-hidden="true">
+            <span><i style="background:#10b981;"></i>Income</span>
+            <span><i style="background:#3b82f6;"></i>Outflow</span>
           </div>
         </div>
-        <canvas id="trendChart" height="220" role="img" aria-label="Monthly trend chart showing income vs outflow"></canvas>
+        <canvas id="trendChart" height="200" role="img" aria-label="Monthly trend chart showing income vs outflow"></canvas>
       </article>
     </section>
 
-    <!-- 50 / 30 / 20 Budget Diagnostic Bar -->
+    <!-- 50 / 30 / 20 Budget Diagnostic -->
     <section class="budget-diagnostic">
       <div class="diag-head">
-        <strong>50 / 30 / 20 Budget Allocation</strong>
-        <span id="diagSummary" class="tnum" style="color:var(--muted);">Needs: 0% • Wants: 0% • Savings: 0%</span>
+        <div>
+          <strong>50 / 30 / 20 Budget Allocation</strong>
+          <p>Bar shows this month's outflow mix · tiles compare each bucket to income</p>
+        </div>
+        <span id="diagSummary" class="diag-summary tnum">Needs 0% • Wants 0% • Savings 0%</span>
       </div>
-      <div class="diag-bar">
+      <div class="diag-bar" aria-hidden="true">
         <div id="diagNeeds" class="diag-fill-needs" style="width:0%;"></div>
         <div id="diagWants" class="diag-fill-wants" style="width:0%;"></div>
         <div id="diagSavings" class="diag-fill-savings" style="width:0%;"></div>
       </div>
-      <div class="diag-legend">
-        <div class="diag-item"><span id="diagNeedsIcon" class="diag-icon"></span><div class="color-dot" style="background:#3b82f6;"></div> Needs (Target 50%)</div>
-        <div class="diag-item"><span id="diagWantsIcon" class="diag-icon"></span><div class="color-dot" style="background:#f59e0b;"></div> Wants (Target 30%)</div>
-        <div class="diag-item"><span id="diagSavingsIcon" class="diag-icon"></span><div class="color-dot" style="background:#10b981;"></div> Savings/Investments (Target 20%)</div>
+      <div class="diag-tiles">
+        <div class="diag-tile" data-bucket="needs">
+          <div class="diag-tile-top">
+            <span id="diagNeedsIcon" class="diag-icon"></span>
+            <span>Needs</span>
+            <strong id="diagNeedsPct" class="tnum">0%</strong>
+          </div>
+          <div class="diag-tile-meta"><span>Target 50%</span><span id="diagNeedsStatus" class="diag-status">—</span></div>
+          <div class="diag-tile-track"><span id="diagNeedsMini" style="background:#3b82f6;"></span></div>
+        </div>
+        <div class="diag-tile" data-bucket="wants">
+          <div class="diag-tile-top">
+            <span id="diagWantsIcon" class="diag-icon"></span>
+            <span>Wants</span>
+            <strong id="diagWantsPct" class="tnum">0%</strong>
+          </div>
+          <div class="diag-tile-meta"><span>Target 30%</span><span id="diagWantsStatus" class="diag-status">—</span></div>
+          <div class="diag-tile-track"><span id="diagWantsMini" style="background:#f59e0b;"></span></div>
+        </div>
+        <div class="diag-tile" data-bucket="savings">
+          <div class="diag-tile-top">
+            <span id="diagSavingsIcon" class="diag-icon"></span>
+            <span>Savings</span>
+            <strong id="diagSavingsPct" class="tnum">0%</strong>
+          </div>
+          <div class="diag-tile-meta"><span>Target 20%</span><span id="diagSavingsStatus" class="diag-status">—</span></div>
+          <div class="diag-tile-track"><span id="diagSavingsMini" style="background:#10b981;"></span></div>
+        </div>
       </div>
     </section>
 
@@ -1585,36 +1913,29 @@
 
     <!-- View & Filtering Toolbar -->
     <div class="view-toolbar">
-      <div class="filter-group">
-        <button id="viewBoxesBtn" class="btn btn-active" aria-pressed="true">🗂️ Category Boxes</button>
-        <button id="viewTableBtn" class="btn" aria-pressed="false">📄 Table View</button>
-        <button id="collapseAllBtn" class="btn">↕️ Collapse All</button>
-        <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save Checked Items</button>
+      <div class="view-tabs" role="group" aria-label="Planner view">
+        <button id="viewBoxesBtn" class="view-tab btn-active" aria-pressed="true">🗂️ Boxes</button>
+        <button id="viewTableBtn" class="view-tab" aria-pressed="false">📄 Table</button>
+        <button id="collapseAllBtn" class="view-tab" type="button">↕️ Collapse all</button>
       </div>
 
-      <div class="filter-group">
-        <label for="searchInput" class="sr-only">Search items</label>
-        <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" style="width:180px;" />
-        <button id="backupJsonBtn" class="btn">💾 Backup</button>
-        <button id="restoreJsonBtn" class="btn">📂 Restore</button>
-        <input id="jsonFileInput" type="file" accept=".json" style="display:none;" />
+      <div class="view-actions">
+        <div class="search-wrap">
+          <iconify-icon icon="ph:magnifying-glass-bold" width="15" height="15" aria-hidden="true"></iconify-icon>
+          <label for="searchInput" class="sr-only">Search items</label>
+          <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" />
+        </div>
+        <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save checked</button>
+        <details class="action-menu" id="dataMenu">
+          <summary class="btn" title="Backup and restore" aria-haspopup="menu"><span aria-hidden="true">⋯</span></summary>
+          <div class="action-menu-panel" role="menu">
+            <button id="backupJsonBtn" class="menu-btn" type="button">💾 Backup data</button>
+            <button id="restoreJsonBtn" class="menu-btn" type="button">📂 Restore backup</button>
+            <input id="jsonFileInput" type="file" accept=".json" hidden />
+          </div>
+        </details>
       </div>
     </div>
-
-    <section class="security-card" aria-labelledby="securityTitle">
-      <div class="security-head">
-        <h3 id="securityTitle">Security Settings</h3>
-        <div class="security-meta">
-          <span id="securitySessionChip" class="security-chip">Session: Locked</span>
-          <span id="securityPasswordUpdatedChip" class="security-chip">Password: Not set</span>
-        </div>
-      </div>
-      <div class="security-actions">
-        <button id="securityLogoutBtn" class="btn" type="button">🚪 Log out</button>
-        <button id="securityChangePasswordBtn" class="btn" type="button">🔑 Change Password</button>
-        <button id="securityResetBtn" class="btn btn-danger" type="button">🗑️ Reset Account Data</button>
-      </div>
-    </section>
 
     <!-- Category Boxes View Container -->
     <div id="categoryBoxesContainer" class="category-grid"></div>
@@ -1886,11 +2207,18 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const changePasswordBtn = document.getElementById("changePasswordBtn");
     const resetAppBtn = document.getElementById("resetAppBtn");
-    const securityLogoutBtn = document.getElementById("securityLogoutBtn");
-    const securityChangePasswordBtn = document.getElementById("securityChangePasswordBtn");
-    const securityResetBtn = document.getElementById("securityResetBtn");
     const securitySessionChip = document.getElementById("securitySessionChip");
     const securityPasswordUpdatedChip = document.getElementById("securityPasswordUpdatedChip");
+    const mainMenu = document.getElementById("mainMenu");
+    const dataMenu = document.getElementById("dataMenu");
+    const budgetAlert = document.getElementById("budgetAlert");
+    const budgetAlertTitle = document.getElementById("budgetAlertTitle");
+    const budgetAlertText = document.getElementById("budgetAlertText");
+    const budgetAlertAction = document.getElementById("budgetAlertAction");
+    const balanceCard = document.getElementById("balanceCard");
+    const balanceMeter = document.getElementById("balanceMeter");
+    const statSalaryMeta = document.getElementById("statSalaryMeta");
+    const savingsMeta = document.getElementById("savingsMeta");
     const salaryInput = document.getElementById("salaryInput");
     const saveMonthBtn = document.getElementById("saveMonthBtn");
     const autosaveBadge = document.getElementById("autosaveBadge");
@@ -1996,6 +2324,7 @@
         markDirtyAndAutosave();
         recalc();
       });
+      salaryInput.addEventListener("focus", () => salaryInput.select());
       saveMonthBtn.addEventListener("click", saveCurrentMonth);
       logoutBtn.addEventListener("click", logoutUser);
       changePasswordBtn.addEventListener("click", () => {
@@ -2006,15 +2335,6 @@
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
       });
-      securityChangePasswordBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("changepassword");
-      });
-      securityResetBtn.addEventListener("click", () => {
-        if (!isAuthenticated()) return;
-        showAuthOverlay("resetaccount");
-      });
-      securityLogoutBtn.addEventListener("click", logoutUser);
       themeToggle.addEventListener("click", toggleTheme);
       incognitoBtn.addEventListener("click", togglePrivacy);
       addExpenseBtn.addEventListener("click", addCustomExpense);
@@ -2031,6 +2351,34 @@
       viewTableBtn.addEventListener("click", () => switchView("table"));
       collapseAllBtn.addEventListener("click", toggleCollapseAll);
       saveChecksBtn.addEventListener("click", saveCheckedItems);
+
+      // Grouped action menus: close after choosing an action, or on outside click
+      [mainMenu, dataMenu].forEach(menu => {
+        if (!menu) return;
+        menu.querySelectorAll("button").forEach(btn => {
+          btn.addEventListener("click", () => { menu.open = false; });
+        });
+      });
+      document.addEventListener("click", (e) => {
+        [mainMenu, dataMenu].forEach(menu => {
+          if (menu && menu.open && !menu.contains(e.target)) menu.open = false;
+        });
+      });
+
+      budgetAlertAction.addEventListener("click", () => {
+        const targetCat = "Family / Personal";
+        collapsedState[targetCat] = false;
+        render();
+        if (tableViewContainer.style.display !== "none") {
+          tableViewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+        const box = document.querySelector(`.cat-box[data-category="${targetCat}"]`);
+        if (!box) return;
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+        box.classList.add("highlight");
+        setTimeout(() => box.classList.remove("highlight"), 2000);
+      });
 
       backupJsonBtn.addEventListener("click", exportBackup);
       restoreJsonBtn.addEventListener("click", () => jsonFileInput.click());
@@ -2079,7 +2427,7 @@
     function restorePreferences() {
       if (localStorage.getItem(UI_KEY_THEME) === "dark") {
         document.body.classList.add("dark-theme");
-        themeToggle.textContent = "☀️ Light";
+        themeToggle.textContent = "☀️ Light mode";
       }
       if (localStorage.getItem(UI_KEY_PRIVACY) === "true") {
         document.body.classList.add("privacy-active");
@@ -2356,7 +2704,7 @@
     function toggleTheme() {
       const isDark = document.body.classList.toggle("dark-theme");
       localStorage.setItem(UI_KEY_THEME, isDark ? "dark" : "light");
-      themeToggle.textContent = isDark ? "☀️ Light" : "🌙 Dark";
+      themeToggle.textContent = isDark ? "☀️ Light mode" : "🌙 Dark mode";
       syncAriaStates();
       renderDiagLegendIcons();
       const totals = getCurrentTotals();
@@ -2463,7 +2811,7 @@
           const val = getItemValue(item, current, prev);
           const isPaid = !!(current.paid && current.paid[item.key]);
           const deleteBtn = item.isCustom
-            ? `<button class="btn btn-danger" style="padding:3px 7px; font-size:11px;" data-delete="${item.key}">Delete</button>`
+            ? `<button class="btn btn-danger row-action" title="Delete custom expense" data-delete="${item.key}">🗑️</button>`
             : "";
 
           const row = document.createElement("div");
@@ -2477,10 +2825,10 @@
             </div>
             <div class="cat-item-right">
               <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
-              <button class="btn" style="padding:3px 7px; font-size:11px;" data-edit="${item.key}">
-                ${editState[item.key] ? 'Save' : 'Edit'}
+              <button class="btn row-action" title="${editState[item.key] ? 'Save amount' : 'Edit amount'}" data-edit="${item.key}">
+                ${editState[item.key] ? '✓' : '✎'}
               </button>
-              <button class="btn" style="padding:3px 7px; font-size:11px;" data-rename="${item.key}">Rename</button>
+              <button class="btn row-action" title="Rename expense" data-rename="${item.key}">🏷️</button>
               ${deleteBtn}
             </div>
           `;
@@ -2515,7 +2863,7 @@
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
         const deleteBtn = item.isCustom
-          ? `<button class="btn btn-danger" style="padding:3px 8px; font-size:11px; margin-left:4px;" data-delete="${item.key}">Delete</button>`
+          ? `<button class="btn btn-danger row-action" title="Delete custom expense" data-delete="${item.key}">🗑️</button>`
           : "";
 
         const tr = document.createElement("tr");
@@ -2536,10 +2884,10 @@
             <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
           </td>
           <td style="text-align:center;">
-            <button class="btn" style="padding:3px 8px; font-size:11px;" data-edit="${item.key}">
-              ${editState[item.key] ? 'Save' : 'Edit'}
+            <button class="btn row-action" title="${editState[item.key] ? 'Save amount' : 'Edit amount'}" data-edit="${item.key}">
+              ${editState[item.key] ? '✓' : '✎'}
             </button>
-            <button class="btn" style="padding:3px 8px; font-size:11px; margin-left:4px;" data-rename="${item.key}">Rename</button>
+            <button class="btn row-action" title="Rename expense" data-rename="${item.key}">🏷️</button>
             ${deleteBtn}
           </td>
         `;
@@ -2699,7 +3047,8 @@
       });
 
       document.querySelectorAll(`[data-edit="${key}"]`).forEach(btn => {
-        btn.textContent = enabled ? "Save" : "Edit";
+        btn.textContent = enabled ? "✓" : "✎";
+        btn.title = enabled ? "Save amount" : "Edit amount";
         btn.classList.toggle("btn-active", enabled);
       });
 
@@ -2728,16 +3077,44 @@
       updateCategoryHeaderTotals();
       updateBankAccountFigures();
 
-      document.getElementById("statSalary").textContent = `₹${formatNumber(salary)}`;
       document.getElementById("statExpense").textContent = `₹${formatNumber(totalOutflow)}`;
-      document.getElementById("statRemaining").textContent = `₹${formatNumber(remaining)}`;
       document.getElementById("statSavingsRate").textContent = `${savingsRate.toFixed(1)}%`;
 
       const remainingEl = document.getElementById("statRemaining");
-      remainingEl.style.color = remaining < 0 ? "var(--red)" : "var(--green)";
+      remainingEl.textContent = remaining < 0
+        ? `−₹${formatNumber(Math.abs(remaining))}`
+        : `₹${formatNumber(remaining)}`;
+      remainingEl.style.color = "#ffffff";
 
-      document.getElementById("remainingMeta").textContent = salary > 0 ? `${((remaining / salary) * 100).toFixed(1)}% remaining` : "0% left";
-      document.getElementById("expenseMeta").textContent = salary > 0 ? `${((totalOutflow / salary) * 100).toFixed(1)}% of income` : "Expenses + Investments";
+      const hasIncome = salary > 0;
+      const spentPct = hasIncome ? (totalOutflow / salary) * 100 : 0;
+      const leftPct = hasIncome ? (remaining / salary) * 100 : 0;
+
+      balanceCard.classList.toggle("is-negative", hasIncome && remaining < 0);
+      balanceMeter.style.width = remaining < 0 ? "100%" : `${Math.max(0, Math.min(100, leftPct))}%`;
+
+      document.getElementById("remainingMeta").textContent = hasIncome
+        ? (remaining < 0
+            ? `Over income by ${Math.abs(leftPct).toFixed(0)}%`
+            : `${leftPct.toFixed(1)}% of income left`)
+        : "Set income to calculate";
+
+      statSalaryMeta.textContent = hasIncome
+        ? `Income set for ${monthShort(monthPicker.value || "")}`
+        : "Tap the amount to set income";
+      document.getElementById("expenseMeta").textContent = hasIncome
+        ? `${spentPct.toFixed(1)}% of income`
+        : "Expenses + investments";
+      savingsMeta.textContent = totals.invest > 0
+        ? `₹${formatNumber(totals.invest)} invested this month`
+        : "No investments recorded";
+
+      const showOverspend = hasIncome && remaining < 0;
+      budgetAlert.classList.toggle("hidden", !showOverspend);
+      if (showOverspend) {
+        budgetAlertTitle.textContent = `Spending exceeds income by ₹${formatNumber(Math.abs(remaining))}`;
+        budgetAlertText.textContent = `Outflow is ${spentPct.toFixed(0)}% of income. Trim wants or add inflow to rebalance this month.`;
+      }
 
       const allItems = getAllItems();
       const settlePct = allItems.length ? (totals.paidCount / allItems.length) * 100 : 0;
@@ -2746,19 +3123,43 @@
       document.getElementById("settleFill").style.width = `${settlePct}%`;
 
       const baseIncome = salary > 0 ? salary : totalOutflow;
-      if (baseIncome > 0) {
-        const nPct = Math.min(100, (totals.needsSum / baseIncome) * 100);
-        const wPct = Math.min(100, (totals.wantsSum / baseIncome) * 100);
-        const sPct = Math.min(100, (totals.savingsSum / baseIncome) * 100);
+      const nPct = baseIncome > 0 ? (totals.needsSum / baseIncome) * 100 : 0;
+      const wPct = baseIncome > 0 ? (totals.wantsSum / baseIncome) * 100 : 0;
+      const sPct = baseIncome > 0 ? (totals.savingsSum / baseIncome) * 100 : 0;
 
-        document.getElementById("diagNeeds").style.width = `${nPct}%`;
-        document.getElementById("diagWants").style.width = `${wPct}%`;
-        document.getElementById("diagSavings").style.width = `${sPct}%`;
+      // The stacked bar shows the outflow mix (always sums to 100%);
+      // tile figures below compare each bucket against income targets.
+      const mixTotal = nPct + wPct + sPct;
+      const mixPct = (v) => (mixTotal > 0 ? (v / mixTotal) * 100 : 0);
 
-        document.getElementById("diagSummary").textContent = `Needs: ${nPct.toFixed(0)}% • Wants: ${wPct.toFixed(0)}% • Savings: ${sPct.toFixed(0)}%`;
-      }
+      document.getElementById("diagNeeds").style.width = `${mixPct(nPct)}%`;
+      document.getElementById("diagWants").style.width = `${mixPct(wPct)}%`;
+      document.getElementById("diagSavings").style.width = `${mixPct(sPct)}%`;
+      document.getElementById("diagSummary").textContent = `Needs ${nPct.toFixed(0)}% • Wants ${wPct.toFixed(0)}% • Savings ${sPct.toFixed(0)}%`;
+
+      updateDiagTile("Needs", nPct, 50, false);
+      updateDiagTile("Wants", wPct, 30, false);
+      updateDiagTile("Savings", sPct, 20, true);
 
       queueChartDraw(totals);
+    }
+
+    function updateDiagTile(name, actual, target, higherIsBetter) {
+      const pctEl = document.getElementById(`diag${name}Pct`);
+      const statusEl = document.getElementById(`diag${name}Status`);
+      const miniEl = document.getElementById(`diag${name}Mini`);
+      if (!pctEl || !statusEl || !miniEl) return;
+
+      pctEl.textContent = `${actual.toFixed(0)}%`;
+      miniEl.style.width = `${Math.max(0, Math.min(100, actual))}%`;
+
+      const diff = actual - target;
+      const bad = higherIsBetter ? diff < -5 : diff > 5;
+      const good = higherIsBetter ? diff >= 0 : diff <= 5;
+      statusEl.textContent = Math.abs(diff) < 1
+        ? "On target"
+        : `${diff > 0 ? "+" : "−"}${Math.abs(diff).toFixed(0)} pts`;
+      statusEl.className = `diag-status ${bad ? (higherIsBetter ? "under" : "over") : good ? "ok" : "under"}`;
     }
 
     function getCurrentTotals() {
@@ -2804,6 +3205,7 @@
         outflow: totalOutflow,
         remaining,
         savingsRate,
+        invest: totalInvest,
         paidOutflow,
         paidCount,
         needsSum,
@@ -2934,10 +3336,11 @@
         row.innerHTML = `
           <div class="breakdown-label">
             <span class="color-dot" style="background:${color}"></span>
-            <span>${cat}</span>
+            <span title="${cat}">${cat}</span>
           </div>
           <span class="tnum hideable-val" style="font-weight:700;">₹${formatNumber(val)}</span>
           <span class="tnum" style="color:var(--muted); font-size:11px;">${pct}%</span>
+          <div class="breakdown-track"><span style="width:${pct}%; background:${color};"></span></div>
         `;
         breakdownLegend.appendChild(row);
       });
@@ -2961,60 +3364,97 @@
     function drawTrendChart() {
       const ctx = prepCanvas(trendChart);
       const w = trendChart.clientWidth || 400;
-      const h = trendChart.clientHeight || 220;
+      const h = trendChart.clientHeight || 200;
 
       ctx.clearRect(0, 0, w, h);
 
       const series = getLastMonthsSeries(6);
-      const textCol = getComputedStyle(document.body).getPropertyValue("--text").trim();
-      const mutedCol = getComputedStyle(document.body).getPropertyValue("--muted").trim();
-      const lineCol = getComputedStyle(document.body).getPropertyValue("--line").trim();
+      const textCol = getComputedStyle(document.body).getPropertyValue("--text").trim() || "#0f172a";
+      const mutedCol = getComputedStyle(document.body).getPropertyValue("--muted").trim() || "#64748b";
+      const lineCol = getComputedStyle(document.body).getPropertyValue("--line").trim() || "#e2e8f0";
 
-      const pad = { top: 20, right: 15, bottom: 30, left: 45 };
-      const chartW = w - pad.left - pad.right;
-      const chartH = h - pad.top - pad.bottom;
+      const pad = { top: 14, right: 10, bottom: 26, left: 44 };
+      const chartW = Math.max(10, w - pad.left - pad.right);
+      const chartH = Math.max(10, h - pad.top - pad.bottom);
 
+      const hasData = series.some(s => s.salary > 0 || s.outflow > 0);
       const maxVal = Math.max(...series.flatMap(s => [s.salary, s.outflow]), 1000);
+      const niceMax = Math.ceil(maxVal / 1000) * 1000 || 1000;
 
-      // Grid Lines
-      ctx.strokeStyle = lineCol;
+      // Grid lines + y-axis labels
       ctx.lineWidth = 1;
       for (let i = 0; i <= 3; i++) {
         const y = pad.top + (chartH * i) / 3;
+        ctx.strokeStyle = lineCol;
         ctx.beginPath();
         ctx.moveTo(pad.left, y);
         ctx.lineTo(w - pad.right, y);
         ctx.stroke();
 
-        ctx.fillStyle = mutedCol;
-        ctx.font = "10px JetBrains Mono, monospace";
-        ctx.textAlign = "right";
-        const val = maxVal - (maxVal * i) / 3;
-        ctx.fillText(`₹${Math.round(val / 1000)}k`, pad.left - 6, y + 3);
+        if (i < 3) {
+          const val = niceMax - (niceMax * i) / 3;
+          ctx.fillStyle = mutedCol;
+          ctx.font = "10px JetBrains Mono, monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(formatCompact(val), pad.left - 6, y + 3);
+        } else {
+          ctx.fillStyle = mutedCol;
+          ctx.font = "10px JetBrains Mono, monospace";
+          ctx.textAlign = "right";
+          ctx.fillText("₹0", pad.left - 6, y - 4);
+        }
       }
 
       const slotW = chartW / series.length;
-      const barW = Math.min(18, slotW * 0.32);
+      const barW = Math.max(7, Math.min(16, slotW * 0.3));
+      const gap = 3;
+      const currentMonth = monthPicker.value;
 
       series.forEach((s, idx) => {
-        const x = pad.left + idx * slotW + slotW / 2;
-        const sH = (s.salary / maxVal) * chartH;
-        const oH = (s.outflow / maxVal) * chartH;
+        const center = pad.left + idx * slotW + slotW / 2;
 
-        // Income bar
-        ctx.fillStyle = "#10b981";
-        ctx.fillRect(x - barW - 2, pad.top + chartH - sH, barW, sH);
+        if (s.salary > 0) {
+          const sH = Math.max(2, (s.salary / niceMax) * chartH);
+          ctx.fillStyle = "#10b981";
+          roundedBar(ctx, center - barW - gap / 2, pad.top + chartH - sH, barW, sH);
+        }
+        if (s.outflow > 0) {
+          const oH = Math.max(2, (s.outflow / niceMax) * chartH);
+          ctx.fillStyle = s.month === currentMonth ? "#2563eb" : "#93c5fd";
+          roundedBar(ctx, center + gap / 2, pad.top + chartH - oH, barW, oH);
+        }
 
-        // Outflow bar
-        ctx.fillStyle = "#3b82f6";
-        ctx.fillRect(x + 2, pad.top + chartH - oH, barW, oH);
-
-        // Month Label
-        ctx.fillStyle = textCol;
-        ctx.font = "11px Plus Jakarta Sans, sans-serif";
+        const isCurrent = s.month === currentMonth;
+        ctx.fillStyle = isCurrent ? textCol : mutedCol;
+        ctx.font = `${isCurrent ? "700" : "500"} 11px Plus Jakarta Sans, sans-serif`;
         ctx.textAlign = "center";
-        ctx.fillText(monthShort(s.month), x, h - 8);
+        ctx.fillText(monthShort(s.month), center, h - 8);
       });
+
+      if (!hasData) {
+        ctx.fillStyle = mutedCol;
+        ctx.font = "12px Plus Jakarta Sans, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Add a month of figures to see your trend", w / 2, pad.top + chartH / 2);
+      }
+    }
+
+    function roundedBar(ctx, x, y, w, h) {
+      if (!h || h <= 0) return;
+      const r = Math.min(3, w / 2, h);
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, [r, r, 0, 0]);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, y, w, h);
+      }
+    }
+
+    function formatCompact(v) {
+      if (v >= 100000) return `₹${(v / 100000).toFixed(v % 100000 === 0 ? 0 : 1)}L`;
+      if (v >= 1000) return `₹${Math.round(v / 1000)}k`;
+      return `₹${Math.round(v)}`;
     }
 
     function getLastMonthsSeries(limit) {
@@ -3117,7 +3557,7 @@
       paidDirty = !!flag;
       if (!saveChecksBtn) return;
       saveChecksBtn.disabled = !paidDirty;
-      saveChecksBtn.textContent = paidDirty ? "✅ Save Checked Items*" : "✅ Save Checked Items";
+      saveChecksBtn.textContent = paidDirty ? "✅ Save checked*" : "✅ Save checked";
     }
 
     function updatePaidCategoryBadges() {
