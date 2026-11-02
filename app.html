@@ -1257,7 +1257,7 @@
 
     [data-sileo-viewport] {
       position: fixed; top: 0; left: 0; right: 0;
-      z-index: 1200;
+      z-index: 1400;
       display: flex; flex-direction: column-reverse; gap: 10px;
       align-items: center;
       padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px;
@@ -1599,6 +1599,19 @@
     .expense-modal-form label { font-size:12px; font-weight:700; color:var(--muted); }
     .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
     .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
+
+    /* Confirm dialog (replaces native confirm/alert dialogs) */
+    .confirm-card { width: min(100%, 404px); gap: 14px; }
+    .confirm-head { display: flex; gap: 12px; align-items: flex-start; }
+    .confirm-icon {
+      width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px;
+      display: grid; place-items: center;
+      background: var(--red-soft); color: var(--red);
+    }
+    .confirm-copy { display: grid; gap: 3px; min-width: 0; }
+    .confirm-copy h3 { margin: 0; font-size: 16px; letter-spacing: -0.015em; }
+    .confirm-text { margin: 0; font-size: 12.8px; line-height: 1.5; color: var(--muted); }
+    .confirm-text strong { color: var(--text); font-weight: 700; }
 
     /* ============================================================
        UI refresh: hierarchy, grouped actions, calmer palette
@@ -2749,6 +2762,22 @@
     </div>
   </div>
 
+  <div id="confirmModal" class="expense-modal hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+    <div class="expense-modal-card confirm-card">
+      <div class="confirm-head">
+        <span id="confirmIcon" class="confirm-icon" aria-hidden="true"><iconify-icon icon="lucide:trash-2" width="19" height="19"></iconify-icon></span>
+        <div class="confirm-copy">
+          <h3 id="confirmTitle">Delete this expense?</h3>
+          <p id="confirmText" class="confirm-text"></p>
+        </div>
+      </div>
+      <div class="expense-modal-actions">
+        <button id="confirmCancelBtn" class="btn" type="button">Cancel</button>
+        <button id="confirmAcceptBtn" class="btn btn-danger" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <div id="budgetModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
     <div class="expense-modal-card modal-wide">
       <div class="expense-modal-head">
@@ -3047,6 +3076,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const budgetModalCancelBtn = document.getElementById("budgetModalCancelBtn");
     const budgetFields = document.getElementById("budgetFields");
     const budgetModalError = document.getElementById("budgetModalError");
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmTitle = document.getElementById("confirmTitle");
+    const confirmText = document.getElementById("confirmText");
+    const confirmIcon = document.getElementById("confirmIcon");
+    const confirmAcceptBtn = document.getElementById("confirmAcceptBtn");
+    const confirmCancelBtn = document.getElementById("confirmCancelBtn");
     const insightsGrid = document.getElementById("insightsGrid");
     const insightsSubtitle = document.getElementById("insightsSubtitle");
 
@@ -3325,6 +3360,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
       budgetModalForm.addEventListener("submit", saveBudgetModal);
 
+      confirmAcceptBtn.addEventListener("click", () => settleConfirm(true));
+      confirmCancelBtn.addEventListener("click", () => settleConfirm(false));
+      confirmModal.addEventListener("click", (e) => {
+        if (e.target === confirmModal) settleConfirm(false);
+      });
+
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
       viewTableBtn.addEventListener("click", () => switchView("table"));
@@ -3383,6 +3424,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
 
       document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !confirmModal.classList.contains("hidden")) {
+          settleConfirm(false);
+          return;
+        }
         if (e.key === "Escape" && !budgetModal.classList.contains("hidden")) {
           closeBudgetModal();
           return;
@@ -5003,7 +5048,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const currentMonth = monthPicker.value;
       const prevMonth = getPreviousMonth(currentMonth);
       if (!prevMonth || !data[prevMonth]) {
-        alert("No previous month record found to copy from.");
+        showToast("No previous month to copy from", "warning");
         return;
       }
 
@@ -5072,6 +5117,47 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       expenseModal.classList.add("hidden");
       expenseModalError.textContent = "";
       expenseRenameKey = null;
+    }
+
+    /* Custom confirm dialog (replaces the native confirm/alert popups) */
+    let confirmResolver = null;
+    let confirmReturnFocus = null;
+
+    function confirmAction(options = {}) {
+      const {
+        title = "Are you sure?",
+        message = "",
+        confirmLabel = "Confirm",
+        cancelLabel = "Cancel",
+        danger = true,
+        icon = "lucide:trash-2",
+      } = options;
+      return new Promise((resolve) => {
+        confirmTitle.textContent = title;
+        confirmText.textContent = message;
+        confirmAcceptBtn.textContent = confirmLabel;
+        confirmCancelBtn.textContent = cancelLabel;
+        confirmAcceptBtn.className = danger ? "btn btn-danger" : "btn btn-primary";
+        confirmIcon.innerHTML = `<iconify-icon icon="${icon}" width="19" height="19" aria-hidden="true"></iconify-icon>`;
+        confirmReturnFocus = document.activeElement;
+        confirmResolver = resolve;
+        confirmModal.classList.remove("hidden");
+        confirmCancelBtn.focus({ preventScroll: true });
+      });
+    }
+
+    function settleConfirm(value) {
+      if (!confirmResolver) return false;
+      const resolve = confirmResolver;
+      confirmResolver = null;
+      confirmModal.classList.add("hidden");
+      const target = confirmReturnFocus;
+      confirmReturnFocus = null;
+      if (target && typeof target.focus === "function") {
+        try { target.focus({ preventScroll: true }); } catch { /* ignore */ }
+      }
+      resolve(value);
+      return true;
     }
 
     function getCategoryBudgets() {
@@ -5266,7 +5352,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       openExpenseModal({ mode: "rename", key });
     }
 
-    function deleteCustomExpense(key) {
+    async function deleteCustomExpense(key) {
       const meta = getMeta();
       const item = meta.customItems.find((i) => i.key === key);
       if (!item) {
@@ -5274,7 +5360,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         return;
       }
 
-      const ok = confirm(`Delete custom expense "${item.name}"? This removes it from all months.`);
+      const ok = await confirmAction({
+        title: "Delete this expense?",
+        message: `“${item.name}” will be removed from every month. This can't be undone.`,
+        confirmLabel: "Delete expense",
+        cancelLabel: "Keep it",
+        danger: true,
+      });
       if (!ok) return;
 
       meta.customItems = meta.customItems.filter((i) => i.key !== key);
@@ -5290,7 +5382,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       syncDataToCloudBestEffort();
       render();
-      showToast("Custom expense deleted");
+      sileo.success({ title: "Expense deleted", description: `“${item.name}” was removed from all months.` });
       setAutosaveBadge("Saved on this device", "saved");
     }
 
@@ -5319,7 +5411,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
             showToast("Backup restored successfully!");
           }
         } catch {
-          alert("Invalid backup JSON file.");
+          showToast("That file isn't a valid backup", "error");
         }
       };
       reader.readAsText(file);
