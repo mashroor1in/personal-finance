@@ -1499,7 +1499,7 @@
     /* Profile avatar + account popover */
     .profile-wrap { position: relative; flex: 0 0 auto; }
     .profile-btn {
-      position: relative; width: 36px; height: 36px; padding: 0;
+      position: relative; width: 44px; height: 44px; padding: 0;
       border: 1px solid var(--line); border-radius: 50%; background: var(--card);
       display: grid; place-items: center; cursor: pointer;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1524,14 +1524,11 @@
     .profile-avatar.has-blobatar .profile-blobatar { display: block; }
     .profile-btn:hover .profile-blobatar { transform: scale(1.06); }
     .profile-avatar-lg {
-      width: 44px; height: 44px; flex: 0 0 auto; font-size: 15px;
+      width: 56px; height: 56px; flex: 0 0 auto; font-size: 18px;
       box-shadow: 0 0 0 1px var(--line), 0 6px 14px -8px rgba(2, 6, 23, 0.5);
     }
-    .profile-btn .save-state-dot {
-      position: absolute; top: 3px; right: 3px; width: 7px; height: 7px;
-    }
     .profile-dot {
-      position: absolute; right: 0; bottom: 0; width: 10px; height: 10px;
+      position: absolute; right: 0; bottom: 0; width: 11px; height: 11px;
       border-radius: 50%; background: var(--green);
       border: 2px solid var(--card);
     }
@@ -1585,22 +1582,6 @@
     .action-menu > summary { list-style: none; user-select: none; }
     .action-menu > summary::-webkit-details-marker { display: none; }
     .action-menu[open] > summary { background: var(--card-muted); border-color: var(--muted); }
-
-    .save-state-dot {
-      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-      background: var(--green);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 20%, transparent);
-    }
-    .save-state-dot.is-saving {
-      background: var(--amber);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber) 20%, transparent);
-      animation: savePulse 1.2s ease-in-out infinite;
-    }
-    .save-state-dot.is-error {
-      background: var(--red);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--red) 20%, transparent);
-    }
-    @keyframes savePulse { 50% { opacity: 0.4; } }
 
     .action-menu-panel {
       position: absolute; right: 0; top: calc(100% + 8px); z-index: 1100;
@@ -2034,7 +2015,6 @@
               <img id="profileBlobatar" class="profile-blobatar" alt="" />
             </span>
             <span id="profileDot" class="profile-dot is-locked" aria-hidden="true"></span>
-            <span id="saveStateDot" class="save-state-dot" title="Saved on this device" aria-hidden="true"></span>
           </button>
           <div id="profileMenu" class="profile-popover hidden" role="menu" aria-label="Account and actions">
             <div class="sheet-handle" aria-hidden="true"></div>
@@ -2654,7 +2634,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const salaryInput = document.getElementById("salaryInput");
     const saveMonthBtn = document.getElementById("saveMonthBtn");
     const autosaveBadge = document.getElementById("autosaveBadge");
-    const saveStateDot = document.getElementById("saveStateDot");
     const incognitoBtn = document.getElementById("incognitoBtn");
     const privacyState = document.getElementById("privacyState");
     const appearanceValue = document.getElementById("appearanceValue");
@@ -4707,13 +4686,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       autosaveBadge.classList.add("show");
       autosaveBadge.classList.remove("saving", "saved", "error");
       if (state) autosaveBadge.classList.add(state);
-
-      if (saveStateDot) {
-        saveStateDot.classList.remove("is-saving", "is-error");
-        if (state === "saving") saveStateDot.classList.add("is-saving");
-        else if (state === "error") saveStateDot.classList.add("is-error");
-        saveStateDot.title = text;
-      }
 
       clearTimeout(autosaveHideTimer);
       if (autoHide) {
