@@ -1508,37 +1508,135 @@
     }
     .month-picker-wrap input:focus-visible { outline: none; }
 
+    /* Command menu */
     .action-menu { position: relative; }
     .action-menu > summary { list-style: none; user-select: none; }
     .action-menu > summary::-webkit-details-marker { display: none; }
     .action-menu[open] > summary { background: var(--card-muted); border-color: var(--muted); }
+
+    .more-trigger { gap: 7px; }
+    .save-state-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+      background: var(--green);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 20%, transparent);
+    }
+    .save-state-dot.is-saving {
+      background: var(--amber);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber) 20%, transparent);
+      animation: savePulse 1.2s ease-in-out infinite;
+    }
+    .save-state-dot.is-error {
+      background: var(--red);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--red) 20%, transparent);
+    }
+    @keyframes savePulse { 50% { opacity: 0.4; } }
+
     .action-menu-panel {
       position: absolute; right: 0; top: calc(100% + 8px); z-index: 1100;
-      width: 278px; max-height: min(70vh, 480px); overflow-y: auto;
-      background: var(--card); border: 1px solid var(--line); border-radius: 13px;
-      box-shadow: 0 22px 44px -14px rgba(15, 23, 42, 0.3);
-      padding: 7px; display: grid; gap: 2px;
+      width: 330px; max-height: min(72vh, 520px);
+      overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(15, 23, 42, 0.05);
+      padding: 7px; display: grid; gap: 1px;
+      animation: menuIn 0.14s ease-out;
     }
     .action-menu:not([open]) .action-menu-panel { display: none; }
+    .action-menu-panel::-webkit-scrollbar { width: 6px; }
+    .action-menu-panel::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--muted) 32%, transparent);
+      border-radius: 999px;
+    }
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-4px) scale(0.985); } }
+    .sheet-handle { display: none; }
+
     .action-menu-title {
-      margin: 8px 8px 3px; font-size: 10px; font-weight: 800;
+      margin: 6px 9px 3px; font-size: 9.5px; font-weight: 800;
       letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
     }
-    .menu-btn {
-      width: 100%; display: flex; align-items: center; gap: 9px;
-      padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
+    .action-menu-title:first-of-type { margin-top: 3px; }
+
+    .menu-item {
+      width: 100%; display: flex; align-items: center; gap: 10px;
+      padding: 6px 9px; border: 0; border-radius: 9px; background: transparent;
       color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600;
       text-align: left; cursor: pointer; transition: background 0.13s ease, color 0.13s ease;
     }
-    .menu-btn:hover { background: var(--card-muted); }
-    .menu-btn.btn-active { background: var(--accent-soft); color: var(--accent); }
-    .menu-danger { color: var(--red); }
-    .menu-danger:hover { background: var(--red-soft); }
-    .action-menu-status {
-      margin-top: 6px; padding: 8px 9px 3px; border-top: 1px solid var(--line);
-      display: flex; flex-wrap: wrap; gap: 6px;
+    .menu-item:hover { background: var(--card-muted); }
+    .menu-item:focus-visible,
+    .menu-submenu > summary:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: -2px;
     }
-    .action-menu-status .autosave-badge { opacity: 1; transform: none; }
+    .menu-item-icon {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--card-muted); color: var(--muted);
+      transition: background 0.13s ease, color 0.13s ease;
+    }
+    .menu-item:hover .menu-item-icon { background: var(--card); color: var(--accent); }
+    .menu-item-copy { display: grid; gap: 1px; min-width: 0; flex: 1; }
+    .menu-item-copy strong { font-size: 12.5px; font-weight: 700; letter-spacing: -0.005em; }
+    .menu-item-copy small { font-size: 10.5px; line-height: 1.35; color: var(--muted); font-weight: 500; }
+    .menu-item-value {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      background: var(--card-muted); border-radius: 999px; padding: 2px 7px; flex-shrink: 0;
+    }
+    .menu-item-value.is-on { color: var(--accent); background: var(--accent-soft); }
+
+    /* Appearance submenu */
+    .menu-submenu { display: grid; }
+    .menu-submenu > summary { list-style: none; }
+    .menu-submenu > summary::-webkit-details-marker { display: none; }
+    .menu-chevron { margin-left: auto; color: var(--muted); flex-shrink: 0; transition: transform 0.15s ease; }
+    .menu-submenu[open] .menu-chevron { transform: rotate(180deg); }
+    .menu-submenu-panel {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px; padding: 4px 6px 5px 9px;
+    }
+    .theme-choice {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 6px 4px; border: 1px solid transparent; border-radius: 8px; background: transparent;
+      color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 700;
+      white-space: nowrap; cursor: pointer;
+      transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+    }
+    .theme-choice:hover { background: var(--card-muted); color: var(--text); }
+    .theme-choice:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .theme-choice[aria-checked="true"] {
+      color: var(--accent); background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+    }
+
+    /* Destructive action separation */
+    .menu-danger-zone { margin-top: 6px; padding-top: 5px; border-top: 1px solid var(--line); }
+    .menu-item.is-danger .menu-item-icon { background: var(--red-soft); color: var(--red); }
+    .menu-item.is-danger:hover { background: var(--red-soft); }
+    .menu-item.is-danger:hover .menu-item-icon { background: var(--card); color: var(--red); }
+    .menu-item.is-danger .menu-item-copy strong { color: var(--red); }
+
+    /* Compact account footer */
+    .action-menu-footer {
+      margin-top: 7px; padding: 9px 10px 7px;
+      border-top: 1px solid var(--line);
+      display: grid; gap: 5px;
+      font-size: 10.5px; color: var(--muted);
+      background: var(--card-muted); border-radius: 10px;
+    }
+    .menu-account-line { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .menu-account-line .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+    }
+    .menu-account-line.is-locked .status-dot { background: var(--amber); }
+    .menu-account-line .status-sep { opacity: 0.55; }
+    .menu-save-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .menu-save-label { font-weight: 700; }
+    .menu-save-line .autosave-badge {
+      opacity: 1; transform: none; border: 0; background: transparent;
+      padding: 0; font-size: 10.5px; font-weight: 600; color: var(--muted);
+    }
+    .menu-save-line .autosave-badge.saved { color: var(--green); }
+    .menu-save-line .autosave-badge.saving { color: var(--amber); }
+    .menu-save-line .autosave-badge.error { color: var(--red); }
 
     /* KPI hierarchy */
     .stats-grid { grid-template-columns: 1.18fr 1fr 1fr 1fr; gap: 12px; margin: 18px 0 14px; }
@@ -1715,7 +1813,28 @@
       .header-actions .month-picker-wrap { flex: 1 1 100%; }
       .header-actions .btn { flex: 1 1 auto; justify-content: center; }
       .header-actions .action-menu { flex: 0 0 auto; }
-      .action-menu-panel { right: 0; left: auto; width: min(86vw, 278px); }
+      #dataMenu .action-menu-panel { width: min(86vw, 300px); }
+
+      /* More menu becomes a bottom sheet on phones */
+      #mainMenu .action-menu-panel {
+        position: fixed; left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); top: auto;
+        width: auto; max-height: min(80vh, 560px);
+        padding: 9px; border-radius: 18px;
+        animation: sheetIn 0.18s ease-out;
+      }
+      body.menu-open { overflow: hidden; }
+      .sheet-handle {
+        display: block; width: 36px; height: 4px; border-radius: 999px;
+        background: var(--line); margin: 2px auto 6px;
+      }
+      /* Roomier touch targets inside the sheet */
+      #mainMenu .menu-item { padding: 8px 10px; }
+      #mainMenu .theme-choice { padding: 8px 4px; }
+      body.menu-open::before {
+        content: ""; position: fixed; inset: 0; z-index: 1090;
+        background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
+      }
+      @keyframes sheetIn { from { opacity: 0; transform: translateY(16px); } }
       .stats-grid { grid-template-columns: 1fr; }
       .stat-hero { grid-column: auto; }
       .diag-tiles { grid-template-columns: 1fr; }
@@ -1833,25 +1952,101 @@
         <button id="saveMonthBtn" class="btn btn-primary" title="Save this month">💾 Save month</button>
 
         <details class="action-menu" id="mainMenu">
-          <summary class="btn" aria-haspopup="menu" title="More actions"><span aria-hidden="true">⋯</span> More</summary>
-          <div class="action-menu-panel" role="menu">
-            <p class="action-menu-title">Month</p>
-            <button id="addPrevMoneyBtn" class="menu-btn" type="button">➕ Add previous month amounts</button>
-            <button id="copyPrevBtn" class="menu-btn" type="button">📋 Copy last month</button>
+          <summary class="btn more-trigger" aria-haspopup="menu" title="More actions">
+            <iconify-icon icon="lucide:ellipsis" width="18" height="18" aria-hidden="true"></iconify-icon>
+            <span>More</span>
+            <span id="saveStateDot" class="save-state-dot" title="Saved on this device" aria-hidden="true"></span>
+          </summary>
+          <div class="action-menu-panel" role="menu" aria-label="More actions">
+            <div class="sheet-handle" aria-hidden="true"></div>
 
-            <p class="action-menu-title">Account</p>
-            <button id="changePasswordBtn" class="menu-btn" type="button">🔑 Change password</button>
-            <button id="resetAppBtn" class="menu-btn menu-danger" type="button">🗑️ Reset account data</button>
-            <button id="logoutBtn" class="menu-btn" type="button">🚪 Log out</button>
+            <p class="action-menu-title">Month management</p>
+            <button id="addPrevMoneyBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:calendar-plus" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Add previous month amounts</strong>
+                <small>Bring forward last month's planned expenses</small>
+              </span>
+            </button>
+            <button id="copyPrevBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:copy" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Copy last month</strong>
+                <small>Duplicate previous month's entries</small>
+              </span>
+            </button>
 
-            <p class="action-menu-title">Display</p>
-            <button id="incognitoBtn" class="menu-btn" type="button" aria-pressed="false">👁️ Privacy mode</button>
-            <button id="themeToggle" class="menu-btn" type="button" aria-pressed="false">🌙 Dark mode</button>
+            <p class="action-menu-title">Preferences</p>
+            <button id="incognitoBtn" class="menu-item" type="button" role="menuitemcheckbox" aria-checked="false" aria-pressed="false" data-keep-open>
+              <span class="menu-item-icon"><iconify-icon icon="lucide:eye-off" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Privacy mode</strong>
+                <small>Hide amounts behind dots</small>
+              </span>
+              <span id="privacyState" class="menu-item-value">Off</span>
+            </button>
+            <details class="menu-submenu" id="appearanceMenu">
+              <summary class="menu-item" role="menuitem" aria-haspopup="true">
+                <span class="menu-item-icon"><iconify-icon icon="lucide:sun-moon" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+                <span class="menu-item-copy">
+                  <strong>Appearance</strong>
+                  <small id="appearanceValue">Light</small>
+                </span>
+                <iconify-icon class="menu-chevron" icon="lucide:chevron-down" width="15" height="15" aria-hidden="true"></iconify-icon>
+              </summary>
+              <div class="menu-submenu-panel" role="group" aria-label="Appearance">
+                <button class="theme-choice" type="button" data-theme-mode="light" data-keep-open role="menuitemradio" aria-checked="false">
+                  <iconify-icon icon="lucide:sun" width="15" height="15" aria-hidden="true"></iconify-icon>
+                  <span>Light</span>
+                </button>
+                <button class="theme-choice" type="button" data-theme-mode="dark" data-keep-open role="menuitemradio" aria-checked="false">
+                  <iconify-icon icon="lucide:moon" width="15" height="15" aria-hidden="true"></iconify-icon>
+                  <span>Dark</span>
+                </button>
+                <button class="theme-choice" type="button" data-theme-mode="system" data-keep-open role="menuitemradio" aria-checked="false" title="Follow system preference">
+                  <iconify-icon icon="lucide:monitor" width="15" height="15" aria-hidden="true"></iconify-icon>
+                  <span>System</span>
+                </button>
+              </div>
+            </details>
 
-            <div class="action-menu-status">
-              <span id="securitySessionChip" class="security-chip">Session: Locked</span>
-              <span id="securityPasswordUpdatedChip" class="security-chip">Password: Not set</span>
-              <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Draft saved</span>
+            <p class="action-menu-title">Account &amp; security</p>
+            <button id="changePasswordBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:key-round" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Change password</strong>
+                <small>Update your account password</small>
+              </span>
+            </button>
+            <button id="logoutBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:log-out" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Log out</strong>
+                <small>End this session securely</small>
+              </span>
+            </button>
+
+            <div class="menu-danger-zone">
+              <button id="resetAppBtn" class="menu-item is-danger" type="button" role="menuitem">
+                <span class="menu-item-icon"><iconify-icon icon="lucide:trash-2" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+                <span class="menu-item-copy">
+                  <strong>Reset account data</strong>
+                  <small>Permanently delete all months and budgets</small>
+                </span>
+              </button>
+            </div>
+
+            <div class="action-menu-footer">
+              <div id="securityStatusLine" class="menu-account-line is-locked">
+                <span class="status-dot" aria-hidden="true"></span>
+                <span id="securitySessionChip">Session locked</span>
+                <span class="status-sep" aria-hidden="true">·</span>
+                <span id="securityPasswordUpdatedChip">Password not set</span>
+              </div>
+              <div class="menu-save-line">
+                <span class="menu-save-label">Last save</span>
+                <span id="autosaveBadge" class="autosave-badge" role="status" aria-live="polite">Saved on this device</span>
+              </div>
             </div>
           </div>
         </details>
@@ -2016,10 +2211,25 @@
         <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets">🎯 Budgets</button>
         <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save checked</button>
         <details class="action-menu" id="dataMenu">
-          <summary class="btn" title="Backup and restore" aria-haspopup="menu"><span aria-hidden="true">⋯</span></summary>
+          <summary class="btn more-trigger" title="Backup and restore" aria-haspopup="menu">
+            <iconify-icon icon="lucide:ellipsis" width="18" height="18" aria-hidden="true"></iconify-icon>
+          </summary>
           <div class="action-menu-panel" role="menu">
-            <button id="backupJsonBtn" class="menu-btn" type="button">💾 Backup data</button>
-            <button id="restoreJsonBtn" class="menu-btn" type="button">📂 Restore backup</button>
+            <p class="action-menu-title">Data</p>
+            <button id="backupJsonBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:download" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Backup data</strong>
+                <small>Download a JSON copy</small>
+              </span>
+            </button>
+            <button id="restoreJsonBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:upload" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Restore backup</strong>
+                <small>Load a saved JSON file</small>
+              </span>
+            </button>
             <input id="jsonFileInput" type="file" accept=".json" hidden />
           </div>
         </details>
@@ -2312,6 +2522,7 @@
     let pendingTotalsForCharts = null;
     let listenersBound = false;
     let paidDirty = false;
+    let currentThemeMode = "light";
 
     const monthPicker = document.getElementById("monthPicker");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -2332,8 +2543,11 @@
     const salaryInput = document.getElementById("salaryInput");
     const saveMonthBtn = document.getElementById("saveMonthBtn");
     const autosaveBadge = document.getElementById("autosaveBadge");
-    const themeToggle = document.getElementById("themeToggle");
+    const saveStateDot = document.getElementById("saveStateDot");
     const incognitoBtn = document.getElementById("incognitoBtn");
+    const privacyState = document.getElementById("privacyState");
+    const appearanceValue = document.getElementById("appearanceValue");
+    const securityStatusLine = document.getElementById("securityStatusLine");
     const addExpenseBtn = document.getElementById("addExpenseBtn");
     const addPrevMoneyBtn = document.getElementById("addPrevMoneyBtn");
     const copyPrevBtn = document.getElementById("copyPrevBtn");
@@ -2454,7 +2668,14 @@
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
       });
-      themeToggle.addEventListener("click", toggleTheme);
+      document.querySelectorAll("[data-theme-mode]").forEach((btn) => {
+        btn.addEventListener("click", () => setThemeMode(btn.dataset.themeMode));
+      });
+      window.matchMedia?.("(prefers-color-scheme: dark)")?.addEventListener?.("change", () => {
+        if (currentThemeMode === "system") {
+          applyTheme("system", { persist: false, redraw: true });
+        }
+      });
       incognitoBtn.addEventListener("click", togglePrivacy);
       addExpenseBtn.addEventListener("click", addCustomExpense);
       addPrevMoneyBtn.addEventListener("click", addPreviousMonthAmounts);
@@ -2484,8 +2705,12 @@
       [mainMenu, dataMenu].forEach(menu => {
         if (!menu) return;
         menu.querySelectorAll("button").forEach(btn => {
+          if (btn.hasAttribute("data-keep-open")) return;
           btn.addEventListener("click", () => { menu.open = false; });
         });
+      });
+      mainMenu.addEventListener("toggle", () => {
+        document.body.classList.toggle("menu-open", mainMenu.open);
       });
       document.addEventListener("click", (e) => {
         [mainMenu, dataMenu].forEach(menu => {
@@ -2531,6 +2756,12 @@
           closeExpenseModal();
           return;
         }
+        if (e.key === "Escape" && (mainMenu.open || dataMenu.open)) {
+          const openMenu = mainMenu.open ? mainMenu : dataMenu;
+          openMenu.open = false;
+          openMenu.querySelector("summary")?.focus();
+          return;
+        }
         if (!isAuthenticated()) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
           e.preventDefault();
@@ -2557,13 +2788,12 @@
     }
 
     function restorePreferences() {
-      if (localStorage.getItem(UI_KEY_THEME) === "dark") {
-        document.body.classList.add("dark-theme");
-        themeToggle.textContent = "☀️ Light mode";
-      }
+      const storedTheme = localStorage.getItem(UI_KEY_THEME);
+      const mode = ["light", "dark", "system"].includes(storedTheme) ? storedTheme : "light";
+      applyTheme(mode, { persist: false });
       if (localStorage.getItem(UI_KEY_PRIVACY) === "true") {
         document.body.classList.add("privacy-active");
-        incognitoBtn.classList.add("btn-active");
+        updatePrivacyUi(true);
       }
       const savedView = localStorage.getItem(UI_KEY_VIEW) || "boxes";
       switchView(savedView);
@@ -2711,7 +2941,7 @@
         authPin.setAttribute("autocomplete", "new-password");
       } else if (mode === "resetaccount") {
         authTitle.textContent = "Reset account data";
-        authSubtitle.textContent = "This wipes your cloud and local data.";
+        authSubtitle.textContent = "Deletes every month, budget and saved backup. This cannot be undone.";
         authPinLabel.textContent = "Current password";
         authSubmitBtn.textContent = "Reset account";
         authResetWrap.classList.remove("hidden");
@@ -2820,34 +3050,68 @@
       if (!securitySessionChip || !securityPasswordUpdatedChip) return;
 
       const authenticated = isAuthenticated();
-      securitySessionChip.textContent = `Session: ${authenticated ? "Unlocked" : "Locked"}`;
+      securitySessionChip.textContent = authenticated ? "Session active" : "Session locked";
+      securityStatusLine?.classList.toggle("is-locked", !authenticated);
 
       if (cloudProfile?.passwordUpdatedAt) {
         const dt = new Date(cloudProfile.passwordUpdatedAt);
-        const label = dt.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-        securityPasswordUpdatedChip.textContent = `Password updated: ${label}`;
+        const label = dt.toLocaleString("en-US", { month: "short", day: "numeric" });
+        securityPasswordUpdatedChip.textContent = `Password updated ${label}`;
       } else if (cloudHasUsers === false) {
-        securityPasswordUpdatedChip.textContent = "Password: Not set";
+        securityPasswordUpdatedChip.textContent = "Password not set";
       } else {
-        securityPasswordUpdatedChip.textContent = "Password: Configured";
+        securityPasswordUpdatedChip.textContent = "Password configured";
       }
     }
 
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle("dark-theme");
-      localStorage.setItem(UI_KEY_THEME, isDark ? "dark" : "light");
-      themeToggle.textContent = isDark ? "☀️ Light mode" : "🌙 Dark mode";
+    function resolveTheme(mode) {
+      if (mode === "system") {
+        return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      return mode === "dark" ? "dark" : "light";
+    }
+
+    function applyTheme(mode, { persist = true, redraw = false } = {}) {
+      currentThemeMode = ["light", "dark", "system"].includes(mode) ? mode : "light";
+      const resolved = resolveTheme(currentThemeMode);
+      document.body.classList.toggle("dark-theme", resolved === "dark");
+      if (persist) localStorage.setItem(UI_KEY_THEME, currentThemeMode);
+
+      if (appearanceValue) {
+        appearanceValue.textContent = currentThemeMode === "system"
+          ? "System default"
+          : currentThemeMode === "dark" ? "Dark" : "Light";
+      }
+      document.querySelectorAll("[data-theme-mode]").forEach((btn) => {
+        btn.setAttribute("aria-checked", String(btn.dataset.themeMode === currentThemeMode));
+      });
       syncAriaStates();
-      renderDiagLegendIcons();
-      const totals = getCurrentTotals();
-      drawDonutChart(totals.categoryTotals, totals.outflow);
-      drawTrendChart();
+
+      if (redraw) {
+        renderDiagLegendIcons();
+        const totals = getCurrentTotals();
+        drawDonutChart(totals.categoryTotals, totals.outflow);
+        drawTrendChart();
+      }
+    }
+
+    function setThemeMode(mode) {
+      applyTheme(mode, { redraw: true });
+    }
+
+    function updatePrivacyUi(isPrivacy) {
+      incognitoBtn.classList.toggle("btn-active", isPrivacy);
+      incognitoBtn.setAttribute("aria-checked", String(isPrivacy));
+      if (privacyState) {
+        privacyState.textContent = isPrivacy ? "Enabled" : "Off";
+        privacyState.classList.toggle("is-on", isPrivacy);
+      }
     }
 
     function togglePrivacy() {
       const isPrivacy = document.body.classList.toggle("privacy-active");
       localStorage.setItem(UI_KEY_PRIVACY, isPrivacy ? "true" : "false");
-      incognitoBtn.classList.toggle("btn-active", isPrivacy);
+      updatePrivacyUi(isPrivacy);
       syncAriaStates();
       showToast(isPrivacy ? "Privacy mode on" : "Privacy mode off");
     }
@@ -2869,10 +3133,8 @@
     }
 
     function syncAriaStates() {
-      const isDark = document.body.classList.contains("dark-theme");
       const isPrivacy = document.body.classList.contains("privacy-active");
       const boxesActive = categoryBoxesContainer.style.display !== "none";
-      themeToggle.setAttribute("aria-pressed", String(isDark));
       incognitoBtn.setAttribute("aria-pressed", String(isPrivacy));
       viewBoxesBtn.setAttribute("aria-pressed", String(boxesActive));
       viewTableBtn.setAttribute("aria-pressed", String(!boxesActive));
@@ -3883,7 +4145,7 @@
       });
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      setAutosaveBadge("Saved", "saved", true);
+      setAutosaveBadge("Saved on this device", "saved");
       setPaidDirty(false);
       showToast(`Saved ledger for ${month}`);
       render();
@@ -3938,7 +4200,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       render();
       showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
-      setAutosaveBadge("Saved", "saved", true);
+      setAutosaveBadge("Saved on this device", "saved");
     }
 
     function addPreviousMonthAmounts() {
@@ -3966,7 +4228,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       render();
       showToast(`Added ${updatedCount} item amounts from ${prevMonth}`);
-      setAutosaveBadge("Saved", "saved", true);
+      setAutosaveBadge("Saved on this device", "saved");
     }
 
     function makeCustomExpenseKey(name) {
@@ -4089,7 +4351,7 @@
       syncDataToCloudBestEffort();
       closeBudgetModal();
       render();
-      setAutosaveBadge("Saved", "saved", true);
+      setAutosaveBadge("Saved on this device", "saved");
       showToast("Category budgets saved");
     }
 
@@ -4154,7 +4416,7 @@
         syncDataToCloudBestEffort();
         render();
         showToast(`Added expense: ${name}`);
-        setAutosaveBadge("Saved", "saved", true);
+        setAutosaveBadge("Saved on this device", "saved");
       } else {
         const key = expenseRenameKey;
         const item = getAllItems().find((i) => i.key === key);
@@ -4172,7 +4434,7 @@
         syncDataToCloudBestEffort();
         render();
         showToast("Expense renamed");
-        setAutosaveBadge("Saved", "saved", true);
+        setAutosaveBadge("Saved on this device", "saved");
       }
 
       closeExpenseModal();
@@ -4211,7 +4473,7 @@
       syncDataToCloudBestEffort();
       render();
       showToast("Custom expense deleted");
-      setAutosaveBadge("Saved", "saved", true);
+      setAutosaveBadge("Saved on this device", "saved");
     }
 
     function exportBackup() {
@@ -4259,11 +4521,11 @@
     }
 
     function markDirtyAndAutosave() {
-      setAutosaveBadge("Saving draft...", "saving");
+      setAutosaveBadge("Saving…", "saving");
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        setAutosaveBadge("Draft saved", "saved", true);
+        setAutosaveBadge("Saved on this device", "saved");
       }, 800);
     }
 
@@ -4271,14 +4533,21 @@
       if (!autosaveBadge) return;
       autosaveBadge.textContent = text;
       autosaveBadge.classList.add("show");
-      autosaveBadge.classList.remove("saving", "saved");
+      autosaveBadge.classList.remove("saving", "saved", "error");
       if (state) autosaveBadge.classList.add(state);
+
+      if (saveStateDot) {
+        saveStateDot.classList.remove("is-saving", "is-error");
+        if (state === "saving") saveStateDot.classList.add("is-saving");
+        else if (state === "error") saveStateDot.classList.add("is-error");
+        saveStateDot.title = text;
+      }
 
       clearTimeout(autosaveHideTimer);
       if (autoHide) {
         autosaveHideTimer = setTimeout(() => {
-          autosaveBadge.classList.remove("show", "saving", "saved");
-        }, 1500);
+          autosaveBadge.classList.remove("show", "saving", "saved", "error");
+        }, 1800);
       }
     }
 
@@ -4458,9 +4727,13 @@
 
     async function syncDataToCloudBestEffort() {
       if (!isAuthenticated()) return;
+      setAutosaveBadge("Saving…", "saving");
       try {
         await api("/api/data", { method: "POST", body: JSON.stringify({ data }) });
-      } catch {}
+        setAutosaveBadge("Saved to cloud", "saved");
+      } catch {
+        setAutosaveBadge("Save failed", "error");
+      }
     }
 
     async function syncMonthToCloud(month) {
@@ -4609,10 +4882,14 @@
     saveMonthBtn.removeEventListener("click", saveCurrentMonth);
     saveMonthBtn.addEventListener("click", async () => {
       saveCurrentMonth();
+      if (!isAuthenticated()) return;
+      setAutosaveBadge("Saving…", "saving");
       try {
         await syncMonthToCloud(monthPicker.value);
+        setAutosaveBadge("Saved to cloud", "saved");
       } catch (e) {
-        showToast(`Saved locally. Cloud sync failed: ${e.message}`);
+        setAutosaveBadge("Save failed", "error");
+        showToast(`Saved on this device. Cloud sync failed: ${e.message}`);
       }
     });
 
@@ -4620,10 +4897,14 @@
       saveChecksBtn.removeEventListener("click", saveCheckedItems);
       saveChecksBtn.addEventListener("click", async () => {
         saveCheckedItems();
+        if (!isAuthenticated()) return;
+        setAutosaveBadge("Saving…", "saving");
         try {
           await syncMonthToCloud(monthPicker.value);
+          setAutosaveBadge("Saved to cloud", "saved");
         } catch (e) {
-          showToast(`Checks saved locally. Cloud sync failed: ${e.message}`);
+          setAutosaveBadge("Save failed", "error");
+          showToast(`Checks saved on this device. Cloud sync failed: ${e.message}`);
         }
       });
     }
