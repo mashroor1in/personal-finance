@@ -11,6 +11,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <style>
     :root {
+      color-scheme: light;
       --bg: #f3f7fc;
       --card: #ffffff;
       --card-muted: #f1f5f9;
@@ -32,6 +33,7 @@
     }
 
     body.dark-theme {
+      color-scheme: dark;
       --bg: #090d16;
       --card: #111827;
       --card-muted: #1a2234;
@@ -1578,11 +1580,17 @@
       border-radius: 10px; color: var(--muted);
       transition: border-color 0.15s ease;
     }
+    .month-picker-wrap:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
     .month-picker-wrap:focus-within { border-color: var(--accent); }
     .month-picker-wrap input {
       border: 0; padding: 8px 0; background: transparent;
       font-weight: 700; color: var(--text); font-size: 13px;
     }
+    .month-picker-wrap input::-webkit-calendar-picker-indicator {
+      cursor: pointer; opacity: 0.7; transition: opacity 0.15s ease;
+    }
+    .month-picker-wrap input:hover::-webkit-calendar-picker-indicator,
+    .month-picker-wrap input:focus::-webkit-calendar-picker-indicator { opacity: 1; }
     .month-picker-wrap input:focus-visible { outline: none; }
 
     /* Command menu */
