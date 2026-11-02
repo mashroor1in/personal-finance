@@ -1072,36 +1072,39 @@
       opacity: 1;
       transition: opacity 240ms ease 120ms;
     }
-    .item-menu-card { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 2px 9px; }
+    .item-menu-card {
+      display: grid; gap: 1px;
+      width: min(210px, 100%);
+      margin: 2px 0 4px auto;
+      padding: 6px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
     .item-menu-action {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 10px; border-radius: 8px;
-      border: 1px solid transparent; background: var(--card-muted);
-      color: var(--text); font: inherit; font-size: 12px; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.12s ease;
+      display: flex; align-items: center; gap: 9px;
+      width: 100%; padding: 8px 10px;
+      border: 0; border-radius: 8px; background: transparent;
+      color: var(--text); font: inherit; font-size: 12.8px; font-weight: 600;
+      text-align: left; white-space: nowrap; cursor: pointer;
+      transition: background 0.13s ease, color 0.13s ease;
     }
-    .item-menu-action:hover {
-      background: var(--accent-soft); color: var(--accent);
-      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-      transform: translateY(-1px);
-    }
-    .item-menu-action:active { transform: translateY(0); }
-    .item-menu-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .item-menu-action svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .item-menu-action:hover { background: var(--card-muted); }
+    .item-menu-action:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .item-menu-action svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--muted); }
+    .item-menu-action:hover svg { color: var(--accent); }
     .item-menu-action.btn-active {
-      background: var(--accent-soft); color: var(--accent); border-color: var(--accent);
+      background: var(--accent-soft); color: var(--accent);
     }
-    .item-menu-action.is-danger { color: var(--red); background: var(--red-soft); }
-    .item-menu-action.is-danger:hover {
-      background: color-mix(in srgb, var(--red-soft) 55%, var(--red));
-      color: #fff; border-color: var(--red);
-    }
+    .item-menu-action.btn-active svg { color: var(--accent); }
+    .item-menu-sep { height: 1px; background: var(--line); margin: 4px 2px; }
+    .item-menu-action.is-danger { color: var(--red); }
+    .item-menu-action.is-danger svg { color: var(--red); }
+    .item-menu-action.is-danger:hover { background: var(--red-soft); }
 
     /* Table view: the disclosure lives in its own row */
     .item-menu-row > td { padding: 0 12px; border-bottom: 1px solid var(--line); }
-    .item-menu-row .item-menu-card { padding: 8px 0 10px; justify-content: flex-end; }
-    .item-menu-row .item-menu { margin: 0; }
+    .item-menu-row .item-menu-card { margin: 6px 0 8px auto; }
 
     /* Table View */
     .table-panel {
@@ -4095,6 +4098,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     /* Row actions: kebab toggle + inline disclosure menu */
+    let itemMenuUid = 0;
     const ITEM_MENU_ICONS = {
       dots: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
@@ -4113,7 +4117,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
             <button class="item-menu-action" type="button" data-rename="${item.key}" title="Rename expense">
               ${ITEM_MENU_ICONS.tag}<span>Rename</span>
             </button>
-            ${item.isCustom ? `<button class="item-menu-action is-danger" type="button" data-delete="${item.key}" title="Delete custom expense">
+            ${item.isCustom ? `<span class="item-menu-sep" aria-hidden="true"></span>
+            <button class="item-menu-action is-danger" type="button" data-delete="${item.key}" title="Delete custom expense">
               ${ITEM_MENU_ICONS.trash}<span>Delete</span>
             </button>` : ""}
           </div>
@@ -4207,10 +4212,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
         const listEl = box.querySelector(".cat-items-list");
 
-        catItems.forEach((item, itemIndex) => {
+        catItems.forEach((item) => {
           const val = getItemValue(item, current, prev);
           const isPaid = !!(current.paid && current.paid[item.key]);
-          const menuId = `itemMenu_box_${itemIndex}`;
+          const menuId = `itemMenu_box_${++itemMenuUid}`;
 
           const row = document.createElement("div");
           row.className = "cat-item-row";
@@ -4265,11 +4270,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       tableRows.innerHTML = "";
       const allItems = getAllItems();
 
-      allItems.forEach((item, itemIndex) => {
+      allItems.forEach((item) => {
         const val = getItemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
-        const menuId = `itemMenu_table_${itemIndex}`;
+        const menuId = `itemMenu_table_${++itemMenuUid}`;
 
         const tr = document.createElement("tr");
         tr.dataset.search = (item.name + " " + item.category).toLowerCase();
