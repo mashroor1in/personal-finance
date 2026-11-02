@@ -2786,6 +2786,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       bindCoreListeners();
       updateSecurityCard();
       await bootstrapCloudSession();
+      updateAuthBlobatar();
     }
 
     function bindCoreListeners() {
@@ -3056,7 +3057,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       authModeLoginBtn.classList.toggle("active", mode === "login");
       authModeRegisterBtn.classList.toggle("active", mode === "register");
       authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
-      updateTurnstileVisibility();
+      updateAuthBlobatar();
+      try {
+        updateTurnstileVisibility();
+      } catch (error) {
+        console.warn("Turnstile unavailable", error);
+      }
 
       const cooldownLeft = getAuthCooldownSecondsLeft();
       if ((mode === "login" || mode === "register") && cooldownLeft > 0) {
@@ -3188,10 +3194,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const visible = authMode === "login" || authMode === "register";
       const typed = (authUsername?.value || "").trim();
       const seed = visible ? (typed || "mashmind") : "";
-      authHead.classList.toggle("has-blobatar", !!seed);
-      if (seed === authBlobatarSeed) return;
-      authBlobatarSeed = seed;
-      authBlobatar.innerHTML = seed ? blobatarMarkup(seed) : "";
+      const markup = seed ? blobatarMarkup(seed) : "";
+      authHead.classList.toggle("has-blobatar", !!markup);
+      // Retry while markup is unavailable (avatar engine not ready yet), and
+      // avoid re-rendering once it exists so the animation doesn't restart.
+      if (seed !== authBlobatarSeed || (seed && !markup)) {
+        authBlobatarSeed = markup ? seed : "";
+        authBlobatar.innerHTML = markup;
+      }
     }
 
 
@@ -3261,10 +3271,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const avatarMounts = [profileBlobatar, profileMenuBlobatar].filter(Boolean);
 
       const seed = authenticated && username ? username : "";
-      if (seed !== profileAvatarSeed) {
-        profileAvatarSeed = seed;
-        const markup = seed ? blobatarMarkup(seed) : "";
-        avatarContainers.forEach((el) => el.classList.toggle("has-blobatar", !!markup));
+      const markup = seed ? blobatarMarkup(seed) : "";
+      avatarContainers.forEach((el) => el.classList.toggle("has-blobatar", !!markup));
+      // Retry while markup is unavailable (avatar engine not ready yet), and
+      // never cache a failed render as if it succeeded.
+      if (seed !== profileAvatarSeed || (seed && !markup)) {
+        profileAvatarSeed = markup ? seed : "";
         avatarMounts.forEach((el) => { el.innerHTML = markup; });
       }
 
