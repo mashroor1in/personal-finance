@@ -1512,7 +1512,7 @@
     /* Profile avatar + account popover */
     .profile-wrap { position: relative; flex: 0 0 auto; }
     .profile-btn {
-      position: relative; width: 44px; height: 44px; padding: 0;
+      position: relative; width: 64px; height: 64px; padding: 0;
       border: 1px solid var(--line); border-radius: 50%; background: var(--card);
       display: grid; place-items: center; cursor: pointer;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -1526,23 +1526,23 @@
       position: relative; width: 100%; height: 100%; border-radius: 50%;
       display: grid; place-items: center; overflow: hidden;
       background: var(--accent-soft); color: var(--accent);
-      font-size: 13px; font-weight: 800; text-transform: uppercase;
+      font-size: 15px; font-weight: 800; text-transform: uppercase;
     }
     .profile-avatar-initial { display: grid; place-items: center; width: 100%; height: 100%; }
     .profile-blobatar {
       display: none; width: 100%; height: 100%;
       transition: transform 0.2s ease;
     }
-    .profile-blobatar svg { display: block; width: 100%; height: 100%; }
+    .profile-blobatar svg { display: block; width: 100%; height: 100%; transform: scale(1.28); }
     .profile-avatar.has-blobatar .profile-avatar-initial { display: none; }
     .profile-avatar.has-blobatar .profile-blobatar { display: block; }
     .profile-btn:hover .profile-blobatar { transform: scale(1.06); }
     .profile-avatar-lg {
-      width: 56px; height: 56px; flex: 0 0 auto; font-size: 18px;
+      width: 76px; height: 76px; flex: 0 0 auto; font-size: 22px;
       box-shadow: 0 0 0 1px var(--line), 0 6px 14px -8px rgba(2, 6, 23, 0.5);
     }
     .profile-dot {
-      position: absolute; right: 0; bottom: 0; width: 11px; height: 11px;
+      position: absolute; right: 0; bottom: 0; width: 13px; height: 13px;
       border-radius: 50%; background: var(--green);
       border: 2px solid var(--card);
     }
