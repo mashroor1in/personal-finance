@@ -2989,6 +2989,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         data.__meta = { customItems: [], nameOverrides: {} };
       }
       if (!Array.isArray(data.__meta.customItems)) data.__meta.customItems = [];
+      if (!Array.isArray(data.__meta.hiddenItems)) data.__meta.hiddenItems = [];
       if (!data.__meta.nameOverrides || typeof data.__meta.nameOverrides !== "object") data.__meta.nameOverrides = {};
       if (!data.__meta.categoryBudgets || typeof data.__meta.categoryBudgets !== "object" || Array.isArray(data.__meta.categoryBudgets)) {
         data.__meta.categoryBudgets = {};
@@ -2999,7 +3000,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function getAllItems() {
       const meta = getMeta();
       const overrides = meta.nameOverrides || {};
-      const base = ITEMS.map(item => ({ ...item, name: overrides[item.key] || item.name }));
+      const hidden = new Set(meta.hiddenItems || []);
+      const base = ITEMS
+        .filter(item => !hidden.has(item.key))
+        .map(item => ({ ...item, name: overrides[item.key] || item.name }));
       const custom = (meta.customItems || []).map(item => ({ ...item, name: overrides[item.key] || item.name, isCustom: true }));
       return [...base, ...custom];
     }
@@ -4115,10 +4119,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
               ${ITEM_MENU_ICONS.tag}<span>Rename</span>
             </button>
           </div>
-          ${item.isCustom ? `
           <div class="item-menu-delete">
             <div class="item-menu-delete-layer item-menu-delete-row">
-              <button class="item-menu-action is-danger" type="button" role="menuitem" data-delete-start="${item.key}" title="Delete custom expense">
+              <button class="item-menu-action is-danger" type="button" role="menuitem" data-delete-start="${item.key}" title="Delete this item">
                 ${ITEM_MENU_ICONS.trash}<span>Delete</span>
               </button>
             </div>
@@ -4126,7 +4129,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
               <button class="item-menu-confirm-yes" type="button" data-delete="${item.key}">Yes, Delete</button>
               <button class="item-menu-confirm-no" type="button" data-delete-cancel>Cancel</button>
             </div>
-          </div>` : ""}
+          </div>
         </div>`;
     }
 
@@ -5504,13 +5507,17 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function performDeleteExpense(key) {
       const meta = getMeta();
-      const item = meta.customItems.find((i) => i.key === key);
-      if (!item) {
-        showToast("Only custom expenses can be deleted", "warning");
-        return;
-      }
+      const custom = meta.customItems.find((i) => i.key === key);
+      const builtIn = ITEMS.find((i) => i.key === key);
+      const item = custom || builtIn;
+      if (!item) return;
 
-      meta.customItems = meta.customItems.filter((i) => i.key !== key);
+      if (custom) {
+        meta.customItems = meta.customItems.filter((i) => i.key !== key);
+      } else if (builtIn) {
+        meta.hiddenItems = meta.hiddenItems || [];
+        if (!meta.hiddenItems.includes(key)) meta.hiddenItems.push(key);
+      }
       delete meta.nameOverrides[key];
       Object.keys(data).forEach((monthKey) => {
         if (monthKey === "__meta") return;
@@ -5523,7 +5530,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       syncDataToCloudBestEffort();
       render();
-      sileo.success({ title: "Expense deleted", description: `“${item.name}” was removed from all months.` });
+      sileo.success({ title: "Expense deleted", description: `"${item.name}" was removed from all months.` });
       setAutosaveBadge("Saved on this device", "saved");
     }
 
@@ -5632,6 +5639,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           parsed.__meta = { customItems: [], nameOverrides: {} };
         }
         if (!Array.isArray(parsed.__meta.customItems)) parsed.__meta.customItems = [];
+        if (!Array.isArray(parsed.__meta.hiddenItems)) parsed.__meta.hiddenItems = [];
         if (!parsed.__meta.nameOverrides || typeof parsed.__meta.nameOverrides !== "object") parsed.__meta.nameOverrides = {};
         if (!parsed.__meta.categoryBudgets || typeof parsed.__meta.categoryBudgets !== "object" || Array.isArray(parsed.__meta.categoryBudgets)) {
           parsed.__meta.categoryBudgets = {};
