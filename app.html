@@ -3249,7 +3249,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function blobatarMarkup(seed) {
       if (typeof window.blobatarSvgAnimated !== "function") return "";
       try {
-        return window.blobatarSvgAnimated(seed, { background: "circle" });
+        // No background disc: the avatar button / auth circle provides it, and
+        // the blobatar disc looked like a white plate on the dark theme.
+        return window.blobatarSvgAnimated(seed, { background: false });
       } catch (error) {
         return "";
       }
