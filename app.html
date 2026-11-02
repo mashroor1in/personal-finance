@@ -5343,14 +5343,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function getItemValue(item, current, prev) {
+      // A blank default until the user enters a value: no built-in defaults are
+      // shown on a fresh account, only values the user actually saved.
       if (current.items && current.items[item.key] !== undefined && current.items[item.key] !== "") {
         return current.items[item.key];
       }
-      if (item.fixed) {
-        if (prev && prev.items && prev.items[item.key] !== undefined && prev.items[item.key] !== "") {
-          return prev.items[item.key];
-        }
-        return item.defaultAmount ?? "";
+      if (item.fixed && prev && prev.items && prev.items[item.key] !== undefined && prev.items[item.key] !== "") {
+        return prev.items[item.key];
       }
       return "";
     }
