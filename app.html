@@ -305,6 +305,89 @@
       letter-spacing: 0.01em;
     }
 
+    /* Timed undo action (reset account) */
+    .timed-undo {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 9999px;
+      background: #ef4444;
+      color: #f8fafc;
+      padding: 12px 16px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.005em;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .timed-undo-track {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .timed-undo.is-armed {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+    }
+    .timed-undo:disabled { opacity: 0.6; cursor: default; }
+    .timed-undo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .timed-undo-undo {
+      display: grid;
+      place-items: center;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: #fff;
+      flex-shrink: 0;
+      animation: undoPopIn 0.38s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    }
+    .timed-undo-undo svg { width: 18px; height: 18px; }
+    .timed-undo-label { display: inline-flex; line-height: 1.2; }
+    .timed-undo-label .td-char {
+      display: inline-block;
+      white-space: pre;
+      animation: charIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .timed-undo-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 30px;
+      padding: 0 11px;
+      border-radius: 9999px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      animation: undoPopIn 0.38s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+    }
+    .timed-undo-num {
+      display: inline-block;
+      animation: countFlip 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes undoPopIn {
+      from { opacity: 0; filter: blur(4px); transform: scale(0.7); }
+    }
+    @keyframes charIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.5); filter: blur(4px); }
+    }
+    @keyframes countFlip {
+      30% { transform: translateY(-8px) scale(1.5); opacity: 0.4; }
+      70% { transform: translateY(2px) scale(0.9); }
+    }
+    .auth-reset-note {
+      margin: 0 0 2px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
     .auth-form label {
       font-size: 12px;
       font-weight: 700;
@@ -2778,9 +2861,11 @@
           </div>
 
           <div id="authResetWrap" class="auth-field hidden">
-            <label id="authResetLabel" for="authResetConfirm">Type DELETE to confirm</label>
-            <input id="authResetConfirm" type="text" autocomplete="off" placeholder="DELETE" />
+            <label id="authResetLabel" for="authResetConfirm" class="sr-only">Confirm reset</label>
+            <input id="authResetConfirm" type="text" autocomplete="off" aria-hidden="true" tabindex="-1" />
           </div>
+
+          <p id="authResetNote" class="auth-reset-note hidden"></p>
 
           <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:6px;">
             <div id="authTurnstile"></div>
@@ -2793,6 +2878,15 @@
           </label>
 
           <button id="authSubmitBtn" class="btn btn-primary" type="submit">Sign in</button>
+          <button id="authUndoBtn" class="timed-undo hidden" type="button">
+            <span class="timed-undo-track">
+              <span id="authUndoIcon" class="timed-undo-undo" aria-hidden="true" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.9 3L3 13"/></svg>
+              </span>
+              <span id="authUndoLabel" class="timed-undo-label">Reset account</span>
+              <span id="authUndoCount" class="timed-undo-count" aria-hidden="true" hidden><span id="authUndoNum" class="timed-undo-num">10</span></span>
+            </span>
+          </button>
           <div class="auth-trust-row" aria-hidden="true">
             <span class="auth-trust-item">🔒 Secure cookie</span>
             <span class="auth-trust-item">☁️ D1 + KV</span>
@@ -3114,6 +3208,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const authConfirmWrap = document.getElementById("authConfirmWrap");
     const authResetWrap = document.getElementById("authResetWrap");
     const authResetConfirm = document.getElementById("authResetConfirm");
+    const authResetNote = document.getElementById("authResetNote");
+    const authUndoBtn = document.getElementById("authUndoBtn");
+    const authUndoIcon = document.getElementById("authUndoIcon");
+    const authUndoCount = document.getElementById("authUndoCount");
+    const authUndoNum = document.getElementById("authUndoNum");
+    const authUndoLabel = document.getElementById("authUndoLabel");
     const authTurnstileWrap = document.getElementById("authTurnstileWrap");
     const authTurnstile = document.getElementById("authTurnstile");
     const authShowPassword = document.getElementById("authShowPassword");
@@ -3401,6 +3501,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       addExpenseBtn.addEventListener("click", addCustomExpense);
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
 
+      authUndoBtn?.addEventListener("click", () => toggleResetUndo());
+
       profileBtn.addEventListener("click", () => {
         setProfileMenuOpen(profileMenu.classList.contains("hidden"));
       });
@@ -3579,7 +3681,86 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       setAuthError("");
       authForm.reset();
       authPin.blur();
+      cancelResetUndo(true);
       updateSecurityCard();
+    }
+
+    /* Timed undo action for reset account -------------------------------- */
+    const RESET_UNDO_SECONDS = 10;
+    let resetUndoArmed = false;
+    let resetUndoRemaining = RESET_UNDO_SECONDS;
+    let resetUndoTimer = null;
+
+    function setResetUndoLabel(text) {
+      if (!authUndoLabel) return;
+      authUndoLabel.textContent = "";
+      [...text].forEach((char) => {
+        const span = document.createElement("span");
+        span.className = "td-char";
+        span.textContent = char;
+        authUndoLabel.appendChild(span);
+      });
+    }
+
+    function renderResetUndo() {
+      if (!authUndoBtn) return;
+      authUndoBtn.classList.toggle("is-armed", resetUndoArmed);
+      if (authUndoIcon) authUndoIcon.hidden = !resetUndoArmed;
+      if (authUndoCount) authUndoCount.hidden = !resetUndoArmed;
+      if (resetUndoArmed && authUndoNum) authUndoNum.textContent = String(resetUndoRemaining);
+      setResetUndoLabel(resetUndoArmed ? "Cancel Delete" : "Reset account");
+    }
+
+    function cancelResetUndo(clearConfirm) {
+      resetUndoArmed = false;
+      clearInterval(resetUndoTimer);
+      resetUndoTimer = null;
+      resetUndoRemaining = RESET_UNDO_SECONDS;
+      if (clearConfirm && authResetConfirm) authResetConfirm.value = "";
+      renderResetUndo();
+    }
+
+    function toggleResetUndo() {
+      if (!authUndoBtn || authUndoBtn.disabled) return;
+      if (resetUndoArmed) {
+        cancelResetUndo(true);
+        authPin?.focus();
+        return;
+      }
+      if (!(authPin?.value || "").trim()) {
+        setAuthError("Current password is required.");
+        authPin?.focus();
+        return;
+      }
+      if (authResetConfirm) authResetConfirm.value = "";
+      resetUndoArmed = true;
+      resetUndoRemaining = RESET_UNDO_SECONDS;
+      renderResetUndo();
+      resetUndoTimer = setInterval(() => {
+        resetUndoRemaining -= 1;
+        if (authUndoNum) {
+          authUndoNum.textContent = String(resetUndoRemaining);
+          authUndoNum.style.animation = "none";
+          void authUndoNum.offsetWidth;
+          authUndoNum.style.animation = "";
+        }
+        if (resetUndoRemaining <= 0) {
+          clearInterval(resetUndoTimer);
+          resetUndoTimer = null;
+          resetUndoArmed = false;
+          renderResetUndo();
+          fireResetAccount();
+        }
+      }, 1000);
+    }
+
+    function fireResetAccount() {
+      if (authResetConfirm) authResetConfirm.value = "DELETE";
+      if (authUndoBtn) {
+        authUndoBtn.disabled = true;
+        setResetUndoLabel("Deleting…");
+      }
+      authForm.requestSubmit();
     }
 
     async function logoutUser(options = {}) {
@@ -3647,6 +3828,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (!el) return;
         el.type = "password";
       });
+      cancelResetUndo(true);
+      authUndoBtn?.classList.add("hidden");
+      authSubmitBtn.classList.remove("hidden");
+      authResetNote?.classList.add("hidden");
 
       authUsernameWrap.classList.add("hidden");
       authCurrentWrap.classList.add("hidden");
@@ -3705,11 +3890,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         authPin.setAttribute("autocomplete", "new-password");
       } else if (mode === "resetaccount") {
         authTitle.textContent = "Reset account data";
-        authSubtitle.textContent = "Deletes every month, budget and saved backup. This cannot be undone.";
+        authSubtitle.textContent = "Permanently delete this account, every month and all saved backups. This cannot be undone.";
         authPinLabel.textContent = "Current password";
-        authSubmitBtn.textContent = "Reset account";
-        authResetWrap.classList.remove("hidden");
-        authResetConfirm.required = true;
+        authSubmitBtn.classList.add("hidden");
+        authUndoBtn.classList.remove("hidden");
+        authUndoBtn.disabled = false;
+        authResetNote.classList.remove("hidden");
+        authResetNote.textContent = "Enter your password, then press the red button. You'll get 10 seconds to cancel.";
         authPin.setAttribute("autocomplete", "current-password");
       } else {
         authTitle.textContent = "Sign in";
@@ -5939,6 +6126,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (getAuthCooldownSecondsLeft() > 0) return;
         authSubmitBtn.disabled = false;
         authSubmitBtn.textContent = initialBtnLabel;
+        if (authMode === "resetaccount") {
+          cancelResetUndo(true);
+          authUndoBtn.disabled = false;
+        }
       }
     });
 
