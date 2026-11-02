@@ -1510,12 +1510,23 @@
     }
     .profile-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .profile-avatar {
-      width: 100%; height: 100%; border-radius: 50%;
-      display: grid; place-items: center;
+      position: relative; width: 100%; height: 100%; border-radius: 50%;
+      display: grid; place-items: center; overflow: hidden;
       background: var(--accent-soft); color: var(--accent);
       font-size: 13px; font-weight: 800; text-transform: uppercase;
     }
-    .profile-avatar-lg { width: 36px; height: 36px; flex: 0 0 auto; font-size: 14px; }
+    .profile-avatar-initial { display: grid; place-items: center; width: 100%; height: 100%; }
+    .profile-blobatar {
+      display: none; width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.2s ease;
+    }
+    .profile-avatar.has-blobatar .profile-avatar-initial { display: none; }
+    .profile-avatar.has-blobatar .profile-blobatar { display: block; }
+    .profile-btn:hover .profile-blobatar { transform: scale(1.06); }
+    .profile-avatar-lg {
+      width: 44px; height: 44px; flex: 0 0 auto; font-size: 15px;
+      box-shadow: 0 0 0 1px var(--line), 0 6px 14px -8px rgba(2, 6, 23, 0.5);
+    }
     .profile-btn .save-state-dot {
       position: absolute; top: 3px; right: 3px; width: 7px; height: 7px;
     }
@@ -1541,13 +1552,16 @@
       border-radius: 999px;
     }
     .profile-head {
-      display: flex; align-items: center; gap: 10px;
-      padding: 6px 7px 9px; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 11px;
+      margin: -8px -8px 5px; padding: 13px 12px 12px;
       border-bottom: 1px solid var(--line);
+      border-radius: 14px 14px 0 0;
+      background: linear-gradient(135deg, var(--accent-soft), transparent 78%);
     }
-    .profile-head-copy { display: grid; gap: 1px; min-width: 0; }
+    .profile-head-copy { display: grid; gap: 2px; min-width: 0; }
     .profile-head-copy strong {
-      font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-size: 13.5px; letter-spacing: -0.01em;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .profile-head-copy small { font-size: 10.5px; color: var(--muted); }
     .menu-item:disabled { opacity: 0.5; cursor: default; }
@@ -1888,6 +1902,10 @@
       /* Roomier touch targets inside the sheet */
       .profile-popover .menu-item { padding: 8px 10px; }
       .profile-popover .theme-choice { padding: 8px 4px; }
+      .profile-popover .profile-head {
+        margin: 2px 0 6px; padding: 10px 6px 11px;
+        border-radius: 12px;
+      }
       body.profile-open::before {
         content: ""; position: fixed; inset: 0; z-index: 1090;
         background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
@@ -2011,14 +2029,20 @@
 
         <div class="profile-wrap">
           <button id="profileBtn" class="profile-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Account and actions" title="Account and actions">
-            <span id="profileAvatar" class="profile-avatar" aria-hidden="true">?</span>
+            <span id="profileAvatar" class="profile-avatar" aria-hidden="true">
+              <span id="profileAvatarInitial" class="profile-avatar-initial">?</span>
+              <img id="profileBlobatar" class="profile-blobatar" alt="" />
+            </span>
             <span id="profileDot" class="profile-dot is-locked" aria-hidden="true"></span>
             <span id="saveStateDot" class="save-state-dot" title="Saved on this device" aria-hidden="true"></span>
           </button>
           <div id="profileMenu" class="profile-popover hidden" role="menu" aria-label="Account and actions">
             <div class="sheet-handle" aria-hidden="true"></div>
             <div class="profile-head">
-              <span id="profileMenuAvatar" class="profile-avatar profile-avatar-lg" aria-hidden="true">?</span>
+              <span id="profileMenuAvatar" class="profile-avatar profile-avatar-lg" aria-hidden="true">
+                <span id="profileMenuAvatarInitial" class="profile-avatar-initial">?</span>
+                <img id="profileMenuBlobatar" class="profile-blobatar" alt="" />
+              </span>
               <div class="profile-head-copy">
                 <strong id="profileMenuName">Local workspace</strong>
                 <small id="profileMenuMeta">Session locked</small>
@@ -2615,6 +2639,10 @@
     const profileMenuAvatar = document.getElementById("profileMenuAvatar");
     const profileMenuName = document.getElementById("profileMenuName");
     const profileMenuMeta = document.getElementById("profileMenuMeta");
+    const profileAvatarInitial = document.getElementById("profileAvatarInitial");
+    const profileBlobatar = document.getElementById("profileBlobatar");
+    const profileMenuAvatarInitial = document.getElementById("profileMenuAvatarInitial");
+    const profileMenuBlobatar = document.getElementById("profileMenuBlobatar");
     const searchInput = document.getElementById("searchInput");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
     const viewTableBtn = document.getElementById("viewTableBtn");
@@ -2690,6 +2718,7 @@
     let cloudHasUsers = null;
     const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
     let cloudProfile = null;
+    let profileBlobatarSrc = "";
     let turnstileEnabled = false;
     let turnstileSiteKey = null;
     let turnstileWidgetID = null;
@@ -2746,6 +2775,11 @@
 
       profileBtn.addEventListener("click", () => {
         setProfileMenuOpen(profileMenu.classList.contains("hidden"));
+      });
+      [profileBlobatar, profileMenuBlobatar].forEach((img) => {
+        if (!img) return;
+        img.addEventListener("load", () => img.parentElement?.classList.add("has-blobatar"));
+        img.addEventListener("error", () => img.parentElement?.classList.remove("has-blobatar"));
       });
       expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
       expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
@@ -3150,16 +3184,44 @@
       if (!profileBtn) return;
       const authenticated = isAuthenticated();
       const username = String(cloudProfile?.username || cloudProfile?.userID || "").trim();
-      const displayName = authenticated ? (username || "Signed in") : "Local workspace";
-      const initial = displayName.charAt(0).toUpperCase() || "?";
+      const displayName = authenticated
+        ? (username ? `@${username}` : "Signed in")
+        : "Local workspace";
+      const initial = (authenticated && username ? username : displayName).charAt(0).toUpperCase() || "?";
 
-      if (profileAvatar) profileAvatar.textContent = initial;
-      if (profileMenuAvatar) profileMenuAvatar.textContent = initial;
+      if (profileAvatarInitial) profileAvatarInitial.textContent = initial;
+      if (profileMenuAvatarInitial) profileMenuAvatarInitial.textContent = initial;
+
+      const avatarContainers = [profileAvatar, profileMenuAvatar].filter(Boolean);
+      const avatarImages = [profileBlobatar, profileMenuBlobatar].filter(Boolean);
+
+      if (authenticated && username) {
+        const src = `https://blobatar.dev/avatar/${encodeURIComponent(username)}?size=96&background=circle&gen=2`;
+        if (src !== profileBlobatarSrc) {
+          profileBlobatarSrc = src;
+          avatarContainers.forEach((el) => el.classList.remove("has-blobatar"));
+          avatarImages.forEach((img) => { img.src = src; });
+        }
+      } else {
+        profileBlobatarSrc = "";
+        avatarContainers.forEach((el) => el.classList.remove("has-blobatar"));
+        avatarImages.forEach((img) => img.removeAttribute("src"));
+      }
+
       if (profileMenuName) profileMenuName.textContent = displayName;
-      if (profileMenuMeta) profileMenuMeta.textContent = authenticated ? "Session active" : "Session locked";
+      if (profileMenuMeta) {
+        const created = cloudProfile?.createdAt ? new Date(cloudProfile.createdAt) : null;
+        const validCreated = created && !Number.isNaN(created.getTime());
+        profileMenuMeta.textContent = authenticated
+          ? (validCreated
+              ? `Member since ${created.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`
+              : "Cloud account")
+          : "Session locked";
+      }
       if (profileDot) profileDot.classList.toggle("is-locked", !authenticated);
-      profileBtn.title = authenticated ? `Account and actions: ${displayName}` : "Account and actions";
-      profileBtn.setAttribute("aria-label", authenticated ? `Account and actions for ${displayName}` : "Account and actions");
+      const handle = username || "signed in";
+      profileBtn.title = authenticated ? `Account and actions: ${handle}` : "Account and actions";
+      profileBtn.setAttribute("aria-label", authenticated ? `Account and actions for ${handle}` : "Account and actions");
     }
 
     function resolveTheme(mode) {

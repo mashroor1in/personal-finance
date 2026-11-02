@@ -184,9 +184,16 @@ async function issueSessionAndRespond(env, userID) {
   const token = randomToken(24);
   await env.SESSIONS.put(`sess:${token}`, JSON.stringify({ userID }), { expirationTtl: 60 * 60 * 24 * 7 });
 
-  const updated = await env.DB.prepare("SELECT updated_at FROM users WHERE id = ?").bind(userID).first();
+  const updated = await env.DB.prepare("SELECT created_at, updated_at FROM users WHERE id = ?").bind(userID).first();
   return json(
-    { ok: true, authenticated: true, userID, username: userID, passwordUpdatedAt: updated?.updated_at || null },
+    {
+      ok: true,
+      authenticated: true,
+      userID,
+      username: userID,
+      createdAt: updated?.created_at || null,
+      passwordUpdatedAt: updated?.updated_at || null,
+    },
     { headers: { "Set-Cookie": sessionCookie(token) } }
   );
 }
