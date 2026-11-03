@@ -1903,11 +1903,11 @@
     }
 
     .month-popover {
-      position: absolute; left: 0; top: calc(100% + 8px); z-index: 1115;
+      position: absolute; right: 0; left: auto; top: calc(100% + 8px); z-index: 1115;
       width: 300px; max-width: calc(100vw - 24px); padding: 12px;
       background: var(--card); border: 1px solid var(--line); border-radius: 16px;
       box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(15, 23, 42, 0.05);
-      transform-origin: top left;
+      transform-origin: top right;
       animation: monthPopIn 0.16s cubic-bezier(0.2, 0.8, 0.3, 1);
     }
     @keyframes monthPopIn {
@@ -2470,7 +2470,6 @@
             <div id="monthGrid" class="month-grid" role="group" aria-label="Months"></div>
             <div class="month-popover-foot">
               <button id="monthThisBtn" class="month-shortcut is-primary" type="button">This month</button>
-              <button id="monthClearBtn" class="month-shortcut" type="button">Clear</button>
             </div>
           </div>
         </div>
@@ -3004,6 +3003,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const UI_KEY_PRIVACY = "pf_ui_privacy";
     const UI_KEY_VIEW = "pf_ui_view";
     const AUTH_SESSION_KEY = "pf_auth_session_v1";
+    const ACCOUNT_OWNER_KEY = "pf_account_owner_v1";
 
     const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
 
@@ -3128,7 +3128,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const monthPrevYear = document.getElementById("monthPrevYear");
     const monthNextYear = document.getElementById("monthNextYear");
     const monthThisBtn = document.getElementById("monthThisBtn");
-    const monthClearBtn = document.getElementById("monthClearBtn");
     const monthPickerWrap = monthPicker?.closest(".month-picker-wrap") || null;
     const logoutBtn = document.getElementById("logoutBtn");
     const changePasswordBtn = document.getElementById("changePasswordBtn");
@@ -3468,7 +3467,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cells[next]?.focus();
       });
       monthThisBtn?.addEventListener("click", () => selectPlanningMonth(toMonthString(new Date())));
-      monthClearBtn?.addEventListener("click", () => selectPlanningMonth(""));
       salaryInput.addEventListener("input", () => {
         syncSalaryToData();
         markDirtyAndAutosave();
@@ -4355,7 +4353,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const b = btn.getBoundingClientRect();
       const width = Math.min(268, window.innerWidth - 24);
       card.style.width = `${width}px`;
-      const height = card.getBoundingClientRect().height;
+      // offsetHeight ignores the opening scale transform, so the card is
+      // measured at its final size and ends up truly centred on the trigger.
+      const height = card.offsetHeight;
 
       let left = b.left + b.width / 2 - width / 2;
       left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
@@ -5345,8 +5345,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function getItemValue(item, current, prev) {
       // A blank default until the user enters a value: no built-in defaults are
       // shown on a fresh account, only values the user actually saved.
-      if (current.items && current.items[item.key] !== undefined && current.items[item.key] !== "") {
-        return current.items[item.key];
+      const items = current.items || {};
+      if (Object.prototype.hasOwnProperty.call(items, item.key)) {
+        const raw = items[item.key];
+        // An explicit empty string means the user cleared this month; it must
+        // not fall back to the previous month's value.
+        return raw === "" || raw == null ? "" : raw;
       }
       if (item.fixed && prev && prev.items && prev.items[item.key] !== undefined && prev.items[item.key] !== "") {
         return prev.items[item.key];
@@ -5949,9 +5953,21 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     async function hydrateFromCloud() {
+      // Month rows are stored in D1, but the `__meta` block (custom expenses,
+      // renames, category budgets, hidden items) is local-only. Keep this
+      // browser's copy instead of wiping it when the cloud payload replaces
+      // `data`. If a different account is signing in, start with clean meta so
+      // one account's customisations never leak into another.
+      const localMeta = data && typeof data === "object" ? data.__meta : null;
+      const owner = String(cloudProfile?.userID || "");
+      const previousOwner = localStorage.getItem(ACCOUNT_OWNER_KEY) || "";
+      const sameAccount = !previousOwner || !owner || previousOwner === owner;
+
       const res = await api("/api/data");
       if (res?.data && typeof res.data === "object") {
         data = res.data;
+        if (sameAccount && localMeta) data.__meta = localMeta;
+        if (owner) localStorage.setItem(ACCOUNT_OWNER_KEY, owner);
         ensureDataShape();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
@@ -5961,6 +5977,19 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
       const already = localStorage.getItem(syncKey) === "1";
       if (already) return;
+
+      // Never upload the previous account's months into a different account
+      // that signs in on the same browser.
+      const owner = String(cloudProfile?.userID || "");
+      const previousOwner = localStorage.getItem(ACCOUNT_OWNER_KEY) || "";
+      if (owner && previousOwner && previousOwner !== owner) {
+        localStorage.setItem(syncKey, "1");
+        localStorage.removeItem(STORAGE_KEY);
+        data = {};
+        ensureDataShape();
+        return;
+      }
+
       const localData = loadData();
       if (!localData || !Object.keys(localData).length) {
         localStorage.setItem(syncKey, "1");
@@ -6068,28 +6097,40 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       setAuthError("");
+
+      // Delete-account mode hides the submit button and uses the countdown
+      // pill instead. Enter (implicit submission) must not skip the countdown.
+      if (authMode === "resetaccount" && (authResetConfirm?.value || "").trim() !== "DELETE") {
+        if (!resetUndoArmed) toggleResetUndo();
+        return;
+      }
+
       const validationError = validateAuthInput();
       if (validationError) {
         setAuthError(validationError, true);
         return;
       }
 
+      // The mode can change while the request is in flight (the user switches
+      // tabs). Handle the response for the mode that was actually submitted.
+      const submitMode = authMode;
       const initialBtnLabel = authSubmitBtn.textContent;
       authSubmitBtn.disabled = true;
       authSubmitBtn.textContent = "Please wait...";
 
       try {
-        const payload = await cloudLoginFlow(authMode);
+        const payload = await cloudLoginFlow(submitMode);
 
-        if (authMode === "resetaccount") {
+        if (submitMode === "resetaccount") {
           cloudHasUsers = false;
           cloudProfile = null;
           wipePlannerData();
           Object.keys(localStorage)
             .filter((k) => k.startsWith(`${CLOUD_SYNC_KEY}:`))
             .forEach((k) => localStorage.removeItem(k));
+          localStorage.removeItem(ACCOUNT_OWNER_KEY);
           showAuthOverlay("register");
-          showToast(payload?.message || "Account reset complete");
+          showToast(payload?.message || "Account deleted");
           return;
         }
 
@@ -6098,7 +6139,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cloudProfile = payload || null;
         unlockApp();
 
-        if (authMode === "register") {
+        if (submitMode === "register") {
           // A brand-new account must start clean: never inherit leftover data
           // from a previous local session or account on this browser.
           data = {};
@@ -6111,21 +6152,21 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         await hydrateFromCloud();
         render();
         showToast(
-          authMode === "changepassword"
+          submitMode === "changepassword"
             ? "Password updated"
-            : authMode === "register"
+            : submitMode === "register"
               ? "Account created"
               : "Welcome back"
         );
       } catch (err) {
-        if (authMode === "login" || authMode === "register") resetTurnstile();
+        if (submitMode === "login" || submitMode === "register") resetTurnstile();
         const retryAfter = Number(err?.retryAfterSec || 0);
-        if ((authMode === "login" || authMode === "register") && retryAfter > 0) {
+        if ((submitMode === "login" || submitMode === "register") && retryAfter > 0) {
           startAuthCooldown(retryAfter);
           return;
         }
         const lockMatch = String(err?.message || "").match(/try again in\s+(\d+)s/i);
-        if ((authMode === "login" || authMode === "register") && lockMatch) {
+        if ((submitMode === "login" || submitMode === "register") && lockMatch) {
           startAuthCooldown(Number(lockMatch[1]));
           return;
         }
@@ -6133,7 +6174,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       } finally {
         if (getAuthCooldownSecondsLeft() > 0) return;
         authSubmitBtn.disabled = false;
-        authSubmitBtn.textContent = initialBtnLabel;
+        // If the view already switched (delete account -> sign up), keep the
+        // label set by that view instead of restoring the stale one.
+        if (authMode === submitMode) authSubmitBtn.textContent = initialBtnLabel;
         if (authMode === "resetaccount") {
           cancelResetUndo(true);
           authUndoBtn.disabled = false;

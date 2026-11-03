@@ -147,7 +147,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Current password is required." }, { status: 400 });
     }
     if (resetConfirm !== "DELETE") {
-      return json({ ok: false, error: "Type DELETE to confirm reset." }, { status: 400 });
+      return json({ ok: false, error: "Confirm the account deletion and try again." }, { status: 400 });
     }
 
     const given = await sha256Hex(`${user.salt}:${password}`);
@@ -164,7 +164,7 @@ export async function onRequestPost(context) {
     }
 
     return json(
-      { ok: true, reset: true, message: "Account reset complete. Create a new account." },
+      { ok: true, reset: true, message: "Account deleted. Create a new account." },
       { headers: { "Set-Cookie": sessionCookie("") } }
     );
   }
