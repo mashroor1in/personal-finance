@@ -2998,6 +2998,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
   </script>
 
   <script src="/persistence.js"></script>
+  <script src="/totals.js"></script>
 
   <script>
     const UI_KEY_THEME = "pf_ui_theme";
@@ -4211,7 +4212,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (redraw) {
         renderDiagLegendIcons();
         const totals = getCurrentTotals();
-        drawDonutChart(totals.categoryTotals, totals.outflow);
+        drawDonutChart(totals.byCategory, totals.outflow);
         drawTrendChart();
       }
     }
@@ -4454,7 +4455,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         let catSum = 0;
         let paidCount = 0;
         catItems.forEach(item => {
-          const val = getItemValue(item, current, prev);
+          const val = Totals.itemValue(item, current, prev);
           if (val) catSum += Number(val);
           if (current.paid && current.paid[item.key]) paidCount++;
         });
@@ -4487,7 +4488,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const listEl = box.querySelector(".cat-items-list");
 
         catItems.forEach((item) => {
-          const val = getItemValue(item, current, prev);
+          const val = Totals.itemValue(item, current, prev);
           const isPaid = !!(current.paid && current.paid[item.key]);
 
           const row = document.createElement("div");
@@ -4533,7 +4534,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const allItems = getAllItems();
 
       allItems.forEach((item) => {
-        const val = getItemValue(item, current, prev);
+        const val = Totals.itemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
         const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
 
@@ -4575,7 +4576,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const itemsMarkup = acc.itemKeys.map(k => {
           const itemDef = allItems.find(i => i.key === k);
           if (!itemDef) return "";
-          const amt = Number(getItemValue(itemDef, current, prev)) || 0;
+          const amt = Number(Totals.itemValue(itemDef, current, prev)) || 0;
           accSum += amt;
           return `
             <li>
@@ -4729,8 +4730,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const savingsRate = totals.savingsRate;
 
       // Keep category box header totals and bank routing values live while editing
-      updateCategoryHeaderTotals();
-      updateBankAccountFigures();
+      updateCategoryHeaderTotals(totals);
+      updateBankAccountFigures(totals);
 
       document.getElementById("statExpense").textContent = `₹${formatNumber(totalOutflow)}`;
       document.getElementById("statSavingsRate").textContent = `${savingsRate.toFixed(1)}%`;
@@ -4820,41 +4821,28 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       statusEl.className = `diag-status ${bad ? (higherIsBetter ? "under" : "over") : good ? "ok" : "under"}`;
     }
 
+    function previousMonthData(monthKey) {
+      const prevKey = getPreviousMonth(monthKey);
+      const prev = prevKey ? data[prevKey] : null;
+      return prev && typeof prev === "object" ? prev : null;
+    }
+
+    // Single adapter from a stored month to the shared arithmetic. Every figure
+    // below — KPIs, category headers, bank cards, insights, trend — reads this.
+    function monthTotals(monthKey, current) {
+      return Totals.summarise({
+        month: monthKey,
+        current,
+        prev: previousMonthData(monthKey),
+        items: getAllItems(),
+        categories: CATEGORY_MAP
+      });
+    }
+
     function getMonthTotals(monthKey) {
       const monthData = data[monthKey];
       if (!monthData || typeof monthData !== "object") return null;
-
-      const current = {
-        salary: monthData.salary,
-        items: monthData.items || {},
-        paid: monthData.paid || {}
-      };
-      const prevKey = getPreviousMonth(monthKey);
-      const prevRaw = prevKey ? data[prevKey] : null;
-      const prev = prevRaw && typeof prevRaw === "object"
-        ? { items: prevRaw.items || {}, paid: prevRaw.paid || {} }
-        : { items: {}, paid: {} };
-
-      const byCategory = {};
-      let outflow = 0;
-      let invest = 0;
-      getAllItems().forEach((item) => {
-        const value = Number(getItemValue(item, current, prev)) || 0;
-        if (!value) return;
-        outflow += value;
-        byCategory[item.category] = (byCategory[item.category] || 0) + value;
-        if (item.kind === "investment") invest += value;
-      });
-
-      const salary = Number(monthData.salary) || 0;
-      return {
-        month: monthKey,
-        salary,
-        outflow,
-        invest,
-        byCategory,
-        savingsRate: salary > 0 ? (invest / salary) * 100 : 0
-      };
+      return monthTotals(monthKey, monthData);
     }
 
     function insightCard(tone, label, value, sub) {
@@ -4911,7 +4899,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       // 2 & 3. Biggest category movers
       const deltas = Object.keys(CATEGORY_MAP).map((cat) => ({
         cat,
-        now: totals.categoryTotals[cat] || 0,
+        now: totals.byCategory[cat] || 0,
         before: prev.byCategory[cat] || 0
       })).map((row) => ({ ...row, delta: row.now - row.before }));
 
@@ -4958,9 +4946,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const budgets = getCategoryBudgets();
       const budgetCats = Object.keys(budgets);
       if (budgetCats.length) {
-        const over = budgetCats.filter((cat) => (totals.categoryTotals[cat] || 0) > budgets[cat]);
+        const over = budgetCats.filter((cat) => (totals.byCategory[cat] || 0) > budgets[cat]);
         const budgetSum = budgetCats.reduce((sum, cat) => sum + budgets[cat], 0);
-        const spendSum = budgetCats.reduce((sum, cat) => sum + (totals.categoryTotals[cat] || 0), 0);
+        const spendSum = budgetCats.reduce((sum, cat) => sum + (totals.byCategory[cat] || 0), 0);
         const usedPct = budgetSum > 0 ? (spendSum / budgetSum) * 100 : 0;
 
         if (over.length) {
@@ -4996,68 +4984,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function getCurrentTotals() {
-      const salary = Number(salaryInput.value) || 0;
       const month = monthPicker.value;
-      const current = data[month] || { salary: "", items: {}, paid: {} };
-
-      let totalOutflow = 0;
-      let totalInvest = 0;
-      let paidOutflow = 0;
-      let paidCount = 0;
-
-      let needsSum = 0;
-      let wantsSum = 0;
-      let savingsSum = 0;
-      const categoryTotals = {};
-
-      const allItems = getAllItems();
-      allItems.forEach(item => {
-        const val = getInputValue(item.key);
-        totalOutflow += val;
-        categoryTotals[item.category] = (categoryTotals[item.category] || 0) + val;
-
-        const isPaid = !!(current.paid && current.paid[item.key]);
-        if (isPaid) {
-          paidOutflow += val;
-          paidCount++;
-        }
-
-        if (item.kind === "investment") totalInvest += val;
-
-        const bucket = CATEGORY_MAP[item.category].bucket;
-        if (bucket === "needs") needsSum += val;
-        else if (bucket === "wants") wantsSum += val;
-        else if (bucket === "savings") savingsSum += val;
-      });
-
-      const remaining = salary > 0 ? salary - totalOutflow : 0;
-      const savingsRate = salary > 0 ? (totalInvest / salary) * 100 : 0;
-
-      return {
-        salary,
-        outflow: totalOutflow,
-        remaining,
-        savingsRate,
-        invest: totalInvest,
-        paidOutflow,
-        paidCount,
-        needsSum,
-        wantsSum,
-        savingsSum,
-        categoryTotals
-      };
+      return monthTotals(month, data[month] || { salary: "", items: {}, paid: {} });
     }
 
-    function updateCategoryHeaderTotals() {
-      const sums = {};
-      const allItems = getAllItems();
-      allItems.forEach(item => {
-        sums[item.category] = (sums[item.category] || 0) + getInputValue(item.key);
-      });
-
+    function updateCategoryHeaderTotals(totals) {
       document.querySelectorAll("[data-total-for]").forEach(el => {
         const cat = el.getAttribute("data-total-for");
-        el.textContent = `₹${formatNumber(sums[cat] || 0)}`;
+        el.textContent = `₹${formatNumber(totals.byCategory[cat] || 0)}`;
       });
     }
 
@@ -5068,7 +5002,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const budget = budgets[cat];
         if (!budget) return;
 
-        const spent = totals.categoryTotals[cat] || 0;
+        const spent = totals.byCategory[cat] || 0;
         const pct = (spent / budget) * 100;
         const labelEl = el.querySelector(".cat-budget-label");
         const pctEl = el.querySelector(".cat-budget-pct");
@@ -5083,12 +5017,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
     }
 
-    function updateBankAccountFigures() {
+    function updateBankAccountFigures(totals) {
       const accountSums = {};
       BANK_ACCOUNTS.forEach(acc => {
         let sum = 0;
         acc.itemKeys.forEach(key => {
-          const val = getInputValue(key);
+          const val = totals.values[key] || 0;
           sum += val;
           document.querySelectorAll(`[data-bank-item="${key}"]`).forEach(el => {
             el.textContent = `₹${formatNumber(val)}`;
@@ -5127,12 +5061,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (savingsEl) savingsEl.innerHTML = iconNode("ph:chart-line-up-bold", 13);
     }
 
-    function getInputValue(key) {
-      const input = document.querySelector(`.amount-input[data-key="${key}"]`);
-      const n = Number(input?.value);
-      return Number.isFinite(n) ? n : 0;
-    }
-
     function slugify(value) {
       return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
     }
@@ -5144,7 +5072,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         chartRaf = 0;
         const t = pendingTotalsForCharts || getCurrentTotals();
         pendingTotalsForCharts = null;
-        drawDonutChart(t.categoryTotals, t.outflow);
+        drawDonutChart(t.byCategory, t.outflow);
         drawTrendChart();
       });
     }
@@ -5323,15 +5251,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const slice = filteredKeys.slice(-limit);
 
       return slice.map(m => {
-        const d = data[m] || { salary: "", items: {} };
-        const sal = Number(d.salary) || 0;
-        let outflow = 0;
-        const allItems = getAllItems();
-        allItems.forEach(it => {
-          const val = Number(d.items?.[it.key]);
-          if (Number.isFinite(val)) outflow += val;
-        });
-        return { month: m, salary: sal, outflow };
+        const d = data[m];
+        if (!d || typeof d !== "object") return { month: m, salary: 0, outflow: 0 };
+        const totals = monthTotals(m, d);
+        return { month: m, salary: totals.salary, outflow: totals.outflow };
       });
     }
 
@@ -5343,22 +5266,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const ctx = canvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return ctx;
-    }
-
-    function getItemValue(item, current, prev) {
-      // A blank default until the user enters a value: no built-in defaults are
-      // shown on a fresh account, only values the user actually saved.
-      const items = current.items || {};
-      if (Object.prototype.hasOwnProperty.call(items, item.key)) {
-        const raw = items[item.key];
-        // An explicit empty string means the user cleared this month; it must
-        // not fall back to the previous month's value.
-        return raw === "" || raw == null ? "" : raw;
-      }
-      if (item.fixed && prev && prev.items && prev.items[item.key] !== undefined && prev.items[item.key] !== "") {
-        return prev.items[item.key];
-      }
-      return "";
     }
 
     function applyFilters() {
@@ -5386,14 +5293,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const month = monthPicker.value;
       if (!month) return;
 
-      data[month] = data[month] || { salary: "", items: {}, paid: {} };
-      data[month].salary = salaryInput.value ? Number(salaryInput.value) : "";
-
-      const allItems = getAllItems();
-      allItems.forEach(item => {
-        const input = document.querySelector(`.amount-input[data-key="${item.key}"]`);
-        const val = input ? input.value.trim() : "";
-        data[month].items[item.key] = val === "" ? "" : Number(val);
+      data[month] = Totals.materialise({
+        current: data[month] || { salary: "", items: {}, paid: {} },
+        prev: previousMonthData(month),
+        items: getAllItems()
       });
 
       persistence.saveLocal(data);
