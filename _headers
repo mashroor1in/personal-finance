@@ -16,10 +16,10 @@
 /app.html
   Cache-Control: no-cache
 
-/*.css
-  Cache-Control: public, max-age=31536000, immutable
+/persistence.js
+  Cache-Control: no-cache
 
-/*.js
+/*.css
   Cache-Control: public, max-age=31536000, immutable
 
 /*.png

@@ -2997,13 +2997,18 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     })();
   </script>
 
+  <script src="/persistence.js"></script>
+
   <script>
-    const STORAGE_KEY = "pf_monthly_finance_v1";
     const UI_KEY_THEME = "pf_ui_theme";
     const UI_KEY_PRIVACY = "pf_ui_privacy";
     const UI_KEY_VIEW = "pf_ui_view";
     const AUTH_SESSION_KEY = "pf_auth_session_v1";
-    const ACCOUNT_OWNER_KEY = "pf_account_owner_v1";
+
+    const persistence = Persistence.browser({
+      request: api,
+      session: { isAuthenticated },
+    });
 
     const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
 
@@ -3106,11 +3111,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       getMeta();
     }
 
-    let data = loadData();
+    let data = persistence.load();
     ensureDataShape();
     let editState = {};
     let collapsedState = {};
-    let autosaveTimer = null;
     let autosaveHideTimer = null;
     let chartRaf = 0;
     let resizeTimer = null;
@@ -3245,7 +3249,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     let authMode = "login"; // login | register | changepassword | resetaccount
     let cloudHasUsers = null;
-    const CLOUD_SYNC_KEY = "pf_cloud_migrated_v1";
     let cloudProfile = null;
     let profileAvatarSeed = "";
     let authBlobatarSeed = "";
@@ -3473,7 +3476,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         recalc();
       });
       salaryInput.addEventListener("focus", () => salaryInput.select());
-      saveMonthBtn.addEventListener("click", saveCurrentMonth);
+      saveMonthBtn.addEventListener("click", saveMonthToCloud);
       logoutBtn.addEventListener("click", logoutUser);
       changePasswordBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
@@ -3523,7 +3526,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
       viewTableBtn.addEventListener("click", () => switchView("table"));
       collapseAllBtn.addEventListener("click", toggleCollapseAll);
-      saveChecksBtn.addEventListener("click", saveCheckedItems);
+      saveChecksBtn.addEventListener("click", saveChecksToCloud);
 
       // Close the data menu after choosing an action
       if (dataMenu) {
@@ -4002,7 +4005,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       editState = {};
       collapsedState = {};
       sessionStorage.removeItem(AUTH_SESSION_KEY);
-      localStorage.removeItem(STORAGE_KEY);
+      persistence.clearData();
       localStorage.removeItem(UI_KEY_PRIVACY);
       localStorage.removeItem(UI_KEY_VIEW);
       document.body.classList.remove("privacy-active");
@@ -5393,7 +5396,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         data[month].items[item.key] = val === "" ? "" : Number(val);
       });
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      persistence.saveLocal(data);
       setAutosaveBadge("Saved on this device", "saved");
       setPaidDirty(false);
       if (!silent) showToast(`Saved ledger for ${month}`);
@@ -5406,7 +5409,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!month) return;
       data[month] = data[month] || { salary: "", items: {}, paid: {} };
       data[month].paid = data[month].paid || {};
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      persistence.saveLocal(data);
       setPaidDirty(false);
       if (!silent) showToast(`Checked items saved for ${month}`);
     }
@@ -5447,7 +5450,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       data[currentMonth].items = copiedItems;
       data[currentMonth].paid = {};
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      persistence.saveLocal(data);
       render();
       showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
       setAutosaveBadge("Saved on this device", "saved");
@@ -5569,8 +5572,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       }
 
       getMeta().categoryBudgets = budgets;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      syncDataToCloudBestEffort();
+      persistence.saveLocal(data);
+      syncAllInBackground();
       closeBudgetModal();
       render();
       setAutosaveBadge("Saved on this device", "saved");
@@ -5634,7 +5637,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         data[month].items = data[month].items || {};
         if (Number.isFinite(amountNum)) data[month].items[key] = amountNum;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        persistence.saveLocal(data);
         render();
         const persist = (async () => {
           if (!isAuthenticated()) {
@@ -5643,7 +5646,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           }
           setAutosaveBadge("Saving…", "saving");
           try {
-            await syncDataToCloud();
+            await persistence.syncAll(data);
             setAutosaveBadge("Saved to cloud", "saved");
             return { synced: true };
           } catch (err) {
@@ -5677,8 +5680,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (custom) custom.name = nextName;
         else meta.nameOverrides[key] = nextName;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        syncDataToCloudBestEffort();
+        persistence.saveLocal(data);
+        syncAllInBackground();
         render();
         showToast("Expense renamed");
         setAutosaveBadge("Saved on this device", "saved");
@@ -5717,8 +5720,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (monthData.paid && Object.prototype.hasOwnProperty.call(monthData.paid, key)) delete monthData.paid[key];
       });
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      syncDataToCloudBestEffort();
+      persistence.saveLocal(data);
+      syncAllInBackground();
       render();
       sileo.success({ title: "Expense deleted", description: `"${item.name}" was removed from all months.` });
       setAutosaveBadge("Saved on this device", "saved");
@@ -5744,7 +5747,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           if (typeof parsed === "object") {
             data = parsed;
             ensureDataShape();
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            persistence.saveLocal(data);
             render();
             showToast("Backup restored successfully!");
           }
@@ -5777,11 +5780,18 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function markDirtyAndAutosave() {
       setAutosaveBadge("Saving…", "saving");
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        setAutosaveBadge("Saved on this device", "saved");
-      }, 800);
+      persistence.scheduleLocalSave(
+        () => data,
+        () => setAutosaveBadge("Saved on this device", "saved")
+      );
+    }
+
+    // Cloud is a follow-up to a local save: never blocks the caller, never throws.
+    function syncAllInBackground() {
+      persistence.syncAllBestEffort(data).then((result) => {
+        if (result.synced) setAutosaveBadge("Saved to cloud", "saved");
+        else if (result.reason === "error") setAutosaveBadge("Save failed", "error");
+      });
     }
 
     function setAutosaveBadge(text, state = "", autoHide = false) {
@@ -5818,26 +5828,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const [y, m] = monthString.split("-").map(Number);
       if (!y || !m) return null;
       return toMonthString(new Date(y, m - 2, 1));
-    }
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        const parsed = raw ? JSON.parse(raw) : {};
-        if (!parsed || typeof parsed !== "object") return {};
-        if (!parsed.__meta || typeof parsed.__meta !== "object") {
-          parsed.__meta = { customItems: [], nameOverrides: {} };
-        }
-        if (!Array.isArray(parsed.__meta.customItems)) parsed.__meta.customItems = [];
-        if (!Array.isArray(parsed.__meta.hiddenItems)) parsed.__meta.hiddenItems = [];
-        if (!parsed.__meta.nameOverrides || typeof parsed.__meta.nameOverrides !== "object") parsed.__meta.nameOverrides = {};
-        if (!parsed.__meta.categoryBudgets || typeof parsed.__meta.categoryBudgets !== "object" || Array.isArray(parsed.__meta.categoryBudgets)) {
-          parsed.__meta.categoryBudgets = {};
-        }
-        return parsed;
-      } catch {
-        return {};
-      }
     }
 
     // ==============================
@@ -5960,67 +5950,41 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       // one account's customisations never leak into another.
       const localMeta = data && typeof data === "object" ? data.__meta : null;
       const owner = String(cloudProfile?.userID || "");
-      const previousOwner = localStorage.getItem(ACCOUNT_OWNER_KEY) || "";
+      const previousOwner = persistence.getOwner();
       const sameAccount = !previousOwner || !owner || previousOwner === owner;
 
       const res = await api("/api/data");
       if (res?.data && typeof res.data === "object") {
         data = res.data;
         if (sameAccount && localMeta) data.__meta = localMeta;
-        if (owner) localStorage.setItem(ACCOUNT_OWNER_KEY, owner);
+        persistence.setOwner(owner);
         ensureDataShape();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        persistence.saveLocal(data);
       }
     }
 
     async function migrateLocalStorageToCloudOnce() {
-      const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
-      const already = localStorage.getItem(syncKey) === "1";
-      if (already) return;
+      const owner = String(cloudProfile?.userID || "");
+      if (persistence.isMigrated(owner)) return;
 
       // Never upload the previous account's months into a different account
       // that signs in on the same browser.
-      const owner = String(cloudProfile?.userID || "");
-      const previousOwner = localStorage.getItem(ACCOUNT_OWNER_KEY) || "";
+      const previousOwner = persistence.getOwner();
       if (owner && previousOwner && previousOwner !== owner) {
-        localStorage.setItem(syncKey, "1");
-        localStorage.removeItem(STORAGE_KEY);
+        persistence.markMigrated(owner);
+        persistence.clearData();
         data = {};
         ensureDataShape();
         return;
       }
 
-      const localData = loadData();
+      const localData = persistence.load();
       if (!localData || !Object.keys(localData).length) {
-        localStorage.setItem(syncKey, "1");
+        persistence.markMigrated(owner);
         return;
       }
-      await api("/api/data", { method: "POST", body: JSON.stringify({ data: localData }) });
-      localStorage.setItem(syncKey, "1");
-    }
-
-    async function syncDataToCloud() {
-      if (!isAuthenticated()) return;
-      await api("/api/data", { method: "POST", body: JSON.stringify({ data }) });
-    }
-
-    async function syncDataToCloudBestEffort() {
-      if (!isAuthenticated()) return;
-      setAutosaveBadge("Saving…", "saving");
-      try {
-        await syncDataToCloud();
-        setAutosaveBadge("Saved to cloud", "saved");
-      } catch {
-        setAutosaveBadge("Save failed", "error");
-      }
-    }
-
-    async function syncMonthToCloud(month) {
-      const monthData = data[month] || { salary: "", items: {}, paid: {} };
-      await api(`/api/data/month/${month}`, {
-        method: "PUT",
-        body: JSON.stringify(monthData),
-      });
+      await persistence.syncAll(localData);
+      persistence.markMigrated(owner);
     }
 
     async function refreshCloudProfile() {
@@ -6125,10 +6089,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           cloudHasUsers = false;
           cloudProfile = null;
           wipePlannerData();
-          Object.keys(localStorage)
-            .filter((k) => k.startsWith(`${CLOUD_SYNC_KEY}:`))
-            .forEach((k) => localStorage.removeItem(k));
-          localStorage.removeItem(ACCOUNT_OWNER_KEY);
+          persistence.clearSyncMarkers();
+          persistence.clearOwner();
           showAuthOverlay("register");
           showToast(payload?.message || "Account deleted");
           return;
@@ -6143,9 +6105,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           // A brand-new account must start clean: never inherit leftover data
           // from a previous local session or account on this browser.
           data = {};
-          localStorage.removeItem(STORAGE_KEY);
-          const syncKey = `${CLOUD_SYNC_KEY}:${cloudProfile?.userID || "default"}`;
-          localStorage.setItem(syncKey, "1");
+          persistence.clearData();
+          persistence.markMigrated(cloudProfile?.userID);
         } else {
           await migrateLocalStorageToCloudOnce();
         }
@@ -6184,10 +6145,29 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       }
     });
 
-    // wrap save handlers to sync with D1
-    saveMonthBtn.removeEventListener("click", saveCurrentMonth);
-    saveMonthBtn.addEventListener("click", () => {
+    // Save buttons: the view is folded into `data` first, then the persistence
+    // module decides local vs cloud. Presentation (badge, toast) stays here.
+    function saveMonthToCloud() {
       saveCurrentMonth({ silent: true });
+      persistCurrentMonth({
+        loading: "Saving month…",
+        success: "Month saved",
+        synced: (label) => `${label} is saved and synced.`,
+        local: (label) => `${label} saved on this device.`,
+      });
+    }
+
+    function saveChecksToCloud() {
+      saveCheckedItems({ silent: true });
+      persistCurrentMonth({
+        loading: "Saving checkmarks…",
+        success: "Checkmarks saved",
+        synced: (label) => `${label} is up to date.`,
+        local: (label) => `${label} updated on this device.`,
+      });
+    }
+
+    function persistCurrentMonth(copy) {
       const month = monthPicker.value;
       const label = monthTriggerLabel?.textContent || month;
       const authed = isAuthenticated();
@@ -6198,7 +6178,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
         setAutosaveBadge("Saving…", "saving");
         try {
-          await syncMonthToCloud(month);
+          await persistence.syncMonth(data, month);
           setAutosaveBadge("Saved to cloud", "saved");
           return { synced: true };
         } catch (err) {
@@ -6208,60 +6188,17 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       })();
       sileo.promise(withToastDelay(persist), {
         loading: {
-          title: "Saving month…",
+          title: copy.loading,
           description: authed ? `Syncing ${label} to your account.` : `Saving ${label} on this device.`,
         },
         success: (result) => ({
-          title: "Month saved",
-          description: result.synced
-            ? `${label} is saved and synced.`
-            : `${label} saved on this device.`,
+          title: copy.success,
+          description: result.synced ? copy.synced(label) : copy.local(label),
         }),
         error: (err) => ({
           title: "Saved on this device",
           description: `Cloud sync failed: ${err?.message || "unknown error"}`,
         }),
-      });
-    });
-
-    if (typeof saveCheckedItems === "function") {
-      saveChecksBtn.removeEventListener("click", saveCheckedItems);
-      saveChecksBtn.addEventListener("click", () => {
-        saveCheckedItems({ silent: true });
-        const month = monthPicker.value;
-        const label = monthTriggerLabel?.textContent || month;
-        const authed = isAuthenticated();
-        const persist = (async () => {
-          if (!authed) {
-            setAutosaveBadge("Saved on this device", "saved");
-            return { synced: false };
-          }
-          setAutosaveBadge("Saving…", "saving");
-          try {
-            await syncMonthToCloud(month);
-            setAutosaveBadge("Saved to cloud", "saved");
-            return { synced: true };
-          } catch (err) {
-            setAutosaveBadge("Save failed", "error");
-            throw err;
-          }
-        })();
-        sileo.promise(withToastDelay(persist), {
-          loading: {
-            title: "Saving checkmarks…",
-            description: authed ? `Syncing ${label} to your account.` : `Saving ${label} on this device.`,
-          },
-          success: (result) => ({
-            title: "Checkmarks saved",
-            description: result.synced
-              ? `${label} is up to date.`
-              : `${label} updated on this device.`,
-          }),
-          error: (err) => ({
-            title: "Saved on this device",
-            description: `Cloud sync failed: ${err?.message || "unknown error"}`,
-          }),
-        });
       });
     }
 
