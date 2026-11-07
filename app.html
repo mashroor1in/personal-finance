@@ -2999,6 +2999,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
   <script src="/persistence.js"></script>
   <script src="/totals.js"></script>
+  <script src="/overlays.js"></script>
 
   <script>
     const UI_KEY_THEME = "pf_ui_theme";
@@ -3010,6 +3011,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       request: api,
       session: { isAuthenticated },
     });
+
+    const overlays = Overlays.create({ activeElement: () => document.activeElement });
 
     const CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"];
 
@@ -3422,6 +3425,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     async function init() {
       restorePreferences();
       setupExpenseModal();
+      setupOverlays();
       renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
       updateMonthTriggerLabel();
@@ -3437,9 +3441,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       monthPicker.addEventListener("change", render);
       monthTrigger?.addEventListener("click", () => {
-        const open = !isMonthPopoverOpen();
-        if (open) setProfileMenuOpen(false);
-        setMonthPopoverOpen(open);
+        overlays.toggle("month");
       });
       monthPrevYear?.addEventListener("click", () => {
         monthViewYear -= 1;
@@ -3500,27 +3502,21 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         document.body.classList.toggle("month-open", !!window.matchMedia("(max-width: 720px)").matches);
       });
       incognitoBtn.addEventListener("click", togglePrivacy);
-      addExpenseBtn.addEventListener("click", addCustomExpense);
+      addExpenseBtn.addEventListener("click", () => overlays.open("expense", { trigger: addExpenseBtn }));
       copyPrevBtn.addEventListener("click", copyPreviousMonth);
 
       authUndoBtn?.addEventListener("click", () => toggleResetUndo());
 
       profileBtn.addEventListener("click", () => {
-        setProfileMenuOpen(profileMenu.classList.contains("hidden"));
+        overlays.toggle("profile");
       });
-      expenseModalCloseBtn.addEventListener("click", closeExpenseModal);
-      expenseModalCancelBtn.addEventListener("click", closeExpenseModal);
-      expenseModal.addEventListener("click", (e) => {
-        if (e.target === expenseModal) closeExpenseModal();
-      });
+      expenseModalCloseBtn.addEventListener("click", () => overlays.close("expense"));
+      expenseModalCancelBtn.addEventListener("click", () => overlays.close("expense"));
       expenseModalForm.addEventListener("submit", submitExpenseModal);
 
-      budgetsBtn.addEventListener("click", openBudgetModal);
-      budgetModalCloseBtn.addEventListener("click", closeBudgetModal);
-      budgetModalCancelBtn.addEventListener("click", closeBudgetModal);
-      budgetModal.addEventListener("click", (e) => {
-        if (e.target === budgetModal) closeBudgetModal();
-      });
+      budgetsBtn.addEventListener("click", () => overlays.open("budget"));
+      budgetModalCloseBtn.addEventListener("click", () => overlays.close("budget"));
+      budgetModalCancelBtn.addEventListener("click", () => overlays.close("budget"));
       budgetModalForm.addEventListener("submit", saveBudgetModal);
 
       searchInput.addEventListener("input", applyFilters);
@@ -3529,35 +3525,33 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       collapseAllBtn.addEventListener("click", toggleCollapseAll);
       saveChecksBtn.addEventListener("click", saveChecksToCloud);
 
-      // Close the data menu after choosing an action
+      // Intercept data menu summary click to use overlays
       if (dataMenu) {
+        const summary = dataMenu.querySelector("summary");
+        if (summary) {
+          summary.addEventListener("click", (e) => {
+            e.preventDefault();
+            overlays.toggle("data", { trigger: summary });
+          });
+        }
         dataMenu.querySelectorAll("button").forEach(btn => {
           if (btn.hasAttribute("data-keep-open")) return;
-          btn.addEventListener("click", () => { dataMenu.open = false; });
+          btn.addEventListener("click", () => overlays.close("data"));
         });
       }
 
       // Profile menu: close after choosing an action unless it should stay open
       profileMenu.querySelectorAll("button").forEach(btn => {
         if (btn.hasAttribute("data-keep-open")) return;
-        btn.addEventListener("click", () => setProfileMenuOpen(false));
+        btn.addEventListener("click", () => overlays.close("profile"));
       });
 
       document.addEventListener("click", (e) => {
-        if (dataMenu && dataMenu.open && !dataMenu.contains(e.target)) dataMenu.open = false;
-        if (profileWrap && !profileWrap.contains(e.target)) setProfileMenuOpen(false);
-        if (isMonthPopoverOpen() && monthPickerWrap && !monthPickerWrap.contains(e.target)) {
-          setMonthPopoverOpen(false);
-        }
-        if (openItemMenu
-          && !e.target.closest(".item-menu-card")
-          && !e.target.closest("[data-menu-toggle]")) {
-          closeItemMenu();
-        }
+        overlays.dismissOutside(e.target);
       });
 
-      window.addEventListener("scroll", () => { if (openItemMenu) closeItemMenu(); }, true);
-      window.addEventListener("resize", () => { if (openItemMenu) closeItemMenu(); });
+      window.addEventListener("scroll", () => { overlays.close("item", { restoreFocus: false }); }, true);
+      window.addEventListener("resize", () => { overlays.close("item", { restoreFocus: false }); });
 
       budgetAlertAction.addEventListener("click", () => {
         const targetCat = "Family / Personal";
@@ -3589,39 +3583,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
 
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !budgetModal.classList.contains("hidden")) {
-          closeBudgetModal();
-          return;
-        }
-        if (e.key === "Escape" && !expenseModal.classList.contains("hidden")) {
-          closeExpenseModal();
-          return;
-        }
-        if (e.key === "Escape" && isMonthPopoverOpen()) {
-          setMonthPopoverOpen(false);
-          monthTrigger?.focus();
-          return;
-        }
-        if (e.key === "Escape" && openItemMenu) {
-          const menu = openItemMenu.menu;
-          if (menu.classList.contains("is-confirming")) {
-            menu.classList.remove("is-confirming");
-            menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
-            return;
-          }
-          const btn = openItemMenu.btn;
-          closeItemMenu();
-          btn.focus();
-          return;
-        }
-        if (e.key === "Escape" && profileMenu && !profileMenu.classList.contains("hidden")) {
-          setProfileMenuOpen(false);
-          profileBtn.focus();
-          return;
-        }
-        if (e.key === "Escape" && dataMenu.open) {
-          dataMenu.open = false;
-          dataMenu.querySelector("summary")?.focus();
+        if (e.key === "Escape") {
+          overlays.dismissTop(e);
           return;
         }
         if (!isAuthenticated()) return;
@@ -3668,7 +3631,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function lockApp(silent = false) {
       sessionStorage.removeItem(AUTH_SESSION_KEY);
-      setProfileMenuOpen(false);
+      overlays.close("profile", { restoreFocus: false });
       document.body.classList.add("app-locked");
       const needsRegister = cloudHasUsers === false;
       showAuthOverlay(needsRegister ? "register" : "login");
@@ -4270,7 +4233,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function render() {
-      closeItemMenu();
+      overlays.close("item", { restoreFocus: false });
       const month = monthPicker.value;
       const current = data[month] || { salary: "", items: {}, paid: {} };
       const prevMonth = getPreviousMonth(month);
@@ -4372,8 +4335,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function toggleItemMenu(btn) {
-      if (openItemMenu && openItemMenu.btn === btn) {
-        closeItemMenu();
+      if (overlays.isOpen("item") && openItemMenu && openItemMenu.btn === btn) {
+        overlays.close("item");
         return;
       }
       closeItemMenu();
@@ -4398,6 +4361,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       // state synchronously still plays the spring transition.
       menu.dataset.open = "true";
       menu.querySelector(".item-menu-action")?.focus({ preventScroll: true });
+
+      overlays.open("item");
     }
 
     function bindItemMenuActions(menu) {
@@ -5270,7 +5235,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function applyFilters() {
       const q = searchInput.value.trim().toLowerCase();
-      if (q) closeItemMenu();
+      if (q) overlays.close("item", { restoreFocus: false });
 
       document.querySelectorAll(".cat-box").forEach(box => {
         let boxHasMatch = false;
@@ -5377,6 +5342,121 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         .join("");
     }
 
+    function setupOverlays() {
+      // Month popover
+      overlays.register("month", {
+        show() {
+          setMonthPopoverOpen(true);
+        },
+        hide() {
+          setMonthPopoverOpen(false);
+        },
+        isOutsideClick: (target) => !monthPickerWrap?.contains(target),
+        dismissible: true,
+        onDismiss: (e) => {
+          if (e.key === "Escape") {
+            monthTrigger?.focus({ preventScroll: true });
+            return true;
+          }
+          return true;
+        },
+        restoreFocus: true,
+      });
+
+      // Profile menu
+      overlays.register("profile", {
+        show() {
+          setProfileMenuOpen(true);
+        },
+        hide() {
+          setProfileMenuOpen(false);
+        },
+        isOutsideClick: (target) => !profileWrap?.contains(target),
+        dismissible: true,
+        onDismiss: (e) => {
+          if (e.key === "Escape") {
+            profileBtn.focus({ preventScroll: true });
+            return true;
+          }
+          return true;
+        },
+        restoreFocus: true,
+      });
+
+      // Data menu (native <details>)
+      overlays.register("data", {
+        show() {
+          dataMenu.open = true;
+        },
+        hide() {
+          dataMenu.open = false;
+        },
+        isOutsideClick: (target) => !dataMenu.contains(target),
+        dismissible: true,
+        onDismiss: (e) => {
+          if (e.key === "Escape") {
+            dataMenu.querySelector("summary")?.focus({ preventScroll: true });
+            return true;
+          }
+          return true;
+        },
+        restoreFocus: true,
+      });
+
+      // Item menu
+      overlays.register("item", {
+        show() {
+          // This will be called by toggleItemMenu
+        },
+        hide() {
+          closeItemMenu();
+        },
+        isOutsideClick: (target) => {
+          return !target.closest(".item-menu-card") && !target.closest("[data-menu-toggle]");
+        },
+        dismissible: true,
+        onDismiss: (e) => {
+          if (e.key === "Escape" && openItemMenu) {
+            const menu = openItemMenu.menu;
+            if (menu.classList.contains("is-confirming")) {
+              menu.classList.remove("is-confirming");
+              menu.querySelector("[data-delete-start]")?.focus({ preventScroll: true });
+              return false;
+            }
+            return true;
+          }
+          return true;
+        },
+        restoreFocus: true,
+      });
+
+      // Expense modal
+      overlays.register("expense", {
+        show() {
+          openExpenseModal({ mode: expenseModalMode, key: expenseRenameKey });
+        },
+        hide() {
+          closeExpenseModal();
+        },
+        isOutsideClick: (target) => target === expenseModal,
+        dismissible: true,
+        restoreFocus: false,
+      });
+
+      // Budget modal
+      overlays.register("budget", {
+        show() {
+          openBudgetModal();
+        },
+        hide() {
+          closeBudgetModal();
+        },
+        isOutsideClick: (target) => target === budgetModal,
+        dismissible: true,
+        restoreFocus: false,
+      });
+    }
+
     function openExpenseModal({ mode = "add", key = null } = {}) {
       expenseModalMode = mode;
       expenseRenameKey = key;
@@ -5477,7 +5557,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       getMeta().categoryBudgets = budgets;
       persistence.saveLocal(data);
       syncAllInBackground();
-      closeBudgetModal();
+      overlays.close("budget");
       render();
       setAutosaveBadge("Saved on this device", "saved");
       showToast("Category budgets saved");
@@ -5590,7 +5670,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         setAutosaveBadge("Saved on this device", "saved");
       }
 
-      closeExpenseModal();
+      overlays.close("expense");
     }
 
     function addCustomExpense() {
@@ -5598,7 +5678,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function renameExpenseItem(key) {
-      openExpenseModal({ mode: "rename", key });
+      overlays.open("expense", { mode: "rename", key });
     }
 
     function performDeleteExpense(key) {
