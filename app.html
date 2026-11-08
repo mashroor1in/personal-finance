@@ -611,6 +611,7 @@
 
     .btn:focus-visible,
     .view-tab:focus-visible,
+    .select-trigger:focus-visible,
     .cat-box-header:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
@@ -1794,6 +1795,113 @@
     .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
     .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
 
+    /* Styled category picker (replaces the OS-native select popup) */
+    .select-field { position: relative; }
+    .select-trigger {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 9px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .select-trigger:hover {
+      border-color: color-mix(in srgb, var(--muted) 40%, var(--line));
+      background: var(--card);
+      transform: none;
+    }
+    .select-trigger[aria-expanded="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+    .select-trigger-icon {
+      display: inline-flex;
+      flex-shrink: 0;
+    }
+    .select-trigger-label {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .select-trigger-chevron {
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: transform 0.16s ease;
+    }
+    .select-trigger[aria-expanded="true"] .select-trigger-chevron { transform: rotate(180deg); }
+    .select-list {
+      position: fixed;
+      z-index: 20;
+      margin: 0;
+      padding: 5px;
+      list-style: none;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 16px 36px -14px rgba(15, 23, 42, 0.30), 0 4px 12px -4px rgba(15, 23, 42, 0.10);
+      max-height: min(288px, 46vh);
+      overflow-y: auto;
+    }
+    .select-list[hidden] { display: none; }
+    .select-option {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 8px 9px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+    }
+    .select-option-icon { display: inline-flex; flex-shrink: 0; }
+    .select-option-label {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .select-option-check { color: var(--accent); flex-shrink: 0; opacity: 0; }
+    .select-option:hover,
+    .select-option.is-active { background: var(--card-muted); }
+    .select-option[aria-selected="true"] {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .select-option[aria-selected="true"] .select-option-check { opacity: 1; }
+    .select-option:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    .expense-modal-form .label-optional { font-weight: 600; color: var(--muted); opacity: 0.85; }
+    .input-affix { position: relative; }
+    .input-affix > input { padding-left: 30px; }
+    .input-affix-prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+    .field-hint { margin: 0; font-size: 11.5px; font-weight: 500; color: var(--muted); }
+
     /* ============================================================
        UI refresh: hierarchy, grouped actions, calmer palette
        ============================================================ */
@@ -2930,15 +3038,28 @@
       <form id="expenseModalForm" class="expense-modal-form">
         <div>
           <label for="expenseNameInput">Expense name</label>
-          <input id="expenseNameInput" type="text" placeholder="e.g. Gym membership" />
+          <input id="expenseNameInput" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Gym membership" />
         </div>
         <div id="expenseCategoryWrap">
-          <label for="expenseCategorySelect">Category</label>
-          <select id="expenseCategorySelect"></select>
+          <label id="expenseCategoryLabel" for="expenseCategoryTrigger">Category</label>
+          <div class="select-field">
+            <button id="expenseCategoryTrigger" class="select-trigger" type="button"
+              aria-haspopup="listbox" aria-expanded="false" aria-labelledby="expenseCategoryLabel">
+              <span id="expenseCategoryTriggerIcon" class="select-trigger-icon" aria-hidden="true"></span>
+              <span id="expenseCategoryTriggerLabel" class="select-trigger-label"></span>
+              <iconify-icon class="select-trigger-chevron" icon="lucide:chevron-down" width="15" height="15" aria-hidden="true"></iconify-icon>
+            </button>
+            <div id="expenseCategoryList" class="select-list" role="listbox" aria-labelledby="expenseCategoryLabel" hidden></div>
+            <select id="expenseCategorySelect" hidden tabindex="-1" aria-hidden="true"></select>
+          </div>
         </div>
         <div id="expenseAmountWrap">
-          <label for="expenseDefaultAmountInput">Default amount (optional)</label>
-          <input id="expenseDefaultAmountInput" type="number" min="0" step="1" placeholder="e.g. 1500" />
+          <label for="expenseDefaultAmountInput">Default amount <span class="label-optional">(optional)</span></label>
+          <div class="input-affix">
+            <span class="input-affix-prefix" aria-hidden="true">₹</span>
+            <input id="expenseDefaultAmountInput" class="tnum" type="number" min="0" step="1" inputmode="decimal" placeholder="0" />
+          </div>
+          <p class="field-hint">Prefills this month's figure. You can change it any time.</p>
         </div>
         <p id="expenseModalError" class="expense-modal-error" aria-live="polite"></p>
         <div class="expense-modal-actions">
@@ -3043,6 +3164,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       "Repayments": { icon: "ph:credit-card-bold", bucket: "needs", color: "#ef4444" },
       "Investment / Savings": { icon: "ph:chart-line-up-bold", bucket: "savings", color: "#8b5cf6" }
     };
+
+    // Index of the keyboard-highlighted option in the expense category picker.
+    // Declared with the other module state so init() (called further up) can
+    // reach it without a temporal-dead-zone error.
+    let expenseCategoryActiveIndex = 0;
 
     const BANK_ACCOUNTS = [
       {
@@ -3257,6 +3383,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const expenseNameInput = document.getElementById("expenseNameInput");
     const expenseCategoryWrap = document.getElementById("expenseCategoryWrap");
     const expenseCategorySelect = document.getElementById("expenseCategorySelect");
+    const expenseCategoryTrigger = document.getElementById("expenseCategoryTrigger");
+    const expenseCategoryTriggerIcon = document.getElementById("expenseCategoryTriggerIcon");
+    const expenseCategoryTriggerLabel = document.getElementById("expenseCategoryTriggerLabel");
+    const expenseCategoryList = document.getElementById("expenseCategoryList");
     const expenseAmountWrap = document.getElementById("expenseAmountWrap");
     const expenseDefaultAmountInput = document.getElementById("expenseDefaultAmountInput");
     const expenseModalError = document.getElementById("expenseModalError");
@@ -3571,6 +3701,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       window.addEventListener("scroll", () => { overlays.close("item", { restoreFocus: false }); }, true);
       window.addEventListener("resize", () => { overlays.close("item", { restoreFocus: false }); });
+      window.addEventListener("scroll", (e) => {
+        const target = e.target;
+        if (target && target.nodeType === 1 && target.closest?.(".select-list")) return;
+        overlays.close("expenseCategory", { restoreFocus: false });
+      }, true);
+      window.addEventListener("resize", () => { overlays.close("expenseCategory", { restoreFocus: false }); });
 
       budgetAlertAction.addEventListener("click", () => {
         const targetCat = "Family / Personal";
@@ -5359,6 +5495,111 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       expenseCategorySelect.innerHTML = categories
         .map((cat) => `<option value="${cat}">${cat}</option>`)
         .join("");
+      setupExpenseCategoryPicker();
+    }
+
+    function setupExpenseCategoryPicker() {
+      expenseCategoryList.innerHTML = Object.keys(CATEGORY_MAP)
+        .map((cat) => {
+          const meta = CATEGORY_MAP[cat];
+          return `
+            <button class="select-option" type="button" role="option" aria-selected="false"
+              data-category="${cat}" tabindex="-1">
+              <span class="select-option-icon" style="color:${meta.color};">${iconNode(meta.icon, 14)}</span>
+              <span class="select-option-label">${cat}</span>
+              <iconify-icon class="select-option-check" icon="lucide:check" width="14" height="14" aria-hidden="true"></iconify-icon>
+            </button>`;
+        })
+        .join("");
+
+      expenseCategoryTrigger.addEventListener("click", () => {
+        if (overlays.isOpen("expenseCategory")) overlays.close("expenseCategory");
+        else overlays.open("expenseCategory");
+      });
+
+      expenseCategoryTrigger.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+        e.preventDefault();
+        overlays.open("expenseCategory");
+        focusExpenseCategoryOption(expenseCategoryActiveIndex);
+      });
+
+      expenseCategoryList.addEventListener("click", (e) => {
+        const option = e.target.closest(".select-option");
+        if (option) chooseExpenseCategory(option.dataset.category);
+      });
+
+      expenseCategoryList.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const options = expenseCategoryOptions();
+          const current = options.indexOf(document.activeElement);
+          const next = current < 0 ? expenseCategoryActiveIndex : current + (e.key === "ArrowDown" ? 1 : -1);
+          focusExpenseCategoryOption(next);
+        } else if (e.key === "Home" || e.key === "End") {
+          e.preventDefault();
+          const options = expenseCategoryOptions();
+          focusExpenseCategoryOption(e.key === "Home" ? 0 : options.length - 1);
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const active = document.activeElement.closest?.(".select-option");
+          if (active) chooseExpenseCategory(active.dataset.category);
+        }
+      });
+
+      setExpenseCategory(Object.keys(CATEGORY_MAP)[0]);
+    }
+
+    function expenseCategoryOptions() {
+      return [...expenseCategoryList.querySelectorAll(".select-option")];
+    }
+
+    function setExpenseCategory(value, { focusTrigger = false } = {}) {
+      const categories = Object.keys(CATEGORY_MAP);
+      const cat = categories.includes(value) ? value : categories[0];
+      expenseCategorySelect.value = cat;
+
+      const meta = CATEGORY_MAP[cat];
+      expenseCategoryTriggerIcon.innerHTML = iconNode(meta.icon, 15);
+      expenseCategoryTriggerIcon.style.color = meta.color;
+      expenseCategoryTriggerLabel.textContent = cat;
+
+      expenseCategoryOptions().forEach((option) => {
+        const selected = option.dataset.category === cat;
+        option.setAttribute("aria-selected", String(selected));
+        option.classList.remove("is-active");
+      });
+      expenseCategoryActiveIndex = Math.max(0, categories.indexOf(cat));
+
+      if (focusTrigger) expenseCategoryTrigger.focus({ preventScroll: true });
+    }
+
+    function chooseExpenseCategory(value) {
+      setExpenseCategory(value, { focusTrigger: true });
+      overlays.close("expenseCategory", { restoreFocus: false });
+    }
+
+    function focusExpenseCategoryOption(index) {
+      const options = expenseCategoryOptions();
+      if (!options.length) return;
+      const bounded = (index + options.length) % options.length;
+      expenseCategoryActiveIndex = bounded;
+      options.forEach((option, i) => option.classList.toggle("is-active", i === bounded));
+      options[bounded].focus({ preventScroll: true });
+      options[bounded].scrollIntoView({ block: "nearest" });
+    }
+
+    function positionExpenseCategoryList() {
+      const rect = expenseCategoryTrigger.getBoundingClientRect();
+      const gap = 6;
+      const width = rect.width;
+      expenseCategoryList.style.width = `${width}px`;
+      const listHeight = expenseCategoryList.getBoundingClientRect().height;
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+      const below = rect.bottom + gap;
+      const fitsBelow = below + listHeight <= window.innerHeight - 8;
+      expenseCategoryList.style.left = `${left}px`;
+      expenseCategoryList.style.top = `${fitsBelow ? below : Math.max(8, rect.top - gap - listHeight)}px`;
     }
 
     function setupOverlays() {
@@ -5462,6 +5703,31 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         restoreFocus: false,
       });
 
+      // Expense category picker (nested inside the expense modal)
+      overlays.register("expenseCategory", {
+        show() {
+          expenseCategoryList.hidden = false;
+          expenseCategoryTrigger.setAttribute("aria-expanded", "true");
+          positionExpenseCategoryList();
+        },
+        hide() {
+          expenseCategoryList.hidden = true;
+          expenseCategoryTrigger.setAttribute("aria-expanded", "false");
+          expenseCategoryList.querySelectorAll(".select-option.is-active")
+            .forEach((option) => option.classList.remove("is-active"));
+        },
+        isOutsideClick: (target) => !target.closest(".select-field"),
+        dismissible: true,
+        restoreFocus: false,
+        onDismiss: (e) => {
+          if (e.key === "Escape") {
+            expenseCategoryTrigger.focus({ preventScroll: true });
+            return true;
+          }
+          return true;
+        },
+      });
+
       // Budget modal
       overlays.register("budget", {
         show() {
@@ -5481,6 +5747,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       expenseRenameKey = key;
       expenseModalError.textContent = "";
       expenseModalForm.reset();
+      overlays.close("expenseCategory", { restoreFocus: false });
 
       if (mode === "rename") {
         const item = getAllItems().find((i) => i.key === key);
@@ -5495,6 +5762,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         expenseModalSubmitBtn.textContent = "Add";
         expenseCategoryWrap.classList.remove("hidden");
         expenseAmountWrap.classList.remove("hidden");
+        setExpenseCategory(expenseCategorySelect.value);
       }
 
       expenseModal.classList.remove("hidden");
@@ -5503,6 +5771,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function closeExpenseModal() {
+      overlays.close("expenseCategory", { restoreFocus: false });
       expenseModal.classList.add("hidden");
       expenseModalError.textContent = "";
       expenseRenameKey = null;
