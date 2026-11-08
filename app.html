@@ -543,6 +543,12 @@
       display: none !important;
     }
 
+    /* The global control styles set display on input/select, which would otherwise
+       override the UA rule for the boolean hidden attribute. */
+    [hidden] {
+      display: none !important;
+    }
+
     .planner-app {
       max-width: 1340px;
       margin: 0 auto;
