@@ -533,6 +533,10 @@
       border-radius: 9px;
       padding: 6px 7px;
       text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
 
     .hidden {
@@ -606,11 +610,25 @@
     }
 
     .btn:focus-visible,
-    input:focus-visible,
-    select:focus-visible,
+    .view-tab:focus-visible,
     .cat-box-header:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
+    }
+
+    input:focus-visible,
+    select:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    /* Checkboxes carry their own accent; keep them on the outline system */
+    input[type="checkbox"]:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-color: var(--muted);
+      box-shadow: none;
     }
 
     .btn-primary {
@@ -2184,7 +2202,7 @@
       width: 100%; min-width: 0; padding: 0; border: 0; background: transparent;
       color: var(--text); font-size: 28px; font-weight: 800; letter-spacing: -0.02em;
     }
-    .kpi-edit input:focus-visible { outline: none; }
+    .kpi-edit input:focus-visible { outline: none; box-shadow: none; }
     .kpi-edit input::-webkit-outer-spin-button,
     .kpi-edit input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .kpi-edit input { -moz-appearance: textfield; appearance: textfield; }
@@ -2281,7 +2299,7 @@
     }
     .search-wrap:focus-within { border-color: var(--accent); }
     .search-wrap input { border: 0; background: transparent; padding: 8px 0; width: 150px; color: var(--text); }
-    .search-wrap input:focus-visible { outline: none; }
+    .search-wrap input:focus-visible { outline: none; box-shadow: none; }
 
     /* Compact row actions */
     .cat-box-header { padding: 12px 14px; }
@@ -2725,9 +2743,9 @@
     <!-- View & Filtering Toolbar -->
     <div class="view-toolbar">
       <div class="view-tabs" role="group" aria-label="Planner view">
-        <button id="viewBoxesBtn" class="view-tab btn-active" aria-pressed="true">🗂️ Boxes</button>
-        <button id="viewTableBtn" class="view-tab" aria-pressed="false">📄 Table</button>
-        <button id="collapseAllBtn" class="view-tab" type="button">↕️ Collapse all</button>
+        <button id="viewBoxesBtn" class="view-tab btn-active" aria-pressed="true"><iconify-icon icon="lucide:layout-grid" width="14" height="14" aria-hidden="true"></iconify-icon>Boxes</button>
+        <button id="viewTableBtn" class="view-tab" aria-pressed="false"><iconify-icon icon="lucide:table" width="14" height="14" aria-hidden="true"></iconify-icon>Table</button>
+        <button id="collapseAllBtn" class="view-tab" type="button"><iconify-icon icon="lucide:chevrons-down-up" width="14" height="14" aria-hidden="true"></iconify-icon>Collapse all</button>
       </div>
 
       <div class="view-actions">
@@ -2736,10 +2754,10 @@
           <label for="searchInput" class="sr-only">Search items</label>
           <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" />
         </div>
-        <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets">🎯 Budgets</button>
-        <button id="addExpenseBtn" class="btn" type="button" title="Add a new expense item">➕ Add expense</button>
-        <button id="saveMonthBtn" class="btn" type="button" title="Save this month">💾 Save month</button>
-        <button id="saveChecksBtn" class="btn btn-primary" disabled>✅ Save checked</button>
+        <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets"><iconify-icon icon="lucide:target" width="15" height="15" aria-hidden="true"></iconify-icon>Budgets</button>
+        <button id="addExpenseBtn" class="btn" type="button" title="Add a new expense item"><iconify-icon icon="lucide:plus" width="15" height="15" aria-hidden="true"></iconify-icon>Add expense</button>
+        <button id="saveMonthBtn" class="btn" type="button" title="Save this month"><iconify-icon icon="lucide:save" width="15" height="15" aria-hidden="true"></iconify-icon>Save month</button>
+        <button id="saveChecksBtn" class="btn btn-primary" disabled><iconify-icon icon="lucide:check-check" width="15" height="15" aria-hidden="true"></iconify-icon><span id="saveChecksLabel">Save checked</span></button>
         <details class="action-menu" id="dataMenu">
           <summary class="btn" title="Backup and restore" aria-haspopup="menu">
             <iconify-icon icon="lucide:ellipsis" width="18" height="18" aria-hidden="true"></iconify-icon>
@@ -2887,9 +2905,9 @@
             </span>
           </button>
           <div class="auth-trust-row" aria-hidden="true">
-            <span class="auth-trust-item">🔒 Secure cookie</span>
-            <span class="auth-trust-item">☁️ D1 + KV</span>
-            <span class="auth-trust-item">🛡️ Bot defense</span>
+            <span class="auth-trust-item"><iconify-icon icon="lucide:lock" width="12" height="12" aria-hidden="true"></iconify-icon>Secure cookie</span>
+            <span class="auth-trust-item"><iconify-icon icon="lucide:cloud" width="12" height="12" aria-hidden="true"></iconify-icon>D1 + KV</span>
+            <span class="auth-trust-item"><iconify-icon icon="lucide:shield" width="12" height="12" aria-hidden="true"></iconify-icon>Bot defense</span>
           </div>
           <div id="authSwitchWrap" class="auth-switch-row">
             <span id="authSwitchText">New here?</span>
@@ -2907,7 +2925,7 @@
     <div class="expense-modal-card">
       <div class="expense-modal-head">
         <h3 id="expenseModalTitle">Add Expense</h3>
-        <button id="expenseModalCloseBtn" class="btn" type="button" aria-label="Close">✕</button>
+        <button id="expenseModalCloseBtn" class="btn" type="button" aria-label="Close"><iconify-icon icon="lucide:x" width="16" height="16" aria-hidden="true"></iconify-icon></button>
       </div>
       <form id="expenseModalForm" class="expense-modal-form">
         <div>
@@ -2935,7 +2953,7 @@
     <div class="expense-modal-card modal-wide">
       <div class="expense-modal-head">
         <h3 id="budgetModalTitle">Monthly category budgets</h3>
-        <button id="budgetModalCloseBtn" class="btn" type="button" aria-label="Close">✕</button>
+        <button id="budgetModalCloseBtn" class="btn" type="button" aria-label="Close"><iconify-icon icon="lucide:x" width="16" height="16" aria-hidden="true"></iconify-icon></button>
       </div>
       <p class="modal-hint">Set a monthly cap for each category. Leave blank for no budget.</p>
       <form id="budgetModalForm" class="expense-modal-form">
@@ -3177,6 +3195,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const viewTableBtn = document.getElementById("viewTableBtn");
     const collapseAllBtn = document.getElementById("collapseAllBtn");
     const saveChecksBtn = document.getElementById("saveChecksBtn");
+    const saveChecksLabel = document.getElementById("saveChecksLabel");
     const categoryBoxesContainer = document.getElementById("categoryBoxesContainer");
     const tableViewContainer = document.getElementById("tableViewContainer");
     const tableRows = document.getElementById("tableRows");
@@ -5286,7 +5305,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       paidDirty = !!flag;
       if (!saveChecksBtn) return;
       saveChecksBtn.disabled = !paidDirty;
-      saveChecksBtn.textContent = paidDirty ? "✅ Save checked*" : "✅ Save checked";
+      saveChecksLabel.textContent = paidDirty ? "Save checked*" : "Save checked";
     }
 
     function updatePaidCategoryBadges() {
