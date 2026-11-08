@@ -835,62 +835,8 @@
       flex-shrink: 0;
     }
 
-    /* 50 / 30 / 20 Diagnostic Bar */
-    .budget-diagnostic {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow);
-    }
+    
 
-    .diag-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 13px;
-    }
-
-    .diag-bar {
-      height: 12px;
-      width: 100%;
-      background: var(--line);
-      border-radius: 6px;
-      overflow: hidden;
-      display: flex;
-    }
-
-    .diag-fill-needs { background: #3b82f6; transition: width 0.3s ease; }
-    .diag-fill-wants { background: #f59e0b; transition: width 0.3s ease; }
-    .diag-fill-savings { background: #10b981; transition: width 0.3s ease; }
-
-    .diag-legend {
-      display: flex;
-      gap: 18px;
-      margin-top: 10px;
-      font-size: 12px;
-      flex-wrap: wrap;
-    }
-
-    .diag-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .diag-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 6px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--line);
-      background: var(--card-muted);
-      color: var(--muted);
-    }
 
     /* Settlement Summary Bar */
     .settlement-card {
@@ -1037,16 +983,14 @@
     .category-pill svg,
     .cat-icon-badge iconify-icon,
     .bank-icon-badge iconify-icon,
-    .category-pill iconify-icon,
-    .diag-icon iconify-icon {
+    .category-pill iconify-icon {
       display: block;
     }
 
     /* Icon size boost: +10% */
     .cat-icon-badge iconify-icon,
     .bank-icon-badge iconify-icon,
-    .category-pill iconify-icon,
-    .diag-icon iconify-icon {
+    .category-pill iconify-icon {
       transform: scale(1.1);
       transform-origin: center;
     }
@@ -2366,27 +2310,7 @@
     .chart-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
     #trendChart { width: 100%; height: auto; min-height: 200px; flex: 1 1 200px; display: block; }
 
-    /* Budget diagnostic: three informative tiles */
-    .budget-diagnostic { padding: 15px 16px; margin-bottom: 14px; }
-    .diag-head { align-items: flex-start; gap: 12px; margin-bottom: 9px; }
-    .diag-head strong { font-size: 14px; letter-spacing: -0.01em; }
-    .diag-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
-    .diag-summary { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-    .diag-bar { height: 10px; }
-    .diag-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-    .diag-tile {
-      border: 1px solid var(--line); background: var(--card-muted);
-      border-radius: 10px; padding: 10px 11px; display: grid; gap: 6px;
-    }
-    .diag-tile-top { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
-    .diag-tile-top strong { margin-left: auto; font-size: 14px; letter-spacing: -0.01em; }
-    .diag-tile-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; color: var(--muted); }
-    .diag-status { font-weight: 800; }
-    .diag-status.ok { color: var(--green); }
-    .diag-status.over { color: var(--red); }
-    .diag-status.under { color: var(--amber); }
-    .diag-tile-track { height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
-    .diag-tile-track span { display: block; height: 100%; width: 0%; border-radius: 999px; transition: width 0.3s ease; }
+
 
     /* View toolbar grouping */
     .view-toolbar { margin-bottom: 14px; gap: 10px; }
@@ -2469,7 +2393,7 @@
       @keyframes sheetIn { from { opacity: 0; transform: translateY(16px); } }
       .stats-grid { grid-template-columns: 1fr; }
       .stat-hero { grid-column: auto; }
-      .diag-tiles { grid-template-columns: 1fr; }
+      
       .donut-layout { grid-template-columns: 1fr; }
       #expenseChart { margin: 0 auto; }
       .breakdown-legend { max-height: none; }
@@ -2787,50 +2711,7 @@
       </article>
     </section>
 
-    <!-- 50 / 30 / 20 Budget Diagnostic -->
-    <section class="budget-diagnostic">
-      <div class="diag-head">
-        <div>
-          <strong>50 / 30 / 20 Budget Allocation</strong>
-          <p>Bar shows this month's outflow mix · tiles compare each bucket to income</p>
-        </div>
-        <span id="diagSummary" class="diag-summary tnum">Needs 0% • Wants 0% • Savings 0%</span>
-      </div>
-      <div class="diag-bar" aria-hidden="true">
-        <div id="diagNeeds" class="diag-fill-needs" style="width:0%;"></div>
-        <div id="diagWants" class="diag-fill-wants" style="width:0%;"></div>
-        <div id="diagSavings" class="diag-fill-savings" style="width:0%;"></div>
-      </div>
-      <div class="diag-tiles">
-        <div class="diag-tile" data-bucket="needs">
-          <div class="diag-tile-top">
-            <span id="diagNeedsIcon" class="diag-icon"></span>
-            <span>Needs</span>
-            <strong id="diagNeedsPct" class="tnum">0%</strong>
-          </div>
-          <div class="diag-tile-meta"><span>Target 50%</span><span id="diagNeedsStatus" class="diag-status">—</span></div>
-          <div class="diag-tile-track"><span id="diagNeedsMini" style="background:#3b82f6;"></span></div>
-        </div>
-        <div class="diag-tile" data-bucket="wants">
-          <div class="diag-tile-top">
-            <span id="diagWantsIcon" class="diag-icon"></span>
-            <span>Wants</span>
-            <strong id="diagWantsPct" class="tnum">0%</strong>
-          </div>
-          <div class="diag-tile-meta"><span>Target 30%</span><span id="diagWantsStatus" class="diag-status">—</span></div>
-          <div class="diag-tile-track"><span id="diagWantsMini" style="background:#f59e0b;"></span></div>
-        </div>
-        <div class="diag-tile" data-bucket="savings">
-          <div class="diag-tile-top">
-            <span id="diagSavingsIcon" class="diag-icon"></span>
-            <span>Savings</span>
-            <strong id="diagSavingsPct" class="tnum">0%</strong>
-          </div>
-          <div class="diag-tile-meta"><span>Target 20%</span><span id="diagSavingsStatus" class="diag-status">—</span></div>
-          <div class="diag-tile-track"><span id="diagSavingsMini" style="background:#10b981;"></span></div>
-        </div>
-      </div>
-    </section>
+    
 
     <!-- Month-over-month insights -->
     <section class="insights-section" aria-labelledby="insightsTitle">
@@ -3581,7 +3462,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       restorePreferences();
       setupExpenseModal();
       setupOverlays();
-      renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
       updateMonthTriggerLabel();
       bindCoreListeners();
@@ -4135,7 +4015,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       localStorage.removeItem(UI_KEY_VIEW);
       document.body.classList.remove("privacy-active");
       incognitoBtn.classList.remove("btn-active");
-      renderDiagLegendIcons();
       monthPicker.value = toMonthString(new Date());
       updateMonthTriggerLabel();
       updateSecurityCard();
@@ -4334,7 +4213,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       syncAriaStates();
 
       if (redraw) {
-        renderDiagLegendIcons();
         const totals = getCurrentTotals();
         drawDonutChart(totals.byCategory, totals.outflow);
         drawTrendChart();
@@ -4904,47 +4782,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       document.getElementById("settleAmt").textContent = `(₹${formatNumber(totals.paidOutflow)} of ₹${formatNumber(totalOutflow)} cleared)`;
       document.getElementById("settleFill").style.width = `${settlePct}%`;
 
-      const baseIncome = salary > 0 ? salary : totalOutflow;
-      const nPct = baseIncome > 0 ? (totals.needsSum / baseIncome) * 100 : 0;
-      const wPct = baseIncome > 0 ? (totals.wantsSum / baseIncome) * 100 : 0;
-      const sPct = baseIncome > 0 ? (totals.savingsSum / baseIncome) * 100 : 0;
 
-      // The stacked bar shows the outflow mix (always sums to 100%);
-      // tile figures below compare each bucket against income targets.
-      const mixTotal = nPct + wPct + sPct;
-      const mixPct = (v) => (mixTotal > 0 ? (v / mixTotal) * 100 : 0);
-
-      document.getElementById("diagNeeds").style.width = `${mixPct(nPct)}%`;
-      document.getElementById("diagWants").style.width = `${mixPct(wPct)}%`;
-      document.getElementById("diagSavings").style.width = `${mixPct(sPct)}%`;
-      document.getElementById("diagSummary").textContent = `Needs ${nPct.toFixed(0)}% • Wants ${wPct.toFixed(0)}% • Savings ${sPct.toFixed(0)}%`;
-
-      updateDiagTile("Needs", nPct, 50, false);
-      updateDiagTile("Wants", wPct, 30, false);
-      updateDiagTile("Savings", sPct, 20, true);
 
       updateCategoryBudgetBars(totals);
       renderInsights(totals);
 
       queueChartDraw(totals);
-    }
-
-    function updateDiagTile(name, actual, target, higherIsBetter) {
-      const pctEl = document.getElementById(`diag${name}Pct`);
-      const statusEl = document.getElementById(`diag${name}Status`);
-      const miniEl = document.getElementById(`diag${name}Mini`);
-      if (!pctEl || !statusEl || !miniEl) return;
-
-      pctEl.textContent = `${actual.toFixed(0)}%`;
-      miniEl.style.width = `${Math.max(0, Math.min(100, actual))}%`;
-
-      const diff = actual - target;
-      const bad = higherIsBetter ? diff < -5 : diff > 5;
-      const good = higherIsBetter ? diff >= 0 : diff <= 5;
-      statusEl.textContent = Math.abs(diff) < 1
-        ? "On target"
-        : `${diff > 0 ? "+" : "−"}${Math.abs(diff).toFixed(0)} pts`;
-      statusEl.className = `diag-status ${bad ? (higherIsBetter ? "under" : "over") : good ? "ok" : "under"}`;
     }
 
     function previousMonthData(monthKey) {
@@ -5178,14 +5021,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    function renderDiagLegendIcons() {
-      const needsEl = document.getElementById("diagNeedsIcon");
-      const wantsEl = document.getElementById("diagWantsIcon");
-      const savingsEl = document.getElementById("diagSavingsIcon");
-      if (needsEl) needsEl.innerHTML = iconNode("ph:house-line-bold", 13);
-      if (wantsEl) wantsEl.innerHTML = iconNode("ph:user-bold", 13);
-      if (savingsEl) savingsEl.innerHTML = iconNode("ph:chart-line-up-bold", 13);
-    }
+    
 
     function slugify(value) {
       return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
