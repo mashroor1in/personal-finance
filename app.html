@@ -4155,10 +4155,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function blobatarMarkup(seed) {
       if (typeof window.blobatarSvgAnimated !== "function") return "";
+      // The auth field feeds this while the user is still typing, before any
+      // server-side validation, so only pass a whitelisted seed into the
+      // third-party SVG generator.
+      const safeSeed = String(seed || "").replace(/[^a-z0-9._@-]/gi, "").slice(0, 64);
+      if (!safeSeed) return "";
       try {
         // No background disc: the avatar button / auth circle provides it, and
         // the blobatar disc looked like a white plate on the dark theme.
-        return window.blobatarSvgAnimated(seed, { background: false });
+        return window.blobatarSvgAnimated(safeSeed, { background: false });
       } catch (error) {
         return "";
       }
@@ -4315,25 +4320,26 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function itemMenuMarkup(item) {
       const editing = !!editState[item.key];
+      const key = escapeHtml(item.key);
       return `
         <div class="item-menu-card" role="menu" aria-label="More options">
           <div class="item-menu-head">More Options</div>
           <div class="item-menu-list">
-            <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" role="menuitem" data-edit="${item.key}" title="${editing ? "Save amount" : "Edit amount"}">
+            <button class="item-menu-action ${editing ? "btn-active" : ""}" type="button" role="menuitem" data-edit="${key}" title="${editing ? "Save amount" : "Edit amount"}">
               ${ITEM_MENU_ICONS.edit}<span data-edit-label>${editing ? "Done editing" : "Edit amount"}</span>
             </button>
-            <button class="item-menu-action" type="button" role="menuitem" data-rename="${item.key}" title="Rename expense">
+            <button class="item-menu-action" type="button" role="menuitem" data-rename="${key}" title="Rename expense">
               ${ITEM_MENU_ICONS.tag}<span>Rename</span>
             </button>
           </div>
           <div class="item-menu-delete">
             <div class="item-menu-delete-layer item-menu-delete-row">
-              <button class="item-menu-action is-danger" type="button" role="menuitem" data-delete-start="${item.key}" title="Delete this item">
+              <button class="item-menu-action is-danger" type="button" role="menuitem" data-delete-start="${key}" title="Delete this item">
                 ${ITEM_MENU_ICONS.trash}<span>Delete</span>
               </button>
             </div>
             <div class="item-menu-delete-layer item-menu-confirm">
-              <button class="item-menu-confirm-yes" type="button" data-delete="${item.key}">Yes, Delete</button>
+              <button class="item-menu-confirm-yes" type="button" data-delete="${key}">Yes, Delete</button>
               <button class="item-menu-confirm-no" type="button" data-delete-cancel>Cancel</button>
             </div>
           </div>
@@ -4514,15 +4520,17 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           const row = document.createElement("div");
           row.className = "cat-item-row";
           row.dataset.search = (item.name + " " + cat).toLowerCase();
+          const itemKey = escapeHtml(item.key);
+          const itemName = escapeHtml(item.name);
 
           row.innerHTML = `
             <div class="cat-item-left">
-              <input type="checkbox" class="checkbox" data-key="${item.key}" ${isPaid ? 'checked' : ''} />
-              <span class="item-name ${isPaid ? 'done' : ''}">${item.name}</span>
+              <input type="checkbox" class="checkbox" data-key="${itemKey}" ${isPaid ? 'checked' : ''} />
+              <span class="item-name ${isPaid ? 'done' : ''}">${itemName}</span>
             </div>
             <div class="cat-item-right">
-              <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
-              <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${item.name}" title="Item actions">
+              <input type="number" class="amount-input tnum hideable-val" data-key="${itemKey}" value="${escapeHtml(val)}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
+              <button class="item-menu-btn" type="button" data-menu-toggle="${itemKey}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${itemName}" title="Item actions">
                 ${ITEM_MENU_ICONS.dots}
               </button>
             </div>
@@ -4556,27 +4564,31 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       allItems.forEach((item) => {
         const val = Totals.itemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
-        const catColor = CATEGORY_MAP[item.category]?.color || "#64748b";
+        const catMeta = CATEGORY_MAP[item.category] || {};
+        const catColor = catMeta.color || "#64748b";
 
         const tr = document.createElement("tr");
         tr.dataset.search = (item.name + " " + item.category).toLowerCase();
+        const itemKey = escapeHtml(item.key);
+        const itemName = escapeHtml(item.name);
+        const itemCategory = escapeHtml(item.category);
 
         tr.innerHTML = `
-          <td><input type="checkbox" class="checkbox" data-key="${item.key}" ${isPaid ? 'checked' : ''} /></td>
+          <td><input type="checkbox" class="checkbox" data-key="${itemKey}" ${isPaid ? 'checked' : ''} /></td>
           <td>
             <span class="category-pill" style="--cat-color:${catColor};">
               <span class="dot"></span>
-              <span class="category-inline-icon">${iconNode(CATEGORY_MAP[item.category].icon, 13)}</span>
-              <span>${item.category}</span>
+              <span class="category-inline-icon">${iconNode(catMeta.icon, 13)}</span>
+              <span>${itemCategory}</span>
             </span>
           </td>
-          <td><strong class="${isPaid ? 'done' : ''}">${item.name}</strong></td>
+          <td><strong class="${isPaid ? 'done' : ''}">${itemName}</strong></td>
           <td><span style="font-size:11.5px; color:var(--muted);">${item.fixed ? 'Fixed' : 'Variable'}</span></td>
           <td style="text-align:right;">
-            <input type="number" class="amount-input tnum hideable-val" data-key="${item.key}" value="${val}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
+            <input type="number" class="amount-input tnum hideable-val" data-key="${itemKey}" value="${escapeHtml(val)}" placeholder="0" ${editState[item.key] ? '' : 'disabled'} />
           </td>
           <td style="text-align:center;">
-            <button class="item-menu-btn" type="button" data-menu-toggle="${item.key}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${item.name}" title="Item actions">
+            <button class="item-menu-btn" type="button" data-menu-toggle="${itemKey}" aria-expanded="false" aria-haspopup="menu" aria-label="Actions for ${itemName}" title="Item actions">
               ${ITEM_MENU_ICONS.dots}
             </button>
           </td>
@@ -4600,8 +4612,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           accSum += amt;
           return `
             <li>
-              <span class="item-title">${itemDef.name}</span>
-              <span class="item-amt tnum hideable-val" data-bank-item="${k}">₹${formatNumber(amt)}</span>
+              <span class="item-title">${escapeHtml(itemDef.name)}</span>
+              <span class="item-amt tnum hideable-val" data-bank-item="${escapeHtml(k)}">₹${formatNumber(amt)}</span>
             </li>
           `;
         }).join("");
@@ -5039,6 +5051,22 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     
 
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) =>
+        ch === "&" ? "&amp;" :
+        ch === "<" ? "&lt;" :
+        ch === ">" ? "&gt;" :
+        ch === '"' ? "&quot;" : "&#39;"
+      );
+    }
+
+    function isSafeItemKey(value) {
+      const key = String(value || "");
+      if (!/^[a-z0-9._-]{1,64}$/i.test(key)) return false;
+      const lowered = key.toLowerCase();
+      return lowered !== "__proto__" && lowered !== "prototype" && lowered !== "constructor";
+    }
+
     function slugify(value) {
       return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
     }
@@ -5097,7 +5125,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         row.innerHTML = `
           <div class="breakdown-label">
             <span class="color-dot" style="background:${color}"></span>
-            <span title="${cat}">${cat}</span>
+            <span title="${escapeHtml(cat)}">${escapeHtml(cat)}</span>
           </div>
           <span class="tnum hideable-val" style="font-weight:700;">₹${formatNumber(val)}</span>
           <span class="tnum" style="color:var(--muted); font-size:11px;">${pct}%</span>
@@ -5865,6 +5893,122 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       showToast("Backup exported");
     }
 
+    function sanitizeBackupMonth(value) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+
+      const salaryRaw = value.salary;
+      const salaryBlank = salaryRaw == null || (typeof salaryRaw === "string" && salaryRaw.trim() === "");
+      const salaryNum = Number(salaryRaw);
+      const salary = salaryBlank ? "" : (Number.isFinite(salaryNum) ? salaryNum : "");
+
+      const items = {};
+      if (value.items && typeof value.items === "object" && !Array.isArray(value.items)) {
+        let count = 0;
+        for (const [key, raw] of Object.entries(value.items)) {
+          if (count >= 500) break;
+          if (!isSafeItemKey(key)) continue;
+          if (raw === "" || raw == null) {
+            items[key] = "";
+            count += 1;
+            continue;
+          }
+          const num = Number(raw);
+          if (Number.isFinite(num)) {
+            items[key] = num;
+            count += 1;
+          }
+        }
+      }
+
+      const paid = {};
+      if (value.paid && typeof value.paid === "object" && !Array.isArray(value.paid)) {
+        let count = 0;
+        for (const [key, raw] of Object.entries(value.paid)) {
+          if (count >= 500) break;
+          if (!isSafeItemKey(key)) continue;
+          paid[key] = !!raw;
+          count += 1;
+        }
+      }
+
+      return { salary, items, paid };
+    }
+
+    function sanitizeBackupMeta(meta) {
+      const clean = { customItems: [], nameOverrides: {}, hiddenItems: [], categoryBudgets: {} };
+      const categories = new Set(Object.keys(CATEGORY_MAP));
+      const knownKeys = new Set(getAllItems().filter((item) => !item.isCustom).map((item) => item.key));
+      const raw = meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
+
+      const customs = Array.isArray(raw.customItems) ? raw.customItems.slice(0, 100) : [];
+      for (const item of customs) {
+        if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+        const key = String(item.key || "");
+        const name = String(item.name || "").trim().slice(0, 120);
+        const category = String(item.category || "");
+        if (!isSafeItemKey(key) || !name || !categories.has(category) || knownKeys.has(key)) continue;
+        knownKeys.add(key);
+        const amount = item.defaultAmount === "" || item.defaultAmount == null
+          ? null
+          : Number(item.defaultAmount);
+        clean.customItems.push({
+          key,
+          name,
+          category,
+          kind: item.kind === "investment" ? "investment" : "expense",
+          fixed: !!item.fixed,
+          defaultAmount: Number.isFinite(amount) ? amount : null,
+        });
+      }
+
+      if (raw.nameOverrides && typeof raw.nameOverrides === "object" && !Array.isArray(raw.nameOverrides)) {
+        for (const [key, name] of Object.entries(raw.nameOverrides)) {
+          if (!knownKeys.has(key) || typeof name !== "string") continue;
+          const trimmed = name.trim().slice(0, 120);
+          if (trimmed) clean.nameOverrides[key] = trimmed;
+        }
+      }
+
+      if (Array.isArray(raw.hiddenItems)) {
+        clean.hiddenItems = raw.hiddenItems
+          .filter((key) => typeof key === "string" && knownKeys.has(key))
+          .slice(0, 500);
+      }
+
+      if (raw.categoryBudgets && typeof raw.categoryBudgets === "object" && !Array.isArray(raw.categoryBudgets)) {
+        for (const [cat, amount] of Object.entries(raw.categoryBudgets)) {
+          if (!categories.has(cat)) continue;
+          const num = Number(amount);
+          if (Number.isFinite(num) && num >= 0) clean.categoryBudgets[cat] = num;
+        }
+      }
+
+      return clean;
+    }
+
+    /**
+     * A backup is untrusted input. Keep only the shape the app understands and
+     * coerce every stored amount to a finite number, so a crafted file cannot
+     * introduce markup, unknown categories, or oversized payloads.
+     */
+    function sanitizeBackup(raw) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+
+      const clean = { __meta: sanitizeBackupMeta(raw.__meta) };
+      let months = 0;
+      for (const [key, value] of Object.entries(raw)) {
+        if (key === "__meta") continue;
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)) continue;
+        if (months >= 600) break;
+        const month = sanitizeBackupMonth(value);
+        if (month) {
+          clean[key] = month;
+          months += 1;
+        }
+      }
+      return clean;
+    }
+
     function importBackup(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -5873,15 +6017,20 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       reader.onload = (evt) => {
         try {
           const parsed = JSON.parse(evt.target.result);
-          if (typeof parsed === "object") {
-            data = parsed;
-            ensureDataShape();
-            persistence.saveLocal(data);
-            render();
-            showToast("Backup restored successfully!");
+          const sanitized = sanitizeBackup(parsed);
+          if (!sanitized) {
+            showToast("That file isn't a valid backup", "error");
+            return;
           }
+          data = sanitized;
+          ensureDataShape();
+          persistence.saveLocal(data);
+          render();
+          showToast("Backup restored successfully!");
         } catch {
           showToast("That file isn't a valid backup", "error");
+        } finally {
+          e.target.value = "";
         }
       };
       reader.readAsText(file);

@@ -1,5 +1,8 @@
-import { json, readJson } from "../../_lib/common.js";
+import { json, readJson, sanitizeLedgerPayload } from "../../_lib/common.js";
 import { requireSession } from "../../_lib/auth.js";
+
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MAX_MONTHS_PER_WRITE = 600;
 
 export async function onRequestGet(context) {
   const session = await requireSession(context);
@@ -35,13 +38,11 @@ export async function onRequestPost(context) {
 
   const userID = session.userID;
   const entries = Object.entries(source);
+  let written = 0;
   for (const [month, val] of entries) {
-    if (!/^\d{4}-\d{2}$/.test(month)) continue;
-    const salaryRaw = val?.salary;
-    const salaryNum = Number(salaryRaw);
-    const salary = salaryRaw === "" || salaryRaw == null ? null : (Number.isFinite(salaryNum) ? salaryNum : null);
-    const items = val?.items || {};
-    const paid = val?.paid || {};
+    if (written >= MAX_MONTHS_PER_WRITE) break;
+    if (!MONTH_RE.test(month)) continue;
+    const clean = sanitizeLedgerPayload(val);
     await context.env.DB.prepare(
       `INSERT INTO months (user_id, month, salary, items_json, paid_json, updated_at)
        VALUES (?, ?, ?, ?, ?, ?)
@@ -51,11 +52,12 @@ export async function onRequestPost(context) {
          paid_json = excluded.paid_json,
          updated_at = excluded.updated_at`
     )
-      .bind(userID, month, salary, JSON.stringify(items), JSON.stringify(paid), Date.now())
+      .bind(userID, month, clean.salary, JSON.stringify(clean.items), JSON.stringify(clean.paid), Date.now())
       .run();
+    written += 1;
   }
 
-  return json({ ok: true, migrated: entries.length });
+  return json({ ok: true, migrated: written });
 }
 
 function safeParse(raw, fallback) {

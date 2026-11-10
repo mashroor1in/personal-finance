@@ -1,22 +1,20 @@
-import { json, readJson } from "../../../_lib/common.js";
+import { json, readJson, sanitizeLedgerPayload } from "../../../_lib/common.js";
 import { requireSession } from "../../../_lib/auth.js";
+
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export async function onRequestPut(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const month = context.params.month;
-  if (!/^\d{4}-\d{2}$/.test(month || "")) {
+  if (!MONTH_RE.test(month || "")) {
     return json({ ok: false, error: "Invalid month format" }, { status: 400 });
   }
 
   const body = await readJson(context.request);
   const userID = session.userID;
-  const salaryRaw = body?.salary;
-  const salaryNum = Number(salaryRaw);
-  const salary = salaryRaw === "" || salaryRaw == null ? null : (Number.isFinite(salaryNum) ? salaryNum : null);
-  const items = body?.items || {};
-  const paid = body?.paid || {};
+  const clean = sanitizeLedgerPayload(body);
 
   await context.env.DB.prepare(
     `INSERT INTO months (user_id, month, salary, items_json, paid_json, updated_at)
@@ -27,7 +25,7 @@ export async function onRequestPut(context) {
        paid_json = excluded.paid_json,
        updated_at = excluded.updated_at`
   )
-    .bind(userID, month, salary, JSON.stringify(items), JSON.stringify(paid), Date.now())
+    .bind(userID, month, clean.salary, JSON.stringify(clean.items), JSON.stringify(clean.paid), Date.now())
     .run();
 
   return json({ ok: true, month });
@@ -38,7 +36,7 @@ export async function onRequestGet(context) {
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
   const month = context.params.month;
-  if (!/^\d{4}-\d{2}$/.test(month || "")) {
+  if (!MONTH_RE.test(month || "")) {
     return json({ ok: false, error: "Invalid month format" }, { status: 400 });
   }
 
