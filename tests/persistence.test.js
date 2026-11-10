@@ -214,6 +214,32 @@ test("syncAll saves locally without a request when signed out", async () => {
   assert.deepEqual(JSON.parse(storage.get(Persistence.STORAGE_KEY)), ledger);
 });
 
+test("syncMonth stamps the owner that loaded the ledger", async () => {
+  const storage = makeStorage({ [Persistence.ACCOUNT_OWNER_KEY]: "alice" });
+  const { persistence, request } = makePersistence({ storage });
+
+  await persistence.syncMonth(ledger, "2026-10");
+
+  assert.deepEqual(request.calls[0].options.headers, { "x-ledger-owner": "alice" });
+});
+
+test("syncAll stamps the owner that loaded the ledger", async () => {
+  const storage = makeStorage({ [Persistence.ACCOUNT_OWNER_KEY]: "alice" });
+  const { persistence, request } = makePersistence({ storage });
+
+  await persistence.syncAll(ledger);
+
+  assert.deepEqual(request.calls[0].options.headers, { "x-ledger-owner": "alice" });
+});
+
+test("sync without a recorded owner sends no owner header", async () => {
+  const { persistence, request } = makePersistence();
+
+  await persistence.syncAll(ledger);
+
+  assert.deepEqual(request.calls[0].options.headers, {});
+});
+
 test("syncAllBestEffort swallows request failures after the local write", async () => {
   const { persistence, storage } = makePersistence({
     handler: async () => { throw new Error("offline"); },

@@ -96,6 +96,12 @@
       timer = null;
     }
 
+    /** Headers that bind a write to the account whose ledger was loaded. */
+    function ownerHeaders() {
+      const owner = getOwner();
+      return owner ? { "x-ledger-owner": owner } : {};
+    }
+
     /** Local write, then one month over the month route when signed in. */
     async function syncMonth(data, month) {
       saveLocal(data);
@@ -103,6 +109,7 @@
       const record = (data && data[month]) || DEFAULT_MONTH();
       await request(`/api/data/month/${month}`, {
         method: "PUT",
+        headers: ownerHeaders(),
         body: JSON.stringify(record),
       });
       return { synced: true };
@@ -114,6 +121,7 @@
       if (!session.isAuthenticated()) return { synced: false, reason: "local" };
       await request("/api/data", {
         method: "POST",
+        headers: ownerHeaders(),
         body: JSON.stringify({ data: monthKeys(data) }),
       });
       return { synced: true };

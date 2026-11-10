@@ -10,6 +10,9 @@ export async function onRequestPut(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
+  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  if (ownerMismatch) return ownerMismatch;
+
   const month = context.params.month;
   if (!MONTH_RE.test(month || "")) {
     return json({ ok: false, error: "Invalid month format" }, { status: 400 });
@@ -37,6 +40,9 @@ export async function onRequestPut(context) {
 export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
+
+  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  if (ownerMismatch) return ownerMismatch;
 
   const month = context.params.month;
   if (!MONTH_RE.test(month || "")) {
@@ -68,4 +74,16 @@ function safeParse(raw, fallback) {
   } catch {
     return fallback;
   }
+}
+
+/** See the matching check in data/index.js. */
+function rejectLedgerOwner(request, session) {
+  const owner = request.headers.get("x-ledger-owner");
+  if (owner && owner !== session.userID) {
+    return json(
+      { ok: false, error: "This ledger belongs to a different account. Reload before saving." },
+      { status: 409 }
+    );
+  }
+  return null;
 }

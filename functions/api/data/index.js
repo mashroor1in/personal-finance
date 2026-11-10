@@ -8,6 +8,9 @@ export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
+  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  if (ownerMismatch) return ownerMismatch;
+
   const userID = session.userID;
   const rows = await context.env.DB.prepare(
     "SELECT month, salary, items_json, paid_json FROM months WHERE user_id = ? ORDER BY month"
@@ -32,6 +35,9 @@ export async function onRequestPost(context) {
 
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
+
+  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  if (ownerMismatch) return ownerMismatch;
 
   const body = await readJson(context.request);
   const source = body?.data;
@@ -69,4 +75,22 @@ function safeParse(raw, fallback) {
   } catch {
     return fallback;
   }
+}
+
+/**
+ * A tab can keep an old in-memory ledger after another tab signs in as a
+ * different account. The client stamps each write with the account that
+ * hydrated it; refuse a mismatch instead of copying the previous account's
+ * rows under the current session. This is a consistency check, not an
+ * authorization boundary: the session still decides whose rows are touched.
+ */
+function rejectLedgerOwner(request, session) {
+  const owner = request.headers.get("x-ledger-owner");
+  if (owner && owner !== session.userID) {
+    return json(
+      { ok: false, error: "This ledger belongs to a different account. Reload before saving." },
+      { status: 409 }
+    );
+  }
+  return null;
 }

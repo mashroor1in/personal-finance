@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { sanitizeLedgerPayload } from "../functions/_lib/common.js";
 import { sessionVersion } from "../functions/_lib/auth.js";
-import { onRequestPost as bulkWrite } from "../functions/api/data/index.js";
+import { onRequestPost as bulkWrite, onRequestGet as bulkRead } from "../functions/api/data/index.js";
 import { onRequestPut as writeMonth } from "../functions/api/data/month/[month].js";
 
 function makeKV(initial = {}) {
@@ -79,12 +79,13 @@ async function makeEnv() {
   return { SESSIONS: kv, DB: db };
 }
 
-function sessionRequest({ method = "GET", body, path = "/api/data" } = {}) {
+function sessionRequest({ method = "GET", body, owner, path = "/api/data" } = {}) {
   return new Request(`https://app.local${path}`, {
     method,
     headers: {
       cookie: "pf_session=tok",
       ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      ...(owner ? { "x-ledger-owner": owner } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
@@ -275,4 +276,83 @@ test("data routes require a live session", async () => {
   ]);
 
   assert.deepEqual(responses.map((r) => r.status), [401, 401]);
+});
+
+test("a ledger stamped with the signed-in owner is accepted", async () => {
+  const env = await makeEnv();
+
+  const bulk = await bulkWrite({
+    env,
+    request: sessionRequest({
+      method: "POST",
+      owner: USER,
+      body: { data: { "2026-11": { salary: 100, items: { rent: 40 }, paid: {} } } },
+    }),
+  });
+  assert.equal(bulk.status, 200);
+
+  const month = await writeMonth({
+    env,
+    params: { month: "2026-10" },
+    request: sessionRequest({
+      method: "PUT",
+      owner: USER,
+      path: "/api/data/month/2026-10",
+      body: { salary: 200, items: {}, paid: {} },
+    }),
+  });
+  assert.equal(month.status, 200);
+
+  const read = await bulkRead({ env, request: sessionRequest({ owner: USER }) });
+  assert.equal(read.status, 200);
+  assert.deepEqual(Object.keys((await read.json()).data).sort(), ["2026-10", "2026-11"]);
+});
+
+test("a stale tab writing the previous account's ledger is refused", async () => {
+  const env = await makeEnv();
+
+  const bulk = await bulkWrite({
+    env,
+    request: sessionRequest({
+      method: "POST",
+      owner: "bob",
+      body: { data: { "2026-11": { salary: 100, items: {}, paid: {} } } },
+    }),
+  });
+  assert.equal(bulk.status, 409);
+  assert.match((await bulk.json()).error, /different account/i);
+
+  const month = await writeMonth({
+    env,
+    params: { month: "2026-10" },
+    request: sessionRequest({
+      method: "PUT",
+      owner: "bob",
+      path: "/api/data/month/2026-10",
+      body: { salary: 200, items: {}, paid: {} },
+    }),
+  });
+  assert.equal(month.status, 409);
+
+  const read = await bulkRead({ env, request: sessionRequest({ owner: "bob" }) });
+  assert.equal(read.status, 409);
+
+  assert.equal(env.DB.months.length, 0);
+});
+
+test("a request with no owner header keeps working for older clients", async () => {
+  const env = await makeEnv();
+
+  const month = await writeMonth({
+    env,
+    params: { month: "2026-10" },
+    request: sessionRequest({
+      method: "PUT",
+      path: "/api/data/month/2026-10",
+      body: { salary: 200, items: {}, paid: {} },
+    }),
+  });
+
+  assert.equal(month.status, 200);
+  assert.equal(env.DB.months.length, 1);
 });
