@@ -23,7 +23,12 @@ export function parseCookies(request) {
     const idx = part.indexOf("=");
     if (idx === -1) continue;
     const k = part.slice(0, idx).trim();
-    const v = decodeURIComponent(part.slice(idx + 1).trim());
+    let v = part.slice(idx + 1).trim();
+    try {
+      v = decodeURIComponent(v);
+    } catch {
+      // A malformed percent-escape must not turn the whole request into a 500.
+    }
     if (k) out[k] = v;
   }
   return out;

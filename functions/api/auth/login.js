@@ -1,5 +1,5 @@
 import { json, readJson, randomToken, sessionCookie, sha256Hex, parseCookies } from "../../_lib/common.js";
-import { requireSession } from "../../_lib/auth.js";
+import { requireSession, sessionVersion } from "../../_lib/auth.js";
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -43,7 +43,7 @@ export async function onRequestPost(context) {
   }
 
   if (mode === "register") {
-    if (!isValidUsername(username)) {
+    if (!isValidUsername(username) || isReservedUsername(username)) {
       return json({ ok: false, error: "Username must be 3-32 chars (letters, numbers, ., _, -)." }, { status: 400 });
     }
     if (password.length < 6) return badPassword();
@@ -56,29 +56,17 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Username already exists." }, { status: 409 });
     }
 
-    const usersCountRow = await env.DB.prepare("SELECT COUNT(*) AS c FROM users WHERE id != 'default'").first();
-    const hadNoRealUsers = Number(usersCountRow?.c || 0) === 0;
-
     const salt = randomToken(16);
     const passwordHash = await sha256Hex(`${salt}:${password}`);
     await env.DB.prepare("INSERT INTO users (id, salt, pin_hash, updated_at) VALUES (?, ?, ?, ?)")
       .bind(username, salt, passwordHash, Date.now())
       .run();
 
-    if (hadNoRealUsers) {
-      await env.DB.prepare(
-        `INSERT INTO months (user_id, month, salary, items_json, paid_json, updated_at, created_at)
-         SELECT ?, month, salary, items_json, paid_json, updated_at, created_at
-         FROM months
-         WHERE user_id = 'default'
-         ON CONFLICT(user_id, month) DO NOTHING`
-      )
-        .bind(username)
-        .run();
-
-      await env.DB.prepare("DELETE FROM months WHERE user_id = 'default'").run();
-      await env.DB.prepare("DELETE FROM users WHERE id = 'default'").run();
-    }
+    // Pre-account data (`user_id = 'default'`) is deliberately never handed to
+    // the next person who registers. Public registration cannot prove
+    // ownership of those rows, and auto-transferring them let an unauthenticated
+    // visitor seed data that the first real account then inherited. Legacy rows
+    // stay in place until an explicit, authenticated claim exists.
 
     await clearAuthFailures(env, clientIP, username);
     return await issueSessionAndRespond(env, username);
@@ -176,23 +164,48 @@ function normalizeUsername(input) {
   return String(input || "").trim().toLowerCase();
 }
 
+const RESERVED_USERNAMES = new Set([
+  "default",
+  "admin",
+  "administrator",
+  "root",
+  "system",
+  "support",
+  "anonymous",
+  "undefined",
+  "null",
+]);
+
 function isValidUsername(username) {
   return /^[a-z0-9._-]{3,32}$/.test(username);
 }
 
-async function issueSessionAndRespond(env, userID) {
-  const token = randomToken(24);
-  await env.SESSIONS.put(`sess:${token}`, JSON.stringify({ userID }), { expirationTtl: 60 * 60 * 24 * 7 });
+function isReservedUsername(username) {
+  return username.startsWith("__") || RESERVED_USERNAMES.has(username);
+}
 
-  const updated = await env.DB.prepare("SELECT created_at, updated_at FROM users WHERE id = ?").bind(userID).first();
+async function issueSessionAndRespond(env, userID) {
+  const user = await env.DB.prepare("SELECT created_at, updated_at, pin_hash FROM users WHERE id = ?")
+    .bind(userID)
+    .first();
+  if (!user?.pin_hash) {
+    return json({ ok: false, error: "Account not found." }, { status: 404 });
+  }
+
+  const token = randomToken(24);
+  const ver = await sessionVersion(user.pin_hash);
+  await env.SESSIONS.put(`sess:${token}`, JSON.stringify({ userID, ver }), {
+    expirationTtl: 60 * 60 * 24 * 7,
+  });
+
   return json(
     {
       ok: true,
       authenticated: true,
       userID,
       username: userID,
-      createdAt: updated?.created_at || null,
-      passwordUpdatedAt: updated?.updated_at || null,
+      createdAt: user.created_at || null,
+      passwordUpdatedAt: user.updated_at || null,
     },
     { headers: { "Set-Cookie": sessionCookie(token) } }
   );

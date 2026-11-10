@@ -3770,15 +3770,31 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     async function logoutUser(options = {}) {
-      const { quiet = false, reason = "Logged out" } = options;
+      const { quiet = false, reason = "Logged out", force = false } = options;
       try {
         await api("/api/auth/logout", { method: "POST" });
-      } catch {}
+      } catch (err) {
+        // A failed request leaves the HttpOnly cookie and the KV session in
+        // place, so the UI must not pretend the user is signed out. `force`
+        // is only used when the server already reported the session invalid.
+        if (!force) {
+          showToast("Could not sign out. Check your connection and try again.", "error");
+          return false;
+        }
+      }
 
+      // Drop cached ledger rows so a later user of this browser profile cannot
+      // read them from localStorage. `__meta` is local-only (custom items and
+      // renames never sync), so it must survive a normal logout.
+      const localMeta = data && typeof data === "object" ? data.__meta : null;
       sessionStorage.removeItem(AUTH_SESSION_KEY);
       cloudProfile = null;
+      data = localMeta ? { __meta: localMeta } : {};
+      editState = {};
+      persistence.saveLocal(data);
       lockApp(true);
       if (!quiet) showToast(reason, "warning");
+      return true;
     }
 
     function ensureTurnstileRendered() {
@@ -6167,7 +6183,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         updateSecurityCard();
         return;
       }
-      await logoutUser({ reason: "Session expired. Please sign in again." });
+      await logoutUser({ reason: "Session expired. Please sign in again.", force: true });
     }
 
     // replace auth submit with cloud-backed auth
