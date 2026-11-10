@@ -1,0 +1,14 @@
+name = "personal-finance"
+main = "functions/index.js"
+compatibility_date = "2023-12-01"
+
+[env.production]
+vars = { ENVIRONMENT = "production", PASSWORD_ITERATIONS = "210000" }
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "d70752bc58ac491fba7f23441ba1f2f4"  # Your KV namespace ID
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_id = "f99159c3-82a7-405c-bf9e-6e65b5662be5"  # Your database ID
