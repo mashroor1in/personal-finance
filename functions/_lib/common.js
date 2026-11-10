@@ -77,6 +77,153 @@ export async function sha256Hex(text) {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Compare two secrets without leaking their contents through timing.
+ *
+ * Both sides are hashed first so the compared arrays are always the same
+ * length, and the loop never exits early.
+ */
+export async function constantTimeEqual(a, b) {
+  const [left, right] = await Promise.all([
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(a ?? ""))),
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(b ?? ""))),
+  ]);
+  return equalBytes(new Uint8Array(left), new Uint8Array(right));
+}
+
+function equalBytes(left, right) {
+  let diff = left.length ^ right.length;
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i += 1) {
+    diff |= (left[i] || 0) ^ (right[i] || 0);
+  }
+  return diff === 0;
+}
+
+/*
+ * Password verifiers.
+ *
+ * The original format was a single SHA-256 over `salt:password`, which a GPU
+ * can walk billions of times per second after a database dump. New verifiers
+ * use PBKDF2-HMAC-SHA256 and record their own parameters, so the published
+ * iteration count can move without rewriting every row:
+ *
+ *   pbkdf2-sha256$<iterations>$<salt base64>$<derived key base64>
+ *
+ * Existing rows keep working: `verifyPassword` recognises the legacy 64-hex
+ * value and the caller rewrites it after a successful login. The stored
+ * iteration count is always honoured, even if the policy below is raised or
+ * lowered later.
+ */
+const PASSWORD_SCHEME = "pbkdf2-sha256";
+const PASSWORD_KEY_BYTES = 32;
+const PASSWORD_SALT_BYTES = 16;
+
+/**
+ * New verifiers use this many iterations. Verification reads the count from
+ * each stored record, so this is a policy knob, not a data migration.
+ *
+ * 210k costs roughly 30ms of CPU per hash. Raise `PASSWORD_ITERATIONS` in the
+ * environment when the plan allows more CPU, or lower it if a Free-plan
+ * Worker trips its CPU limit (logins return 1102). Never go below 100k.
+ */
+export const PASSWORD_ITERATIONS = 210000;
+
+function resolveIterations(env) {
+  const configured = Number(env?.PASSWORD_ITERATIONS);
+  if (Number.isInteger(configured) && configured >= 1000) {
+    return Math.min(configured, 2000000);
+  }
+  return PASSWORD_ITERATIONS;
+}
+
+/** A fresh verifier plus the salt to keep in the legacy `salt` column. */
+export async function hashPassword(password, env) {
+  const iterations = resolveIterations(env);
+  const salt = crypto.getRandomValues(new Uint8Array(PASSWORD_SALT_BYTES));
+  const key = await derivePasswordKey(password, salt, iterations);
+  return {
+    salt: bytesToBase64(salt),
+    pinHash: `${PASSWORD_SCHEME}$${iterations}$${bytesToBase64(salt)}$${bytesToBase64(key)}`,
+  };
+}
+
+/**
+ * Check a password against a stored user row.
+ *
+ * Returns `{ ok, needsRehash }`. `needsRehash` is only true for a correct
+ * legacy (or weaker-parameter) verifier, which is the signal to upgrade the
+ * row on this login.
+ */
+export async function verifyPassword(password, user, env) {
+  const stored = String(user?.pin_hash || "");
+  const parsed = parsePasswordHash(stored);
+
+  if (parsed) {
+    const key = await derivePasswordKey(password, parsed.salt, parsed.iterations);
+    const ok = equalBytes(key, parsed.hash);
+    return { ok, needsRehash: ok && parsed.iterations < resolveIterations(env) };
+  }
+
+  const legacySalt = String(user?.salt || "");
+  if (!legacySalt || !/^[a-f0-9]{64}$/i.test(stored)) {
+    return { ok: false, needsRehash: false };
+  }
+
+  const computed = await sha256Hex(`${legacySalt}:${password}`);
+  const ok = await constantTimeEqual(computed, stored);
+  return { ok, needsRehash: ok };
+}
+
+function parsePasswordHash(stored) {
+  const parts = stored.split("$");
+  if (parts.length !== 4 || parts[0] !== PASSWORD_SCHEME) return null;
+
+  const iterations = Number(parts[1]);
+  if (!Number.isInteger(iterations) || iterations < 1000 || iterations > 2000000) {
+    return null;
+  }
+
+  try {
+    const salt = base64ToBytes(parts[2]);
+    const hash = base64ToBytes(parts[3]);
+    if (!salt.length || !hash.length) return null;
+    return { iterations, salt, hash };
+  } catch {
+    return null;
+  }
+}
+
+async function derivePasswordKey(password, salt, iterations) {
+  const encoder = new TextEncoder();
+  const material = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(String(password ?? "")),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    material,
+    PASSWORD_KEY_BYTES * 8
+  );
+  return new Uint8Array(bits);
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  const binary = atob(String(value || ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
 export function sessionCookie(token = "", maxAge = 60 * 60 * 24 * 7) {
   const secure = "Secure; HttpOnly; SameSite=Lax";
   if (!token) return `pf_session=; Path=/; Max-Age=0; ${secure}`;

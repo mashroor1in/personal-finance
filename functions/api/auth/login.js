@@ -1,4 +1,4 @@
-import { json, readJson, randomToken, sessionCookie, sha256Hex, parseCookies, guardJsonMutation } from "../../_lib/common.js";
+import { json, readJson, randomToken, sessionCookie, parseCookies, guardJsonMutation, hashPassword, verifyPassword } from "../../_lib/common.js";
 import { requireSession, sessionVersion } from "../../_lib/auth.js";
 
 export async function onRequestPost(context) {
@@ -54,10 +54,9 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Username already exists." }, { status: 409 });
     }
 
-    const salt = randomToken(16);
-    const passwordHash = await sha256Hex(`${salt}:${password}`);
+    const { salt, pinHash } = await hashPassword(password, env);
     await env.DB.prepare("INSERT INTO users (id, salt, pin_hash, updated_at) VALUES (?, ?, ?, ?)")
-      .bind(username, salt, passwordHash, Date.now())
+      .bind(username, salt, pinHash, Date.now())
       .run();
 
     // Pre-account data (`user_id = 'default'`) is deliberately never handed to
@@ -86,10 +85,15 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Invalid username or password." }, { status: 401 });
     }
 
-    const given = await sha256Hex(`${user.salt}:${password}`);
-    if (given !== user.pin_hash) {
+    const check = await verifyPassword(password, user, env);
+    if (!check.ok) {
       return json({ ok: false, error: "Invalid username or password." }, { status: 401 });
     }
+
+    // Upgrade a legacy or weaker-parameter verifier now that we hold the
+    // plaintext. `updated_at` is left alone: the password itself did not
+    // change, and the profile card reports it as the password's date.
+    if (check.needsRehash) await upgradePasswordHash(env, user.id, password);
 
     await releaseAuthFailure(env, clientIP);
     return await issueSessionAndRespond(env, user.id);
@@ -121,13 +125,12 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "New password confirmation does not match." }, { status: 400 });
     }
 
-    const currentHash = await sha256Hex(`${user.salt}:${currentPassword}`);
-    if (currentHash !== user.pin_hash) {
+    const currentCheck = await verifyPassword(currentPassword, user, env);
+    if (!currentCheck.ok) {
       return json({ ok: false, error: "Current password is incorrect." }, { status: 401 });
     }
 
-    const newSalt = randomToken(16);
-    const newHash = await sha256Hex(`${newSalt}:${password}`);
+    const { salt: newSalt, pinHash: newHash } = await hashPassword(password, env);
     await env.DB.prepare("UPDATE users SET salt = ?, pin_hash = ?, updated_at = ? WHERE id = ?")
       .bind(newSalt, newHash, Date.now(), userID)
       .run();
@@ -144,8 +147,8 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Confirm the account deletion and try again." }, { status: 400 });
     }
 
-    const given = await sha256Hex(`${user.salt}:${password}`);
-    if (given !== user.pin_hash) {
+    const deleteCheck = await verifyPassword(password, user, env);
+    if (!deleteCheck.ok) {
       return json({ ok: false, error: "Current password is incorrect." }, { status: 401 });
     }
 
@@ -189,6 +192,23 @@ function isValidUsername(username) {
 
 function isReservedUsername(username) {
   return username.startsWith("__") || RESERVED_USERNAMES.has(username);
+}
+
+/**
+ * Replace a weak or legacy verifier in place.
+ *
+ * A failure here must not fail an otherwise correct login: the old hash still
+ * verifies, and the next successful login will try again.
+ */
+async function upgradePasswordHash(env, userID, password) {
+  try {
+    const { salt, pinHash } = await hashPassword(password, env);
+    await env.DB.prepare("UPDATE users SET salt = ?, pin_hash = ? WHERE id = ?")
+      .bind(salt, pinHash, userID)
+      .run();
+  } catch {
+    // Keep the working credential rather than turning login into a 500.
+  }
 }
 
 async function issueSessionAndRespond(env, userID) {

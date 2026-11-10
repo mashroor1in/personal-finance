@@ -2,7 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { requireSession, sessionVersion } from "../functions/_lib/auth.js";
-import { sha256Hex, parseCookies } from "../functions/_lib/common.js";
+import {
+  sha256Hex,
+  parseCookies,
+  hashPassword,
+  verifyPassword,
+  constantTimeEqual,
+  PASSWORD_ITERATIONS,
+} from "../functions/_lib/common.js";
 import { onRequestPost as registerOrLogin } from "../functions/api/auth/login.js";
 import { onRequestPost as logout } from "../functions/api/auth/logout.js";
 
@@ -76,6 +83,15 @@ function makeDB(users = new Map()) {
                 const user = users.get(id);
                 if (!user) return { success: false };
                 users.set(id, { ...user, salt, pin_hash, updated_at });
+                return { success: true };
+              }
+              // Rehash-on-login: upgrades the verifier without touching the
+              // password's `updated_at` date.
+              if (/UPDATE users SET salt = \?, pin_hash = \? WHERE id = \?/i.test(sql)) {
+                const [salt, pin_hash, id] = args;
+                const user = users.get(id);
+                if (!user) return { success: false };
+                users.set(id, { ...user, salt, pin_hash });
                 return { success: true };
               }
               if (/DELETE FROM months WHERE user_id = \?/i.test(sql)) {
@@ -689,4 +705,165 @@ test("wrong current-password guesses are throttled like a login", async () => {
     ),
   });
   assert.equal(locked.status, 429);
+});
+
+// ---------------------------------------------------------------------------
+// Password verifier format and migration
+// ---------------------------------------------------------------------------
+
+test("hashPassword writes a parameterised PBKDF2 verifier with a fresh salt", async () => {
+  const first = await hashPassword("secret1");
+  const second = await hashPassword("secret1");
+
+  assert.match(first.pinHash, new RegExp(`^pbkdf2-sha256\\$${PASSWORD_ITERATIONS}\\$[A-Za-z0-9+/=]+\\$[A-Za-z0-9+/=]+$`));
+  assert.notEqual(first.pinHash, second.pinHash);
+  assert.notEqual(first.salt, second.salt);
+});
+
+test("verifyPassword accepts a current verifier and rejects a wrong password", async () => {
+  const { salt, pinHash } = await hashPassword("secret1");
+
+  assert.deepEqual(await verifyPassword("secret1", { salt, pin_hash: pinHash }, {}), {
+    ok: true,
+    needsRehash: false,
+  });
+  assert.deepEqual(await verifyPassword("secret2", { salt, pin_hash: pinHash }, {}), {
+    ok: false,
+    needsRehash: false,
+  });
+});
+
+test("verifyPassword accepts a legacy SHA-256 verifier and asks for an upgrade", async () => {
+  const salt = "salt";
+  const legacy = await sha256Hex(`${salt}:secret1`);
+
+  assert.deepEqual(await verifyPassword("secret1", { salt, pin_hash: legacy }, {}), {
+    ok: true,
+    needsRehash: true,
+  });
+  assert.deepEqual(await verifyPassword("secret2", { salt, pin_hash: legacy }, {}), {
+    ok: false,
+    needsRehash: false,
+  });
+});
+
+test("verifyPassword honours the stored iteration count when the policy moves", async () => {
+  const { salt, pinHash } = await hashPassword("secret1", { PASSWORD_ITERATIONS: 1000 });
+
+  assert.deepEqual(
+    await verifyPassword("secret1", { salt, pin_hash: pinHash }, {}),
+    { ok: true, needsRehash: true }
+  );
+  assert.deepEqual(
+    await verifyPassword("secret1", { salt, pin_hash: pinHash }, { PASSWORD_ITERATIONS: 1000 }),
+    { ok: true, needsRehash: false }
+  );
+});
+
+test("verifyPassword refuses a malformed verifier instead of throwing", async () => {
+  for (const pin_hash of ["", "nope", "pbkdf2-sha256$notanumber$aa$bb", "pbkdf2-sha256$999$aa$bb"]) {
+    assert.deepEqual(await verifyPassword("secret1", { salt: "salt", pin_hash }, {}), {
+      ok: false,
+      needsRehash: false,
+    });
+  }
+});
+
+test("constantTimeEqual compares equal and unequal secrets", async () => {
+  assert.equal(await constantTimeEqual("abc", "abc"), true);
+  assert.equal(await constantTimeEqual("abc", "abd"), false);
+  assert.equal(await constantTimeEqual("abc", "abcd"), false);
+  assert.equal(await constantTimeEqual("", ""), true);
+});
+
+test("registration stores a PBKDF2 verifier rather than a bare SHA-256", async () => {
+  const users = new Map();
+  const env = { SESSIONS: makeKV(), DB: makeDB(users) };
+
+  const response = await registerOrLogin({
+    env,
+    request: authPost(
+      { mode: "register", username: "alice", password: "secret1", confirmPassword: "secret1" },
+      "203.0.113.30"
+    ),
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(users.get("alice").pin_hash, /^pbkdf2-sha256\$/);
+});
+
+test("login upgrades a legacy verifier and the new session still authenticates", async () => {
+  const legacySalt = "salt";
+  const legacyHash = await sha256Hex(`${legacySalt}:secret1`);
+  const users = new Map();
+  addUser(users, "alice", legacyHash, legacySalt);
+  const kv = makeKV();
+  const env = { SESSIONS: kv, DB: makeDB(users) };
+
+  const response = await registerOrLogin({
+    env,
+    request: authPost(
+      { mode: "login", username: "alice", password: "secret1" },
+      "203.0.113.31"
+    ),
+  });
+  assert.equal(response.status, 200);
+
+  const stored = users.get("alice");
+  assert.match(stored.pin_hash, /^pbkdf2-sha256\$/);
+  assert.notEqual(stored.pin_hash, legacyHash);
+  // The password itself did not change, so the profile date must not move.
+  assert.equal(stored.updated_at, 1);
+
+  // The issued token must carry the version of the *rewritten* hash. If the
+  // rehash happened after the session was minted, this would be null.
+  const token = /pf_session=([^;]+)/.exec(response.headers.get("set-cookie"))[1];
+  const session = await requireSession({ env, request: sessionRequest(token) });
+  assert.equal(session?.userID, "alice");
+});
+
+test("a second login does not rewrite an up-to-date verifier", async () => {
+  const { salt, pinHash } = await hashPassword("secret1");
+  const users = new Map();
+  addUser(users, "alice", pinHash, salt);
+  const env = { SESSIONS: makeKV(), DB: makeDB(users) };
+
+  const response = await registerOrLogin({
+    env,
+    request: authPost(
+      { mode: "login", username: "alice", password: "secret1" },
+      "203.0.113.32"
+    ),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(users.get("alice").pin_hash, pinHash);
+});
+
+test("changing the password stores a PBKDF2 verifier and revokes the old token", async () => {
+  const legacySalt = "salt";
+  const legacyHash = await sha256Hex(`${legacySalt}:secret1`);
+  const users = new Map();
+  addUser(users, "alice", legacyHash, legacySalt);
+  const kv = makeKV();
+  const env = { SESSIONS: kv, DB: makeDB(users) };
+  const token = await seedSession(kv, "alice", legacyHash);
+
+  const response = await registerOrLogin({
+    env,
+    request: authPost(
+      {
+        mode: "changepassword",
+        currentPassword: "secret1",
+        password: "secret2",
+        confirmPassword: "secret2",
+      },
+      "203.0.113.33",
+      `pf_session=${token}`
+    ),
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(users.get("alice").pin_hash, /^pbkdf2-sha256\$/);
+  assert.equal(await requireSession({ env, request: sessionRequest(token) }), null);
 });
