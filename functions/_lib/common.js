@@ -3,9 +3,40 @@ export function json(data, init = {}) {
     status: init.status || 200,
     headers: {
       "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
       ...(init.headers || {}),
     },
   });
+}
+
+/**
+ * Mutating endpoints only accept a JSON body from their own origin.
+ *
+ * This blocks the cross-site `text/plain` form POST used for login CSRF: a
+ * form cannot send `application/json`, and a cross-site fetch that tries is
+ * stopped by the CORS preflight. Requests without an Origin header (server to
+ * server, curl) remain usable, but still have to declare JSON.
+ */
+export function guardJsonMutation(request) {
+  const origin = request.headers.get("origin");
+  if (origin) {
+    let expected = null;
+    try {
+      expected = new URL(request.url).origin;
+    } catch {
+      expected = null;
+    }
+    if (!expected || origin !== expected) {
+      return json({ ok: false, error: "Cross-site request rejected." }, { status: 403 });
+    }
+  }
+
+  const type = (request.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  if (type !== "application/json") {
+    return json({ ok: false, error: "Expected application/json." }, { status: 415 });
+  }
+
+  return null;
 }
 
 export async function readJson(request) {

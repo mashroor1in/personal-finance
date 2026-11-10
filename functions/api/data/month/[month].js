@@ -1,9 +1,12 @@
-import { json, readJson, sanitizeLedgerPayload } from "../../../_lib/common.js";
+import { json, readJson, sanitizeLedgerPayload, guardJsonMutation } from "../../../_lib/common.js";
 import { requireSession } from "../../../_lib/auth.js";
 
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 export async function onRequestPut(context) {
+  const rejected = guardJsonMutation(context.request);
+  if (rejected) return rejected;
+
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 

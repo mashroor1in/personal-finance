@@ -1,6 +1,9 @@
-import { json, parseCookies, sessionCookie } from "../../_lib/common.js";
+import { json, parseCookies, sessionCookie, guardJsonMutation } from "../../_lib/common.js";
 
 export async function onRequestPost(context) {
+  const rejected = guardJsonMutation(context.request);
+  if (rejected) return rejected;
+
   const cookies = parseCookies(context.request);
   const token = cookies.pf_session;
 

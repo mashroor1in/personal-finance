@@ -257,12 +257,20 @@ test("data routes require a live session", async () => {
   const responses = await Promise.all([
     bulkWrite({
       env,
-      request: new Request("https://app.local/api/data", { method: "POST", body: "{}" }),
+      request: new Request("https://app.local/api/data", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }),
     }),
     writeMonth({
       env,
       params: { month: "2026-11" },
-      request: new Request("https://app.local/api/data/month/2026-11", { method: "PUT", body: "{}" }),
+      request: new Request("https://app.local/api/data/month/2026-11", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      }),
     }),
   ]);
 

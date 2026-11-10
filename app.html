@@ -3294,6 +3294,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     let authBlobatarSeed = "";
     let turnstileEnabled = false;
     let turnstileSiteKey = null;
+    let turnstileMisconfigured = false;
     let turnstileWidgetID = null;
     let turnstileToken = "";
     let authCooldownUntil = 0;
@@ -6214,6 +6215,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if ((authMode === "login" || authMode === "register") && cooldownLeft > 0) {
         return `Too many attempts. Try again in ${formatCooldown(cooldownLeft)}.`;
       }
+      if (turnstileMisconfigured && (authMode === "login" || authMode === "register")) {
+        return "Human verification is misconfigured on this deployment. Contact the owner.";
+      }
       if (turnstileEnabled && (authMode === "login" || authMode === "register") && !turnstileToken) {
         return "Please complete human verification.";
       }
@@ -6283,10 +6287,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cloudHasUsers = !!res?.hasUsers;
         turnstileEnabled = !!res?.turnstileEnabled;
         turnstileSiteKey = res?.turnstileSiteKey || null;
+        turnstileMisconfigured = !!res?.turnstileMisconfigured;
       } catch {
         cloudHasUsers = true;
         turnstileEnabled = false;
         turnstileSiteKey = null;
+        turnstileMisconfigured = false;
       }
       return cloudHasUsers;
     }

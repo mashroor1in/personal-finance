@@ -1,8 +1,11 @@
-import { json, readJson, randomToken, sessionCookie, sha256Hex, parseCookies } from "../../_lib/common.js";
+import { json, readJson, randomToken, sessionCookie, sha256Hex, parseCookies, guardJsonMutation } from "../../_lib/common.js";
 import { requireSession, sessionVersion } from "../../_lib/auth.js";
 
 export async function onRequestPost(context) {
   const { env, request } = context;
+  const rejected = guardJsonMutation(request);
+  if (rejected) return rejected;
+
   const body = await readJson(request);
   const mode = String(body.mode || "login").trim();
   const username = normalizeUsername(body.username);
@@ -21,23 +24,18 @@ export async function onRequestPost(context) {
   const isPublicAuthMode = mode === "register" || mode === "login";
 
   if (isPublicAuthMode) {
-    const lock = await getActiveAuthLock(env, clientIP, username);
-    if (lock.active) {
-      return json(
-        { ok: false, error: `Too many attempts. Try again in ${lock.retryAfterSeconds}s.` },
-        { status: 429, headers: { "Retry-After": String(lock.retryAfterSeconds) } }
-      );
-    }
+    const lock = await reserveCredentialAttempt(env, clientIP);
+    if (lock.blocked) return tooManyAttempts(lock);
   }
 
-  if (mode === "register" || mode === "login") {
+  if (isPublicAuthMode) {
     const turnstileValid = await verifyTurnstile({
       secret: env.TURNSTILE_SECRET,
+      siteKey: env.TURNSTILE_SITE_KEY,
       token: turnstileToken,
       ip: request.headers.get("CF-Connecting-IP") || "",
     });
     if (!turnstileValid) {
-      await recordAuthFailure(env, clientIP, username);
       return json({ ok: false, error: "Please complete human verification." }, { status: 400 });
     }
   }
@@ -68,7 +66,10 @@ export async function onRequestPost(context) {
     // visitor seed data that the first real account then inherited. Legacy rows
     // stay in place until an explicit, authenticated claim exists.
 
-    await clearAuthFailures(env, clientIP, username);
+    // A successful registration proves the caller is not guessing at an
+    // existing credential. It releases only the slot this request reserved;
+    // the aggregate rate bucket is never reset by success.
+    await releaseAuthFailure(env, clientIP);
     return await issueSessionAndRespond(env, username);
   }
 
@@ -82,17 +83,15 @@ export async function onRequestPost(context) {
 
     const user = await env.DB.prepare("SELECT id, salt, pin_hash FROM users WHERE id = ?").bind(username).first();
     if (!user) {
-      await recordAuthFailure(env, clientIP, username);
       return json({ ok: false, error: "Invalid username or password." }, { status: 401 });
     }
 
     const given = await sha256Hex(`${user.salt}:${password}`);
     if (given !== user.pin_hash) {
-      await recordAuthFailure(env, clientIP, username);
       return json({ ok: false, error: "Invalid username or password." }, { status: 401 });
     }
 
-    await clearAuthFailures(env, clientIP, username);
+    await releaseAuthFailure(env, clientIP);
     return await issueSessionAndRespond(env, user.id);
   }
 
@@ -100,6 +99,12 @@ export async function onRequestPost(context) {
   if (!session?.userID) {
     return json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
+
+  // Current-password checks are guesses too, so they share the same atomic
+  // budget as login. Without this a stolen session was an unlimited password
+  // oracle that could mint a durable replacement credential.
+  const credentialLock = await reserveCredentialAttempt(env, clientIP);
+  if (credentialLock.blocked) return tooManyAttempts(credentialLock);
 
   const userID = session.userID;
   const user = await env.DB.prepare("SELECT id, salt, pin_hash FROM users WHERE id = ?").bind(userID).first();
@@ -127,6 +132,7 @@ export async function onRequestPost(context) {
       .bind(newSalt, newHash, Date.now(), userID)
       .run();
 
+    await releaseAuthFailure(env, clientIP);
     return await issueSessionAndRespond(env, userID);
   }
 
@@ -151,6 +157,7 @@ export async function onRequestPost(context) {
       await env.SESSIONS.delete(`sess:${token}`);
     }
 
+    await releaseAuthFailure(env, clientIP);
     return json(
       { ok: true, reset: true, message: "Account deleted. Create a new account." },
       { headers: { "Set-Cookie": sessionCookie("") } }
@@ -211,8 +218,15 @@ async function issueSessionAndRespond(env, userID) {
   );
 }
 
-async function verifyTurnstile({ secret, token, ip }) {
-  if (!secret) return true;
+async function verifyTurnstile({ secret, siteKey, token, ip }) {
+  const secretSet = !!secret;
+  const siteKeySet = !!siteKey;
+
+  // Turnstile is optional, but a half-configured deployment must fail closed.
+  // The old check returned true whenever only the secret was missing, even
+  // while the site key still made the UI demand a challenge.
+  if (!secretSet && !siteKeySet) return true;
+  if (!secretSet || !siteKeySet) return false;
   if (!token) return false;
 
   try {
@@ -235,81 +249,110 @@ async function verifyTurnstile({ secret, token, ip }) {
   }
 }
 
-const AUTH_FAIL_THRESHOLD = 5;
+// Atomic D1 throttling. KV's get-then-put let a parallel burst all read the
+// same counter, so every in-flight request could reach the password digest
+// before the sixth wrote a lock. D1's conditional upsert serialises the
+// reservation, and the aggregate rate bucket is never reset by a success.
+const AUTH_FAIL_LIMIT = 5;
+const AUTH_RATE_LIMIT = 30;
+const AUTH_WINDOW_MS = 15 * 60 * 1000;
 const AUTH_LOCK_BASE_MS = 5 * 60 * 1000;
 const AUTH_LOCK_MAX_MS = 60 * 60 * 1000;
-const AUTH_FAIL_TTL_SECONDS = 24 * 60 * 60;
+const AUTH_RATE_LOCK_MAX_MS = 15 * 60 * 1000;
 
-async function getActiveAuthLock(env, ip, username) {
+function authFailureKey(ip) {
+  return `authfail:ip:${toSafeKey(ip || "unknown")}`;
+}
+
+function authRateKey(ip) {
+  return `authrate:ip:${toSafeKey(ip || "unknown")}`;
+}
+
+async function reserveCredentialAttempt(env, ip) {
+  const rate = await reserveAttempt(env, authRateKey(ip), AUTH_RATE_LIMIT, AUTH_RATE_LOCK_MAX_MS);
+  if (rate.blocked) return rate;
+  return reserveAttempt(env, authFailureKey(ip), AUTH_FAIL_LIMIT, AUTH_LOCK_MAX_MS);
+}
+
+async function reserveAttempt(env, key, limit, maxLockMs) {
   const now = Date.now();
-  let lockUntil = 0;
+  const staleBefore = now - AUTH_WINDOW_MS;
 
-  for (const key of authFailKeys(ip, username)) {
-    const state = await readFailState(env, key);
-    lockUntil = Math.max(lockUntil, Number(state.lockUntil || 0));
-  }
+  // An expired lock or an idle window starts a fresh count. The upsert below is
+  // a single statement, so concurrent requests cannot lose each other's write.
+  await env.DB.prepare(
+    `UPDATE auth_throttle
+     SET count = 0, lock_until = 0, window_start = ?, updated_at = ?
+     WHERE key = ? AND lock_until <= ? AND (lock_until > 0 OR window_start < ?)`
+  )
+    .bind(now, now, key, now, staleBefore)
+    .run();
 
+  await env.DB.prepare(
+    `INSERT INTO auth_throttle (key, count, window_start, lock_until, updated_at)
+     VALUES (?, 1, ?, 0, ?)
+     ON CONFLICT(key) DO UPDATE SET
+       count = CASE
+         WHEN auth_throttle.lock_until > ? THEN auth_throttle.count
+         ELSE auth_throttle.count + 1
+       END,
+       lock_until = CASE
+         WHEN auth_throttle.lock_until > ? THEN auth_throttle.lock_until
+         WHEN auth_throttle.count + 1 > ?
+           THEN ? + MIN(? * (1 << MIN(auth_throttle.count + 1 - (? + 1), 10)), ?)
+         ELSE 0
+       END,
+       updated_at = ?`
+  )
+    .bind(
+      key,
+      now,
+      now,
+      now,
+      now,
+      limit,
+      now,
+      AUTH_LOCK_BASE_MS,
+      limit,
+      maxLockMs,
+      now
+    )
+    .run();
+
+  const row = await env.DB.prepare(
+    "SELECT count, lock_until FROM auth_throttle WHERE key = ?"
+  )
+    .bind(key)
+    .first();
+
+  const lockUntil = Number(row?.lock_until || 0);
   if (lockUntil > now) {
     return {
-      active: true,
+      blocked: true,
       retryAfterSeconds: Math.max(1, Math.ceil((lockUntil - now) / 1000)),
     };
   }
 
-  return { active: false, retryAfterSeconds: 0 };
+  return { blocked: false, retryAfterSeconds: 0 };
 }
 
-async function recordAuthFailure(env, ip, username) {
-  const now = Date.now();
-
-  for (const key of authFailKeys(ip, username)) {
-    const state = await readFailState(env, key);
-    const fails = Number(state.fails || 0) + 1;
-
-    let lockUntil = Number(state.lockUntil || 0);
-    if (fails >= AUTH_FAIL_THRESHOLD) {
-      const exponent = Math.max(0, fails - AUTH_FAIL_THRESHOLD);
-      const lockMs = Math.min(AUTH_LOCK_BASE_MS * (2 ** exponent), AUTH_LOCK_MAX_MS);
-      lockUntil = Math.max(lockUntil, now + lockMs);
-    }
-
-    await env.SESSIONS.put(
-      key,
-      JSON.stringify({ fails, lockUntil, updatedAt: now }),
-      { expirationTtl: AUTH_FAIL_TTL_SECONDS }
-    );
-  }
-}
-
-async function clearAuthFailures(env, ip, username) {
-  for (const key of authFailKeys(ip, username)) {
-    await env.SESSIONS.delete(key);
-  }
-}
-
-async function readFailState(env, key) {
+async function releaseAuthFailure(env, ip) {
   try {
-    const raw = await env.SESSIONS.get(key);
-    if (!raw) return { fails: 0, lockUntil: 0 };
-    const parsed = JSON.parse(raw);
-    return {
-      fails: Number(parsed?.fails || 0),
-      lockUntil: Number(parsed?.lockUntil || 0),
-    };
+    await env.DB.prepare(
+      "UPDATE auth_throttle SET count = MAX(count - 1, 0) WHERE key = ? AND lock_until <= ?"
+    )
+      .bind(authFailureKey(ip), Date.now())
+      .run();
   } catch {
-    return { fails: 0, lockUntil: 0 };
+    // A cleanup failure must not turn a correct credential into a 500.
   }
 }
 
-function authFailKeys(ip, username) {
-  const safeIP = toSafeKey(ip || "unknown");
-  const keys = [`authfail:ip:${safeIP}`];
-
-  if (isValidUsername(username)) {
-    keys.push(`authfail:user:${toSafeKey(username)}`);
-  }
-
-  return keys;
+function tooManyAttempts(lock) {
+  return json(
+    { ok: false, error: `Too many attempts. Try again in ${lock.retryAfterSeconds}s.` },
+    { status: 429, headers: { "Retry-After": String(lock.retryAfterSeconds) } }
+  );
 }
 
 function toSafeKey(input) {
