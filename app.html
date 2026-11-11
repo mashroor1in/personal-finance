@@ -3401,6 +3401,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     let authMode = "login"; // login | register | changepassword | resetaccount | recover
     let pendingRecoveryCodes = [];
+    // Nag at most once per page session, not on every reload.
+    let recoveryNudgeShown = false;
     // Modes that guess a credential from an unauthenticated caller: enrolled in
     // the same bot check and IP throttle as login.
     const requiresHumanCheck = (mode = authMode) =>
@@ -4250,6 +4252,34 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       recoveryManageModal.classList.add("hidden");
       recoveryManagePassword.value = "";
       recoveryManageError.textContent = "";
+    }
+
+    /**
+     * Keep the menu label current, and once per page session remind an account
+     * that has never made codes. Accounts created before recovery existed would
+     * otherwise sit at zero forever, which is the exact dead end this feature
+     * exists to prevent.
+     */
+    async function refreshRecoveryStatus({ nudge = false } = {}) {
+      try {
+        const res = await api("/api/auth/recovery-codes");
+        const total = Number(res?.total || 0);
+        const remaining = Number(res?.remaining || 0);
+        if (recoveryCodesStatus) {
+          recoveryCodesStatus.textContent = total
+            ? `${remaining} of ${total} codes left`
+            : "Not set up yet";
+        }
+        if (nudge && total === 0 && !recoveryNudgeShown) {
+          recoveryNudgeShown = true;
+          showToast(
+            "No recovery codes yet. Add them from the menu so a forgotten password is not a dead end.",
+            "warning"
+          );
+        }
+      } catch {
+        // A status lookup must never block or fail a sign-in.
+      }
     }
 
     function passwordStrength(password) {
@@ -6730,6 +6760,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
         await hydrateFromCloud();
         render();
+        if (submitMode === "login") void refreshRecoveryStatus({ nudge: true });
         showToast(
           submitMode === "changepassword"
             ? "Password updated"
