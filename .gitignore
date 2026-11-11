@@ -1,6 +1,11 @@
 # Local Wrangler state and logs (never commit)
 .wrangler/
 pages-tail.log
+posts.log
+backup.sql
+
+# Password-reset SQL from scripts/reset-password.mjs (contains a verifier)
+reset-*.sql
 
 # Node
 node_modules/

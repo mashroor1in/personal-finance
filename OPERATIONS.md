@@ -23,13 +23,21 @@ throwing 500s". Those are different problems.
 
 ## 1. Watch errors live
 
-Get the current deployment id:
+In an interactive terminal, the deployment id is optional — wrangler attaches to
+the newest production deployment itself:
+
+```powershell
+wrangler pages deployment tail --project-name personal-finance
+```
+
+This is the command to use. No id to copy, and it cannot go stale.
+
+If you need to pin a specific build (or you are in a non-interactive shell, where
+the id **is** required), get the id first:
 
 ```powershell
 wrangler pages deployment list --project-name personal-finance
 ```
-
-Tail that deployment:
 
 ```powershell
 wrangler pages deployment tail <deployment-id> --project-name personal-finance --format json
@@ -51,12 +59,33 @@ wrangler pages deployment tail <id> --project-name personal-finance --method POS
 wrangler pages deployment tail <id> --project-name personal-finance --header "cf-connecting-ip:1.2.3.4"
 ```
 
-### Two gotchas that cost real time
+### Four gotchas that cost real time
 
-1. **The deployment id is required.** `--environment production` alone fails in
-   a non-interactive shell.
-2. **A tail is bound to one deployment.** The moment you push a fix and it goes
-   live, the old tail goes quiet. Start a new tail on the new id.
+1. **Without an id, you get the newest production deployment.** That is usually
+   what you want. In a non-interactive shell the id is mandatory —
+   `--environment production` alone is not enough.
+2. **A tail is bound to one deployment.** If you pin an id, the moment you push a
+   fix and it goes live, the old tail goes quiet. Start a new tail.
+3. **`--status error` hides everything that worked.** If the action succeeded,
+   you will see nothing at all. That is correct, not a broken tail.
+4. **Static files and edge blocks never appear.** See the table below.
+
+### What never shows up in a tail
+
+The tail only sees requests that reached your Pages Functions. That excludes two
+whole categories:
+
+| Missing from the tail | Why | Where to look instead |
+|---|---|---|
+| `/`, `/app.html`, CSS, images, `_headers` | Served directly by Cloudflare, never enter a function | Nowhere — they are static files |
+| WAF / rate-limit / Bot Fight blocks on `mashmind.in` | Rejected at the edge, before your code runs | Dashboard → `mashmind.in` zone → Security → Events |
+
+So only `/api/*` traffic appears. Page loads show up indirectly, through the
+`/api/auth/status` and `/api/auth/me` calls the page makes.
+
+The tail is scoped to a **deployment**, not a hostname: requests from
+`expenses.mashmind.in` and `personal-finance-8ch.pages.dev` both appear, and the
+`host` field tells you which one a request came through.
 
 ### Order matters
 
@@ -189,5 +218,6 @@ the sensitive value.
 
 ## See also
 
+- `RUNBOOK.md` — the "it broke" page: logs, password reset, restore.
 - `DEPLOY.md` — deploy topology, migrations, PowerShell `$` warning.
 - `SECURITY.md` — what is hardened and what remains.

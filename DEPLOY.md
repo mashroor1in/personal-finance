@@ -117,5 +117,6 @@ every login into a 500.
 
 ## See also
 
+- `RUNBOOK.md` — the "it broke" page: logs, password reset, restore.
 - `OPERATIONS.md` — watching live logs, reading errors, setting up alerts.
 - `SECURITY.md` — what is hardened and what remains.
