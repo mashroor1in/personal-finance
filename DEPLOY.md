@@ -114,3 +114,8 @@ every login into a 500.
   known verifier, or delete and re-register the account.
 - Account deletion removes that user's `months` rows permanently.
 - Back up with `wrangler d1 export personal-expenses-db > backup.sql`.
+
+## See also
+
+- `OPERATIONS.md` — watching live logs, reading errors, setting up alerts.
+- `SECURITY.md` — what is hardened and what remains.
