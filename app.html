@@ -1745,6 +1745,32 @@
     .expense-modal-actions { display:flex; justify-content:flex-end; gap:8px; }
     .expense-modal-error { min-height: 17px; margin:0; color:var(--red); font-size:12px; font-weight:700; }
 
+    /* One-time recovery codes: monospace, selectable as a block */
+    .recovery-code-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed var(--line);
+      background: var(--card-muted);
+    }
+    .recovery-code-list code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-align: center;
+      padding: 6px 4px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      user-select: all;
+    }
+    @media (max-width: 420px) {
+      .recovery-code-list { grid-template-columns: 1fr; }
+    }
+
     /* Styled category picker (replaces the OS-native select popup) */
     .select-field { position: relative; }
     .select-trigger {
@@ -2602,6 +2628,13 @@
                 <small>Update your account password</small>
               </span>
             </button>
+            <button id="recoveryCodesBtn" class="menu-item" type="button" role="menuitem">
+              <span class="menu-item-icon"><iconify-icon icon="lucide:life-buoy" width="17" height="17" aria-hidden="true"></iconify-icon></span>
+              <span class="menu-item-copy">
+                <strong>Recovery codes</strong>
+                <small id="recoveryCodesStatus">Backup codes for a forgotten password</small>
+              </span>
+            </button>
             <button id="logoutBtn" class="menu-item" type="button" role="menuitem">
               <span class="menu-item-icon"><iconify-icon icon="lucide:log-out" width="17" height="17" aria-hidden="true"></iconify-icon></span>
               <span class="menu-item-copy">
@@ -2877,6 +2910,12 @@
             <input id="authResetConfirm" type="text" autocomplete="off" aria-hidden="true" tabindex="-1" />
           </div>
 
+          <div id="authRecoveryWrap" class="auth-field hidden">
+            <label id="authRecoveryLabel" for="authRecoveryCode">Recovery code</label>
+            <input id="authRecoveryCode" type="text" autocomplete="one-time-code" spellcheck="false" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" />
+            <p class="auth-field-hint">One of the 10 codes you saved when you created the account.</p>
+          </div>
+
           <p id="authResetNote" class="auth-reset-note hidden"></p>
 
           <div id="authTurnstileWrap" class="hidden" style="display:grid; gap:6px;">
@@ -2903,6 +2942,10 @@
             <span class="auth-trust-item"><iconify-icon icon="lucide:lock" width="12" height="12" aria-hidden="true"></iconify-icon>Secure cookie</span>
             <span class="auth-trust-item"><iconify-icon icon="lucide:cloud" width="12" height="12" aria-hidden="true"></iconify-icon>D1 + KV</span>
             <span class="auth-trust-item"><iconify-icon icon="lucide:shield" width="12" height="12" aria-hidden="true"></iconify-icon>Bot defense</span>
+          </div>
+          <div id="authForgotWrap" class="auth-switch-row">
+            <span>Forgot your password?</span>
+            <button id="authForgotBtn" class="auth-link-btn" type="button">Use a recovery code</button>
           </div>
           <div id="authSwitchWrap" class="auth-switch-row">
             <span id="authSwitchText">New here?</span>
@@ -2970,6 +3013,53 @@
         <div class="expense-modal-actions">
           <button id="budgetModalCancelBtn" class="btn" type="button">Cancel</button>
           <button class="btn btn-primary" type="submit">Save budgets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="recoveryCodesModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="recoveryCodesTitle">
+    <div class="expense-modal-card">
+      <div class="expense-modal-head">
+        <h3 id="recoveryCodesTitle">Save your recovery codes</h3>
+        <button id="recoveryCodesCloseBtn" class="btn" type="button" aria-label="Close">
+          <iconify-icon icon="lucide:x" width="16" height="16" aria-hidden="true"></iconify-icon>
+        </button>
+      </div>
+      <p class="modal-hint">These 10 codes are the only way back into your account if you forget your password. Each one works once. They will not be shown again.</p>
+      <div id="recoveryCodeList" class="recovery-code-list" aria-label="Recovery codes"></div>
+      <p id="recoveryCodesError" class="expense-modal-error" aria-live="polite"></p>
+      <div class="expense-modal-actions">
+        <button id="recoveryCopyBtn" class="btn" type="button">Copy all</button>
+        <button id="recoveryDownloadBtn" class="btn" type="button">Download .txt</button>
+      </div>
+      <label class="auth-inline-check" for="recoverySavedCheck">
+        <input id="recoverySavedCheck" type="checkbox" />
+        I have saved these codes somewhere safe
+      </label>
+      <button id="recoveryDoneBtn" class="btn btn-primary" type="button" disabled>Done</button>
+    </div>
+  </div>
+
+  <div id="recoveryManageModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="recoveryManageTitle">
+    <div class="expense-modal-card">
+      <div class="expense-modal-head">
+        <h3 id="recoveryManageTitle">Recovery codes</h3>
+        <button id="recoveryManageCloseBtn" class="btn" type="button" aria-label="Close">
+          <iconify-icon icon="lucide:x" width="16" height="16" aria-hidden="true"></iconify-icon>
+        </button>
+      </div>
+      <p id="recoveryManageStatus" class="modal-hint">Checking your codes...</p>
+      <form id="recoveryManageForm" class="expense-modal-form">
+        <div>
+          <label for="recoveryManagePassword">Current password</label>
+          <input id="recoveryManagePassword" type="password" autocomplete="current-password" placeholder="Confirm with your password" />
+          <p class="field-hint">Required, so a borrowed session cannot replace your codes.</p>
+        </div>
+        <p id="recoveryManageError" class="expense-modal-error" aria-live="polite"></p>
+        <div class="expense-modal-actions">
+          <button id="recoveryManageCancel" class="btn" type="button">Cancel</button>
+          <button id="recoveryManageSubmit" class="btn btn-primary" type="submit">Generate new codes</button>
         </div>
       </form>
     </div>
@@ -3260,7 +3350,29 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const authSwitchWrap = document.getElementById("authSwitchWrap");
     const authSwitchText = document.getElementById("authSwitchText");
     const authSwitchBtn = document.getElementById("authSwitchBtn");
+    const authForgotWrap = document.getElementById("authForgotWrap");
+    const authForgotBtn = document.getElementById("authForgotBtn");
+    const authRecoveryWrap = document.getElementById("authRecoveryWrap");
+    const authRecoveryCode = document.getElementById("authRecoveryCode");
     const authError = document.getElementById("authError");
+    const recoveryCodesModal = document.getElementById("recoveryCodesModal");
+    const recoveryCodeList = document.getElementById("recoveryCodeList");
+    const recoveryCodesError = document.getElementById("recoveryCodesError");
+    const recoveryCodesCloseBtn = document.getElementById("recoveryCodesCloseBtn");
+    const recoveryCopyBtn = document.getElementById("recoveryCopyBtn");
+    const recoveryDownloadBtn = document.getElementById("recoveryDownloadBtn");
+    const recoverySavedCheck = document.getElementById("recoverySavedCheck");
+    const recoveryDoneBtn = document.getElementById("recoveryDoneBtn");
+    const recoveryManageModal = document.getElementById("recoveryManageModal");
+    const recoveryManageForm = document.getElementById("recoveryManageForm");
+    const recoveryManageStatus = document.getElementById("recoveryManageStatus");
+    const recoveryManagePassword = document.getElementById("recoveryManagePassword");
+    const recoveryManageError = document.getElementById("recoveryManageError");
+    const recoveryManageCloseBtn = document.getElementById("recoveryManageCloseBtn");
+    const recoveryManageCancel = document.getElementById("recoveryManageCancel");
+    const recoveryManageSubmit = document.getElementById("recoveryManageSubmit");
+    const recoveryCodesBtn = document.getElementById("recoveryCodesBtn");
+    const recoveryCodesStatus = document.getElementById("recoveryCodesStatus");
     const expenseModal = document.getElementById("expenseModal");
     const expenseModalForm = document.getElementById("expenseModalForm");
     const expenseModalTitle = document.getElementById("expenseModalTitle");
@@ -3287,7 +3399,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const insightsGrid = document.getElementById("insightsGrid");
     const insightsSubtitle = document.getElementById("insightsSubtitle");
 
-    let authMode = "login"; // login | register | changepassword | resetaccount
+    let authMode = "login"; // login | register | changepassword | resetaccount | recover
+    let pendingRecoveryCodes = [];
+    // Modes that guess a credential from an unauthenticated caller: enrolled in
+    // the same bot check and IP throttle as login.
+    const requiresHumanCheck = (mode = authMode) =>
+      mode === "login" || mode === "register" || mode === "recover";
     let cloudHasUsers = null;
     let cloudProfile = null;
     let profileAvatarSeed = "";
@@ -3521,6 +3638,43 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (!isAuthenticated()) return;
         showAuthOverlay("changepassword");
       });
+      recoveryCodesBtn?.addEventListener("click", () => openRecoveryManage());
+      recoveryCodesCloseBtn?.addEventListener("click", dismissRecoveryCodes);
+      recoveryDoneBtn?.addEventListener("click", closeRecoveryCodes);
+      recoverySavedCheck?.addEventListener("change", () => {
+        recoveryDoneBtn.disabled = !recoverySavedCheck.checked;
+      });
+      recoveryCopyBtn?.addEventListener("click", copyRecoveryCodes);
+      recoveryDownloadBtn?.addEventListener("click", downloadRecoveryCodes);
+      recoveryManageCloseBtn?.addEventListener("click", closeRecoveryManage);
+      recoveryManageCancel?.addEventListener("click", closeRecoveryManage);
+      recoveryManageForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        recoveryManageError.textContent = "";
+        const password = (recoveryManagePassword.value || "").trim();
+        if (!password) {
+          recoveryManageError.textContent = "Enter your current password.";
+          return;
+        }
+        recoveryManageSubmit.disabled = true;
+        recoveryManageSubmit.textContent = "Generating...";
+        try {
+          const res = await api("/api/auth/recovery-codes", {
+            method: "POST",
+            body: JSON.stringify({ password }),
+          });
+          closeRecoveryManage();
+          if (Array.isArray(res?.recoveryCodes) && res.recoveryCodes.length) {
+            showRecoveryCodes(res.recoveryCodes);
+            showToast("New recovery codes generated. The old ones no longer work.");
+          }
+        } catch (err) {
+          recoveryManageError.textContent = err?.message || "Could not generate codes.";
+        } finally {
+          recoveryManageSubmit.disabled = false;
+          recoveryManageSubmit.textContent = "Generate new codes";
+        }
+      });
       resetAppBtn.addEventListener("click", () => {
         if (!isAuthenticated()) return;
         showAuthOverlay("resetaccount");
@@ -3639,8 +3793,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       authModeLoginBtn.addEventListener("click", () => showAuthOverlay("login"));
       authModeRegisterBtn.addEventListener("click", () => showAuthOverlay("register"));
       authSwitchBtn.addEventListener("click", () => {
+        if (authMode === "recover") {
+          showAuthOverlay("login");
+          return;
+        }
         showAuthOverlay(authMode === "register" ? "login" : "register");
       });
+      authForgotBtn.addEventListener("click", () => showAuthOverlay("recover"));
       authShowPassword.addEventListener("change", () => {
         const show = authShowPassword.checked;
         [authPin, authPinConfirm, authCurrentPin].forEach((el) => {
@@ -3828,7 +3987,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function updateTurnstileVisibility() {
-      const needsTurnstile = turnstileEnabled && (authMode === "login" || authMode === "register");
+      const needsTurnstile = turnstileEnabled && requiresHumanCheck();
       authTurnstileWrap.classList.toggle("hidden", !needsTurnstile);
       if (!needsTurnstile) {
         turnstileToken = "";
@@ -3862,18 +4021,25 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       authCurrentWrap.classList.add("hidden");
       authConfirmWrap.classList.add("hidden");
       authResetWrap.classList.add("hidden");
+      authRecoveryWrap.classList.add("hidden");
+      authForgotWrap.classList.add("hidden");
 
       authUsername.required = false;
       authCurrentPin.required = false;
       authPinConfirm.required = false;
       authResetConfirm.required = false;
+      authRecoveryCode.required = false;
 
       const simpleEntryMode = mode === "login" || mode === "register";
       authModeTabs.classList.toggle("hidden", !simpleEntryMode);
       authSwitchWrap.classList.toggle("hidden", !simpleEntryMode);
+      authForgotWrap.classList.toggle("hidden", mode !== "login");
       authModeLoginBtn.classList.toggle("active", mode === "login");
       authModeRegisterBtn.classList.toggle("active", mode === "register");
-      authStrengthWrap.classList.toggle("hidden", !(mode === "register" || mode === "changepassword"));
+      authStrengthWrap.classList.toggle(
+        "hidden",
+        !(mode === "register" || mode === "changepassword" || mode === "recover")
+      );
       updateAuthBlobatar();
       try {
         updateTurnstileVisibility();
@@ -3881,6 +4047,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         console.warn("Turnstile unavailable", error);
       }
 
+      // Recovery is throttled in its own bucket, so a login lock must not freeze
+      // this form. Drop the local countdown instead of letting its timer keep
+      // re-disabling the button.
+      if (mode === "recover") clearAuthCooldown();
       const cooldownLeft = getAuthCooldownSecondsLeft();
       if ((mode === "login" || mode === "register") && cooldownLeft > 0) {
         startAuthCooldown(cooldownLeft);
@@ -3912,6 +4082,23 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         authConfirmWrap.classList.remove("hidden");
         authCurrentPin.required = true;
         authPinConfirm.required = true;
+        authPin.setAttribute("autocomplete", "new-password");
+      } else if (mode === "recover") {
+        authTitle.textContent = "Reset password";
+        authSubtitle.textContent = "Use your username, one recovery code, and a new password.";
+        authUsernameWrap.classList.remove("hidden");
+        authUsernameLabel.textContent = "Username";
+        authUsername.required = true;
+        authRecoveryWrap.classList.remove("hidden");
+        authRecoveryCode.required = true;
+        authPinLabel.textContent = "New password";
+        authPinConfirmLabel.textContent = "Confirm new password";
+        authSubmitBtn.textContent = "Reset password";
+        authConfirmWrap.classList.remove("hidden");
+        authPinConfirm.required = true;
+        authSwitchWrap.classList.remove("hidden");
+        authSwitchText.textContent = "Remembered it?";
+        authSwitchBtn.textContent = "Back to sign in";
         authPin.setAttribute("autocomplete", "new-password");
       } else if (mode === "resetaccount") {
         authTitle.textContent = "Delete account";
@@ -3960,6 +4147,111 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       authCard.classList.add("mode-switch");
     }
 
+    /* Recovery codes -------------------------------------------------------- */
+
+    function recoveryCodesPlainText(codes) {
+      return [
+        "MashMind Expense Planner - recovery codes",
+        "",
+        ...codes,
+        "",
+        "Each code works once. Keep this file somewhere private.",
+      ].join("\n");
+    }
+
+    function showRecoveryCodes(codes) {
+      pendingRecoveryCodes = Array.isArray(codes) ? codes.slice() : [];
+      if (!pendingRecoveryCodes.length) return;
+      recoveryCodeList.replaceChildren(
+        ...pendingRecoveryCodes.map((code) => {
+          const el = document.createElement("code");
+          el.textContent = code;
+          return el;
+        })
+      );
+      recoveryCodesError.textContent = "";
+      recoverySavedCheck.checked = false;
+      recoveryDoneBtn.disabled = true;
+      recoveryCodesModal.classList.remove("hidden");
+      recoveryDoneBtn.focus();
+    }
+
+    function closeRecoveryCodes() {
+      recoveryCodesModal.classList.add("hidden");
+      pendingRecoveryCodes = [];
+    }
+
+    function dismissRecoveryCodes() {
+      if (!recoverySavedCheck.checked) {
+        showToast("Codes hidden. You can generate a new set from the menu.", "warning");
+      }
+      closeRecoveryCodes();
+    }
+
+    async function copyRecoveryCodes() {
+      if (!pendingRecoveryCodes.length) return;
+      try {
+        await navigator.clipboard.writeText(recoveryCodesPlainText(pendingRecoveryCodes));
+        showToast("Codes copied to the clipboard");
+      } catch {
+        recoveryCodesError.textContent = "Could not copy. Select the codes and copy them by hand.";
+      }
+    }
+
+    function downloadRecoveryCodes() {
+      if (!pendingRecoveryCodes.length) return;
+      const blob = new Blob([recoveryCodesPlainText(pendingRecoveryCodes)], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "mashmind-recovery-codes.txt";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function openRecoveryManage() {
+      if (!isAuthenticated()) return;
+      recoveryManageError.textContent = "";
+      recoveryManagePassword.value = "";
+      recoveryManageStatus.textContent = "Checking your codes...";
+      recoveryManageModal.classList.remove("hidden");
+      setTimeout(() => recoveryManagePassword.focus(), 0);
+      api("/api/auth/recovery-codes")
+        .then((res) => {
+          const total = Number(res?.total || 0);
+          const remaining = Number(res?.remaining || 0);
+          if (!total) {
+            recoveryManageStatus.textContent =
+              "No recovery codes are set up. Generate a set so a forgotten password is not a dead end.";
+          } else if (remaining === 0) {
+            recoveryManageStatus.textContent =
+              "All codes have been used. Generate a new set to keep a way back in.";
+          } else {
+            recoveryManageStatus.textContent =
+              `You have ${remaining} of ${total} codes left. Generating a new set replaces all of them.`;
+          }
+          if (recoveryCodesStatus) {
+            recoveryCodesStatus.textContent = total
+              ? `${remaining} of ${total} codes left`
+              : "Not set up yet";
+          }
+        })
+        .catch((err) => {
+          recoveryManageStatus.textContent =
+            err?.status === 401
+              ? "Your session expired. Sign in again."
+              : "Could not read your codes. Try again.";
+        });
+    }
+
+    function closeRecoveryManage() {
+      recoveryManageModal.classList.add("hidden");
+      recoveryManagePassword.value = "";
+      recoveryManageError.textContent = "";
+    }
+
     function passwordStrength(password) {
       let score = 0;
       if (password.length >= 6) score++;
@@ -3983,7 +4275,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         authUsernameHint.textContent = "";
       }
 
-      if (authMode === "register" || authMode === "changepassword") {
+      if (authMode === "register" || authMode === "changepassword" || authMode === "recover") {
         const strength = passwordStrength(password);
         const pct = (strength / 5) * 100;
         const levels = ["Very weak", "Weak", "Fair", "Good", "Strong", "Excellent"];
@@ -6167,7 +6459,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         if (left <= 0) {
           clearAuthCooldown();
           authSubmitBtn.disabled = false;
-          authSubmitBtn.textContent = authMode === "register" ? "Sign up" : "Sign in";
+          authSubmitBtn.textContent =
+            authMode === "register" ? "Sign up" : authMode === "recover" ? "Reset password" : "Sign in";
           setAuthError("");
           return;
         }
@@ -6187,10 +6480,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const currentPassword = (authCurrentPin?.value || "").trim();
       const confirmPassword = (authPinConfirm?.value || "").trim();
       const resetConfirm = (authResetConfirm?.value || "").trim();
+      const code = (authRecoveryCode?.value || "").trim();
 
       const payload = await api("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm, turnstileToken }),
+        body: JSON.stringify({ mode, username, password, currentPassword, confirmPassword, resetConfirm, code, turnstileToken }),
       });
       return payload;
     }
@@ -6201,14 +6495,17 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const currentPassword = (authCurrentPin?.value || "").trim();
       const confirmPassword = (authPinConfirm?.value || "").trim();
 
-      if ((authMode === "login" || authMode === "register") && !/^[a-z0-9._-]{3,32}$/.test(username)) {
+      if (requiresHumanCheck() && !/^[a-z0-9._-]{3,32}$/.test(username)) {
         return "Username must be 3-32 chars (letters, numbers, ., _, -).";
       }
       if (authMode === "login" && !password) return "Password is required.";
-      if ((authMode === "register" || authMode === "changepassword") && password.length < 6) {
+      if (authMode === "recover" && !(authRecoveryCode?.value || "").trim()) {
+        return "Recovery code is required.";
+      }
+      if ((authMode === "register" || authMode === "changepassword" || authMode === "recover") && password.length < 6) {
         return "Password must be at least 6 characters.";
       }
-      if (authMode === "register" || authMode === "changepassword") {
+      if (authMode === "register" || authMode === "changepassword" || authMode === "recover") {
         if (password !== confirmPassword) return "Password confirmation does not match.";
       }
       if (authMode === "changepassword" && !currentPassword) {
@@ -6218,13 +6515,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         return "Current password is required.";
       }
       const cooldownLeft = getAuthCooldownSecondsLeft();
-      if ((authMode === "login" || authMode === "register") && cooldownLeft > 0) {
+      if (requiresHumanCheck() && cooldownLeft > 0) {
         return `Too many attempts. Try again in ${formatCooldown(cooldownLeft)}.`;
       }
-      if (turnstileMisconfigured && (authMode === "login" || authMode === "register")) {
+      if (turnstileMisconfigured && requiresHumanCheck()) {
         return "Human verification is misconfigured on this deployment. Contact the owner.";
       }
-      if (turnstileEnabled && (authMode === "login" || authMode === "register") && !turnstileToken) {
+      if (turnstileEnabled && requiresHumanCheck() && !turnstileToken) {
         return "Please complete human verification.";
       }
       return "";
@@ -6399,6 +6696,21 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           return;
         }
 
+        if (submitMode === "recover") {
+          // No auto-login on purpose: signing in with the new password is the
+          // proof that the reset actually worked, instead of leaving the user
+          // inside a session they cannot reproduce next time.
+          clearAuthCooldown();
+          cloudProfile = null;
+          const recoveredName =
+            payload?.username || (authUsername?.value || "").trim().toLowerCase();
+          showAuthOverlay("login");
+          authUsername.value = recoveredName;
+          setAuthError("");
+          showToast(payload?.message || "Password reset. Sign in with your new password.");
+          return;
+        }
+
         cloudHasUsers = true;
         clearAuthCooldown();
         cloudProfile = payload || null;
@@ -6410,6 +6722,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           data = {};
           persistence.clearData();
           persistence.markMigrated(cloudProfile?.userID);
+          if (Array.isArray(payload?.recoveryCodes) && payload.recoveryCodes.length) {
+            showRecoveryCodes(payload.recoveryCodes);
+          }
         } else {
           await migrateLocalStorageToCloudOnce();
         }
@@ -6423,14 +6738,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
               : "Welcome back"
         );
       } catch (err) {
-        if (submitMode === "login" || submitMode === "register") resetTurnstile();
+        if (requiresHumanCheck(submitMode)) resetTurnstile();
         const retryAfter = Number(err?.retryAfterSec || 0);
-        if ((submitMode === "login" || submitMode === "register") && retryAfter > 0) {
+        if (requiresHumanCheck(submitMode) && retryAfter > 0) {
           startAuthCooldown(retryAfter);
           return;
         }
         const lockMatch = String(err?.message || "").match(/try again in\s+(\d+)s/i);
-        if ((submitMode === "login" || submitMode === "register") && lockMatch) {
+        if (requiresHumanCheck(submitMode) && lockMatch) {
           startAuthCooldown(Number(lockMatch[1]));
           return;
         }

@@ -1,5 +1,12 @@
 import { json, readJson, randomToken, sessionCookie, parseCookies, guardJsonMutation, hashPassword, verifyPassword } from "../../_lib/common.js";
 import { requireSession, sessionVersion } from "../../_lib/auth.js";
+import { reserveCredentialAttempt, releaseAuthFailure, tooManyAttempts } from "../../_lib/throttle.js";
+import {
+  buildRecoveryCodeRows,
+  generateRecoveryCodes,
+  isValidRecoveryCode,
+  matchesRecoveryCode,
+} from "../../_lib/recovery.js";
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -15,16 +22,24 @@ export async function onRequestPost(context) {
   const confirmPassword = String(body.confirmPassword || "").trim();
   const resetConfirm = String(body.resetConfirm || "").trim();
   const turnstileToken = String(body.turnstileToken || "").trim();
+  const recoveryCode = String(body.code || body.recoveryCode || "").trim();
 
-  if (!["register", "login", "changepassword", "resetaccount"].includes(mode)) {
+  if (!["register", "login", "changepassword", "resetaccount", "recover"].includes(mode)) {
     return json({ ok: false, error: "Invalid auth mode." }, { status: 400 });
   }
 
   const badPassword = () => json({ ok: false, error: "Password must be at least 6 characters." }, { status: 400 });
-  const isPublicAuthMode = mode === "register" || mode === "login";
+  // Recovery is unauthenticated and guesses a secret, so it shares the same
+  // throttle and bot check as login. Otherwise it is a free oracle on the
+  // codes.
+  const isPublicAuthMode = mode === "register" || mode === "login" || mode === "recover";
+  // Recovery codes are a different secret from the password, so they get their
+  // own throttle bucket. Otherwise five mistyped passwords would also lock the
+  // user out of the recovery path they are about to need.
+  const throttleScope = mode === "recover" ? "recover" : "auth";
 
   if (isPublicAuthMode) {
-    const lock = await reserveCredentialAttempt(env, clientIP);
+    const lock = await reserveCredentialAttempt(env, clientIP, throttleScope);
     if (lock.blocked) return tooManyAttempts(lock);
   }
 
@@ -65,11 +80,20 @@ export async function onRequestPost(context) {
     // visitor seed data that the first real account then inherited. Legacy rows
     // stay in place until an explicit, authenticated claim exists.
 
+    // A deleted username can be registered again. Any codes left behind must
+    // not carry over, or the previous holder of the name would keep a way into
+    // the new account.
+    const recoveryCodes = await issueRecoveryCodes(env, username);
+
     // A successful registration proves the caller is not guessing at an
     // existing credential. It releases only the slot this request reserved;
     // the aggregate rate bucket is never reset by success.
     await releaseAuthFailure(env, clientIP);
-    return await issueSessionAndRespond(env, username);
+    return await issueSessionAndRespond(
+      env,
+      username,
+      recoveryCodes.length ? { recoveryCodes } : {}
+    );
   }
 
   if (mode === "login") {
@@ -97,6 +121,81 @@ export async function onRequestPost(context) {
 
     await releaseAuthFailure(env, clientIP);
     return await issueSessionAndRespond(env, user.id);
+  }
+
+  if (mode === "recover") {
+    // Same message for "no such user", "no such code" and "code already used",
+    // so this cannot be used to enumerate accounts or codes.
+    const rejected = () =>
+      json({ ok: false, error: "Invalid username or recovery code." }, { status: 401 });
+
+    if (!isValidUsername(username)) return rejected();
+    if (!isValidRecoveryCode(recoveryCode)) {
+      return json(
+        { ok: false, error: "Recovery codes look like XXXX-XXXX-XXXX." },
+        { status: 400 }
+      );
+    }
+    if (password.length < 6) return badPassword();
+    if (password !== confirmPassword) {
+      return json({ ok: false, error: "New password confirmation does not match." }, { status: 400 });
+    }
+
+    const user = await env.DB.prepare("SELECT id, salt, pin_hash FROM users WHERE id = ?")
+      .bind(username)
+      .first();
+    if (!user) return rejected();
+
+    const stored = await env.DB.prepare(
+      "SELECT id, salt, code_hash FROM recovery_codes WHERE user_id = ? AND used_at IS NULL"
+    )
+      .bind(username)
+      .all()
+      .catch(() => null);
+    if (!stored) {
+      // Missing table (migration 0003 not applied) must not become an opaque
+      // 500, which is unreadable without a live tail.
+      return json(
+        { ok: false, error: "Password recovery is not available right now. Contact the owner." },
+        { status: 503 }
+      );
+    }
+    const candidates = Array.isArray(stored?.results) ? stored.results : [];
+
+    let matched = null;
+    for (const row of candidates) {
+      // Every candidate is checked, not just up to the match, so response time
+      // does not reveal the position of a correct code in the list.
+      if (await matchesRecoveryCode(recoveryCode, row)) matched = row;
+    }
+    if (!matched) return rejected();
+
+    // Spend the code before touching the password. The conditional update makes
+    // two concurrent redemptions race safely: exactly one changes a row.
+    const burned = await env.DB.prepare(
+      "UPDATE recovery_codes SET used_at = ? WHERE id = ? AND used_at IS NULL"
+    )
+      .bind(Date.now(), matched.id)
+      .run();
+    if (burned?.meta?.changes === 0) return rejected();
+
+    const { salt: newSalt, pinHash: newHash } = await hashPassword(password, env);
+    await env.DB.prepare("UPDATE users SET salt = ?, pin_hash = ?, updated_at = ? WHERE id = ?")
+      .bind(newSalt, newHash, Date.now(), username)
+      .run();
+
+    await releaseAuthFailure(env, clientIP, "recover");
+
+    // No session is issued. The user must sign in with the new password, which
+    // proves the reset worked instead of stranding them in a session they
+    // cannot reproduce. The new verifier rotates the session version, so every
+    // older token for this account is dead.
+    return json({
+      ok: true,
+      recovered: true,
+      username,
+      message: "Password reset. Sign in with your new password.",
+    });
   }
 
   const session = await requireSession(context);
@@ -153,6 +252,7 @@ export async function onRequestPost(context) {
     }
 
     await env.DB.prepare("DELETE FROM months WHERE user_id = ?").bind(userID).run();
+    await env.DB.prepare("DELETE FROM recovery_codes WHERE user_id = ?").bind(userID).run();
     await env.DB.prepare("DELETE FROM users WHERE id = ?").bind(userID).run();
 
     const token = parseCookies(request).pf_session;
@@ -211,7 +311,7 @@ async function upgradePasswordHash(env, userID, password) {
   }
 }
 
-async function issueSessionAndRespond(env, userID) {
+async function issueSessionAndRespond(env, userID, extra = {}) {
   const user = await env.DB.prepare("SELECT created_at, updated_at, pin_hash FROM users WHERE id = ?")
     .bind(userID)
     .first();
@@ -233,9 +333,40 @@ async function issueSessionAndRespond(env, userID) {
       username: userID,
       createdAt: user.created_at || null,
       passwordUpdatedAt: user.updated_at || null,
+      ...extra,
     },
     { headers: { "Set-Cookie": sessionCookie(token) } }
   );
+}
+
+/**
+ * Replace a user's recovery codes with a fresh set.
+ *
+ * Returns the plaintext codes for this one response. On failure it returns an
+ * empty list rather than throwing: a backup-code problem must not fail the
+ * registration that already succeeded. The account simply has no codes, which
+ * the UI reports honestly.
+ */
+async function issueRecoveryCodes(env, userID) {
+  try {
+    const codes = generateRecoveryCodes();
+    const rows = await buildRecoveryCodeRows(userID, codes);
+    if (!rows.length) return [];
+
+    const insert = env.DB.prepare(
+      "INSERT INTO recovery_codes (id, user_id, code_hash, salt, created_at) VALUES (?, ?, ?, ?, ?)"
+    );
+    const statements = [
+      env.DB.prepare("DELETE FROM recovery_codes WHERE user_id = ?").bind(userID),
+      ...rows.map((row) =>
+        insert.bind(row.id, row.userID, row.codeHash, row.salt, row.createdAt)
+      ),
+    ];
+    await env.DB.batch(statements);
+    return codes;
+  } catch {
+    return [];
+  }
 }
 
 async function verifyTurnstile({ secret, siteKey, token, ip }) {
@@ -267,114 +398,4 @@ async function verifyTurnstile({ secret, siteKey, token, ip }) {
   } catch {
     return false;
   }
-}
-
-// Atomic D1 throttling. KV's get-then-put let a parallel burst all read the
-// same counter, so every in-flight request could reach the password digest
-// before the sixth wrote a lock. D1's conditional upsert serialises the
-// reservation, and the aggregate rate bucket is never reset by a success.
-const AUTH_FAIL_LIMIT = 5;
-const AUTH_RATE_LIMIT = 30;
-const AUTH_WINDOW_MS = 15 * 60 * 1000;
-const AUTH_LOCK_BASE_MS = 5 * 60 * 1000;
-const AUTH_LOCK_MAX_MS = 60 * 60 * 1000;
-const AUTH_RATE_LOCK_MAX_MS = 15 * 60 * 1000;
-
-function authFailureKey(ip) {
-  return `authfail:ip:${toSafeKey(ip || "unknown")}`;
-}
-
-function authRateKey(ip) {
-  return `authrate:ip:${toSafeKey(ip || "unknown")}`;
-}
-
-async function reserveCredentialAttempt(env, ip) {
-  const rate = await reserveAttempt(env, authRateKey(ip), AUTH_RATE_LIMIT, AUTH_RATE_LOCK_MAX_MS);
-  if (rate.blocked) return rate;
-  return reserveAttempt(env, authFailureKey(ip), AUTH_FAIL_LIMIT, AUTH_LOCK_MAX_MS);
-}
-
-async function reserveAttempt(env, key, limit, maxLockMs) {
-  const now = Date.now();
-  const staleBefore = now - AUTH_WINDOW_MS;
-
-  // An expired lock or an idle window starts a fresh count. The upsert below is
-  // a single statement, so concurrent requests cannot lose each other's write.
-  await env.DB.prepare(
-    `UPDATE auth_throttle
-     SET count = 0, lock_until = 0, window_start = ?, updated_at = ?
-     WHERE key = ? AND lock_until <= ? AND (lock_until > 0 OR window_start < ?)`
-  )
-    .bind(now, now, key, now, staleBefore)
-    .run();
-
-  await env.DB.prepare(
-    `INSERT INTO auth_throttle (key, count, window_start, lock_until, updated_at)
-     VALUES (?, 1, ?, 0, ?)
-     ON CONFLICT(key) DO UPDATE SET
-       count = CASE
-         WHEN auth_throttle.lock_until > ? THEN auth_throttle.count
-         ELSE auth_throttle.count + 1
-       END,
-       lock_until = CASE
-         WHEN auth_throttle.lock_until > ? THEN auth_throttle.lock_until
-         WHEN auth_throttle.count + 1 > ?
-           THEN ? + MIN(? * (1 << MIN(auth_throttle.count + 1 - (? + 1), 10)), ?)
-         ELSE 0
-       END,
-       updated_at = ?`
-  )
-    .bind(
-      key,
-      now,
-      now,
-      now,
-      now,
-      limit,
-      now,
-      AUTH_LOCK_BASE_MS,
-      limit,
-      maxLockMs,
-      now
-    )
-    .run();
-
-  const row = await env.DB.prepare(
-    "SELECT count, lock_until FROM auth_throttle WHERE key = ?"
-  )
-    .bind(key)
-    .first();
-
-  const lockUntil = Number(row?.lock_until || 0);
-  if (lockUntil > now) {
-    return {
-      blocked: true,
-      retryAfterSeconds: Math.max(1, Math.ceil((lockUntil - now) / 1000)),
-    };
-  }
-
-  return { blocked: false, retryAfterSeconds: 0 };
-}
-
-async function releaseAuthFailure(env, ip) {
-  try {
-    await env.DB.prepare(
-      "UPDATE auth_throttle SET count = MAX(count - 1, 0) WHERE key = ? AND lock_until <= ?"
-    )
-      .bind(authFailureKey(ip), Date.now())
-      .run();
-  } catch {
-    // A cleanup failure must not turn a correct credential into a 500.
-  }
-}
-
-function tooManyAttempts(lock) {
-  return json(
-    { ok: false, error: `Too many attempts. Try again in ${lock.retryAfterSeconds}s.` },
-    { status: 429, headers: { "Retry-After": String(lock.retryAfterSeconds) } }
-  );
-}
-
-function toSafeKey(input) {
-  return String(input || "unknown").toLowerCase().replace(/[^a-z0-9._:-]/g, "_").slice(0, 120);
 }

@@ -199,6 +199,7 @@ setup, paid. Not worth it at this size.
 | One endpoint 500s | Bug in that handler |
 | Login refused, site looks fine | Turnstile half-configured, or auth throttling |
 | `429` | Rate limit / lockout (`auth_throttle` table) |
+| Forgotten password | User redeems a recovery code; see `RUNBOOK.md` §3 |
 | Site 404s at `/` | A `functions/index.js` was added and is shadowing `index.html` |
 | `D1_ERROR` / no such table | A migration was not applied; see `DEPLOY.md` |
 | Deploy never goes live | Build failed — read the build log, not the runtime log |

@@ -61,7 +61,15 @@ them goes live:
 
 ```powershell
 wrangler d1 execute personal-expenses-db --file migrations/0002_auth_throttle.sql --remote
+wrangler d1 execute personal-expenses-db --file migrations/0003_recovery_codes.sql --remote
 ```
+
+Both are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`),
+so re-running them is safe.
+
+> `0003_recovery_codes.sql` must be applied before pushing the recovery-code
+> feature. Registration degrades gracefully without it (the account is created,
+> just without codes), but recovery itself cannot work until the table exists.
 
 Database id: `f99159c3-82a7-405c-bf9e-6e65b5662be5`.
 
@@ -110,10 +118,16 @@ every login into a 500.
 
 ## Recovery
 
-- Forgot password: there is no reset flow. An operator must reset the row with a
-  known verifier, or delete and re-register the account.
-- Account deletion removes that user's `months` rows permanently.
-- Back up with `wrangler d1 export personal-expenses-db > backup.sql`.
+- Forgot password: the user redeems one of their 10 one-time recovery codes on
+  the sign-in screen (`Use a recovery code`). No operator needed. If those are
+  also lost, an operator resets the row with `scripts/reset-password.mjs`, or the
+  account is deleted and re-registered.
+- Recovery codes are shown once, at signup, and stored only as salted hashes.
+  They can be replaced from the account menu (`Recovery codes`), which requires
+  the current password.
+- Account deletion removes that user's `months` rows and recovery codes
+  permanently.
+- Back up with `wrangler d1 export personal-expenses-db --remote --output backup.sql`.
 
 ## See also
 

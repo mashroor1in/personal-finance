@@ -52,7 +52,7 @@ cd C:\mash\Study\personal-finance
 | `429` on login | Rate limit / `auth_throttle` lockout | [§5](#5-unlock-a-locked-out-account) |
 | `404` at `/` | A `functions/index.js` came back | [§4](#4-put-a-bad-deploy-back) |
 | `D1_ERROR` / `no such table` | A migration was never applied | [§6](#6-restore-the-database) |
-| Someone forgot their password | No self-service reset exists | [§3](#3-fix-a-password-by-hand) |
+| Someone forgot their password | They should redeem a recovery code first | [§3](#3-fix-a-password-by-hand) |
 | Data is wrong / deleted | Needs a restore | [§6](#6-restore-the-database) |
 
 ---
@@ -147,7 +147,22 @@ terminal. Then do the real fix calmly, on a branch.
 
 ## 3. Fix a password by hand
 
-There is no self-service reset. An operator resets the row.
+There are two paths, in this order.
+
+### First: the user resets it themselves
+
+Every account gets 10 one-time recovery codes at signup. On the sign-in screen
+the user clicks **Use a recovery code**, then enters their username, one code,
+and a new password. That is the whole flow: no operator, no downtime, and the
+code is burned on use.
+
+If they never saved the codes, they can still generate a fresh set after signing
+in: menu → **Recovery codes** → enter the current password. That replaces the
+old set, so a lost sheet stops working.
+
+### Second: the codes are gone too
+
+Then an operator resets the row.
 
 **Never paste a password hash into `wrangler d1 execute --command "..."`.** In
 PowerShell, `$` starts a variable, so `pbkdf2-sha256$100000$...` silently
@@ -212,6 +227,16 @@ wrangler d1 execute personal-expenses-db --remote --command "SELECT id, substr(p
 `pbkdf2-sha256$100000$` with `len` 90 is a healthy modern row. A bare 64-character
 hex value is a legacy SHA-256 row, which auto-upgrades on the next login. That is
 not an error.
+
+An operator reset does **not** clear recovery codes. That is usually right: the
+owner keeps their backup sheet. But if you reset the password to evict someone,
+clear the codes too, or that someone keeps a way back in:
+
+```powershell
+wrangler d1 execute personal-expenses-db --remote --command "DELETE FROM recovery_codes WHERE user_id = 'mash';"
+```
+
+The owner can then generate a fresh set from the account menu.
 
 ---
 
@@ -372,6 +397,7 @@ tab.**
 | Clear `auth_throttle` during a suspected attack | You are removing the lock the attacker is hitting. |
 | Restore a database without noting the bookmark | You lose the ability to undo the restore. |
 | Edit `pin_hash` to a value you made up | It must be a real `pbkdf2-sha256$100000$salt$key` verifier. Use the script. |
+| Ask a user to send you a recovery code | It is a password equivalent. Have them enter it themselves. |
 | Delete `migrations/*.sql` | They are the schema of record. |
 | Commit `backup.sql`, `reset-*.sql`, `*.log` | They are all gitignored; keep it that way. |
 
