@@ -9,6 +9,7 @@ import {
   verifyPassword,
   constantTimeEqual,
   PASSWORD_ITERATIONS,
+  MAX_PBKDF2_ITERATIONS,
 } from "../functions/_lib/common.js";
 import { onRequestPost as registerOrLogin } from "../functions/api/auth/login.js";
 import { onRequestPost as logout } from "../functions/api/auth/logout.js";
@@ -866,4 +867,32 @@ test("changing the password stores a PBKDF2 verifier and revokes the old token",
   assert.equal(response.status, 200);
   assert.match(users.get("alice").pin_hash, /^pbkdf2-sha256\$/);
   assert.equal(await requireSession({ env, request: sessionRequest(token) }), null);
+});
+
+test("the default iteration count stays under the platform ceiling", () => {
+  // Cloudflare rejects PBKDF2 above 100000 with NotSupportedError, which
+  // surfaces as a 500 on every login rather than a clean failure.
+  assert.equal(PASSWORD_ITERATIONS, MAX_PBKDF2_ITERATIONS);
+  assert.ok(PASSWORD_ITERATIONS <= 100000);
+});
+
+test("a configured iteration count above the ceiling is clamped, not passed through", async () => {
+  const { pinHash } = await hashPassword("secret1", { PASSWORD_ITERATIONS: 600000 });
+
+  assert.match(pinHash, /^pbkdf2-sha256\$100000\$/);
+  assert.deepEqual(await verifyPassword("secret1", { salt: "s", pin_hash: pinHash }, {}), {
+    ok: true,
+    needsRehash: false,
+  });
+});
+
+test("a stored verifier above the platform ceiling fails closed instead of throwing", async () => {
+  // This is the exact shape a 210000-iteration row had after the first deploy.
+  const overCeiling =
+    "pbkdf2-sha256$210000$Sgp9OfqOw+nVKHu4m0NqOg==$bq4qbpLVRzVTmbg6eWUgwUCl+Y7YvViYzaMc7CvoIuE=";
+
+  assert.deepEqual(await verifyPassword("mash-temp-2026", { salt: "x", pin_hash: overCeiling }, {}), {
+    ok: false,
+    needsRehash: false,
+  });
 });

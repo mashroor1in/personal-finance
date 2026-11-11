@@ -1,0 +1,6 @@
+# Local Wrangler state and logs (never commit)
+.wrangler/
+pages-tail.log
+
+# Node
+node_modules/

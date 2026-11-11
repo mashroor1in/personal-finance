@@ -120,19 +120,28 @@ const PASSWORD_KEY_BYTES = 32;
 const PASSWORD_SALT_BYTES = 16;
 
 /**
- * New verifiers use this many iterations. Verification reads the count from
- * each stored record, so this is a policy knob, not a data migration.
- *
- * 210k costs roughly 30ms of CPU per hash. Raise `PASSWORD_ITERATIONS` in the
- * environment when the plan allows more CPU, or lower it if a Free-plan
- * Worker trips its CPU limit (logins return 1102). Never go below 100k.
+ * Cloudflare's WebCrypto refuses any PBKDF2 request above this many
+ * iterations, throwing `NotSupportedError`. That is a hard platform ceiling,
+ * not a tuning knob: asking for more than 100000 turns every login into a 500.
  */
-export const PASSWORD_ITERATIONS = 210000;
+export const MAX_PBKDF2_ITERATIONS = 100000;
+const MIN_PBKDF2_ITERATIONS = 1000;
+
+/**
+ * New verifiers use this many iterations. Verification reads the count from
+ * each stored record, so raising the policy upgrades accounts on their next
+ * successful login instead of requiring a data migration.
+ *
+ * Defaults to the platform ceiling. `PASSWORD_ITERATIONS` may only lower it;
+ * higher values are clamped rather than passed through, because exceeding the
+ * ceiling throws instead of degrading.
+ */
+export const PASSWORD_ITERATIONS = MAX_PBKDF2_ITERATIONS;
 
 function resolveIterations(env) {
   const configured = Number(env?.PASSWORD_ITERATIONS);
-  if (Number.isInteger(configured) && configured >= 1000) {
-    return Math.min(configured, 2000000);
+  if (Number.isInteger(configured) && configured >= MIN_PBKDF2_ITERATIONS) {
+    return Math.min(configured, MAX_PBKDF2_ITERATIONS);
   }
   return PASSWORD_ITERATIONS;
 }
@@ -160,7 +169,14 @@ export async function verifyPassword(password, user, env) {
   const parsed = parsePasswordHash(stored);
 
   if (parsed) {
-    const key = await derivePasswordKey(password, parsed.salt, parsed.iterations);
+    let key;
+    try {
+      key = await derivePasswordKey(password, parsed.salt, parsed.iterations);
+    } catch {
+      // A verifier the platform cannot compute must fail closed, not throw.
+      // Otherwise one unsupported row turns every login attempt into a 500.
+      return { ok: false, needsRehash: false };
+    }
     const ok = equalBytes(key, parsed.hash);
     return { ok, needsRehash: ok && parsed.iterations < resolveIterations(env) };
   }
@@ -180,7 +196,11 @@ function parsePasswordHash(stored) {
   if (parts.length !== 4 || parts[0] !== PASSWORD_SCHEME) return null;
 
   const iterations = Number(parts[1]);
-  if (!Number.isInteger(iterations) || iterations < 1000 || iterations > 2000000) {
+  if (
+    !Number.isInteger(iterations) ||
+    iterations < MIN_PBKDF2_ITERATIONS ||
+    iterations > MAX_PBKDF2_ITERATIONS
+  ) {
     return null;
   }
 

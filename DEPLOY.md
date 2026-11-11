@@ -96,8 +96,10 @@ node --test tests/overlays.test.js
 
 New accounts store `pbkdf2-sha256$<iterations>$<salt>$<key>`. Old accounts store
 a bare SHA-256 hex digest and are transparently upgraded on the next successful
-login. `PASSWORD_ITERATIONS` (default 210000) is read per request, so it can be
-changed as a dashboard variable without a data migration.
+login. `PASSWORD_ITERATIONS` (default 100000, the Cloudflare ceiling) is read per
+request, so it can be lowered without a data migration. Values above 100000 are
+clamped: WebCrypto throws `NotSupportedError` past that point, which would turn
+every login into a 500.
 
 ## Recovery
 

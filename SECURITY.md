@@ -15,7 +15,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - **Backup Sanitization**: Imported backup files are sanitized before processing
 
 ### ✅ Authentication Security
-- **Password Hashing**: Migrated from single-round SHA-256 to 210k-iteration PBKDF2-HMAC-SHA256
+- **Password Hashing**: Migrated from single-round SHA-256 to PBKDF2-HMAC-SHA256 at the Cloudflare iteration ceiling
 - **Constant-Time Comparison**: Password comparisons use timing-safe comparison
 - **Auth Throttling**: Atomic rate limiting prevents brute force attacks (5 failures per 15 minutes)
 - **Turnstile Integration**: Bot protection fails closed when half-configured
@@ -34,7 +34,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 
 ### Password Hashing
 - **Algorithm**: PBKDF2-HMAC-SHA256
-- **Iterations**: 210,000 (configurable via `PASSWORD_ITERATIONS` environment variable)
+- **Iterations**: 100,000 (Cloudflare's WebCrypto ceiling; higher values throw)
 - **Salt**: 16 random bytes per password
 - **Migration**: Legacy SHA-256 hashes are automatically upgraded on login
 
