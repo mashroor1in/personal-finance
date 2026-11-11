@@ -1,126 +1,107 @@
-# Personal Finance App Deployment Guide
+# Deployment
 
-## Prerequisites
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install/) installed
-- Cloudflare account with D1 database and KV namespace configured
+This project is a **Cloudflare Pages** project, not a standalone Worker.
 
-## 1. Apply Database Migration
+| | |
+|---|---|
+| Project name | `personal-finance` |
+| Production domains | `expenses.mashmind.in`, `personal-finance-8ch.pages.dev` |
+| Build output | repository root (no build step) |
+| Backend | `functions/` = Pages Functions, auto-routed by path |
+| Deploy trigger | push to `main` (Pages Git integration) |
+| Preview deploys | every other branch, e.g. `security/session-and-sentinel` |
 
-Before deploying, run the auth throttling migration:
+Do **not** add a `wrangler.toml` with `main = ...` and do **not** run
+`wrangler deploy` against this repository. That creates a separate Worker which
+serves none of the static files. Bindings live in the Pages dashboard.
 
-```bash
-wrangler d1 execute personal-finance --file migrations/0002_auth_throttle.sql --remote
+## How routing works
+
+There is no entry point file. Pages maps files under `functions/` to URLs:
+
+| File | Route |
+|---|---|
+| `functions/api/auth/login.js` | `POST /api/auth/login` |
+| `functions/api/auth/logout.js` | `POST /api/auth/logout` |
+| `functions/api/auth/me.js` | `GET /api/auth/me` |
+| `functions/api/auth/status.js` | `GET /api/auth/status` |
+| `functions/api/data/index.js` | `/api/data` |
+| `functions/api/data/month/[month].js` | `/api/data/month/:month` |
+
+Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
+
+## Bindings (configured in the Pages dashboard)
+
+| Binding | Kind | Purpose |
+|---|---|---|
+| `DB` | D1 database | users, months, auth_throttle |
+| `SESSIONS` | KV namespace | `sess:<token>` session records |
+| `TURNSTILE_SITE_KEY` | variable | client widget key |
+| `TURNSTILE_SECRET` | secret | server-side verification |
+
+Turnstile is all-or-nothing: set both or neither. With only one set, every
+login and registration is refused (fail closed) and `/api/auth/status` reports
+`turnstileMisconfigured: true`.
+
+## Deploying a change
+
+```powershell
+git add -A
+git commit -m "..."
+git push origin main
 ```
 
-## 2. Configure Environment
+Pages rebuilds automatically; watch the deployment at
+Dashboard → Workers & Pages → `personal-finance` → Deployments.
 
-Create `wrangler.toml`:
+## Applying a migration
 
-```toml
-name = "personal-finance"
-main = "functions/index.js"
-compatibility_date = "2023-12-01"
+Migrations are not run by Pages. Apply them by hand, before the code that needs
+them goes live:
 
-[env.production]
-vars = { ENVIRONMENT = "production" }
-
-[[env.production.kv_namespaces]]
-binding = "SESSIONS"
-id = "your-kv-namespace-id"
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_id = "your-d1-database-id"
-
-[env.production.vars]
-# Required for password hashing policy
-PASSWORD_ITERATIONS = "210000"
-
-# Optional: Turnstile for bot protection
-TURNSTILE_SITE_KEY = "your-site-key"
-TURNSTILE_SECRET = "your-secret-key"
+```powershell
+wrangler d1 execute personal-expenses-db --file migrations/0002_auth_throttle.sql --remote
 ```
 
-## 3. Deploy
+Database id: `f99159c3-82a7-405c-bf9e-6e65b5662be5`.
 
-```bash
-wrangler deploy --env production
+> **PowerShell warning:** `$` starts a variable. Never put a password hash inline
+> in `--command "..."` — `pbkdf2-sha256$210000$...$...` gets silently mangled.
+> Write the statement to a `.sql` file and pass `--file`.
+
+## Reading runtime logs
+
+The deployed code is the source of truth for errors. Tail the live deployment:
+
+```powershell
+wrangler pages deployment list --project-name personal-finance
+wrangler pages deployment tail 5f0d4732-57a7-42a9-add4-f98a4ad3f2de --project-name personal-finance
 ```
 
-## 4. Post-Deploy Checklist
+Then reproduce the failing action in the browser and read the exception.
 
-### Sessions
-- All existing sessions are invalidated on first deploy
-- Users will need to re-login after deployment
-- Session TTL remains 7 days
+## Local checks before pushing
 
-### Legacy Data
-- Legacy `user_id='default'` rows remain orphaned but are not deleted
-- Legacy password hashes (SHA-256) will be upgraded to PBKDF2 on next login
-- No data migration is required
-
-### Security
-- Password hashing now uses 210k-iteration PBKDF2-HMAC-SHA256
-- Login attempts are throttled at 5 failures per 15-minute window
-- Turnstile validation fails closed if only half-configured
-- All financial data is sanitized on save and escaped on render
-
-### Monitoring
-- No built-in error tracking is configured
-- Check Wrangler logs for errors: `wrangler tail --env production`
-- Monitor for 429 (rate limited) and 401 (auth failures) responses
-
-## 5. Backup and Recovery
-
-### Database
-```bash
-# Create a local copy
-wrangler d1 export personal-finance > backup-$(date +%Y%m%d).sql
-
-# Restore to a new database
-wrangler d1 execute personal-finance-new --file backup-20240101.sql
+```powershell
+node --test tests/auth-session.test.mjs
+node --test tests/data-sanitize.test.mjs
+node --test tests/persistence.test.js
+node --test tests/totals.test.js
+node --test tests/overlays.test.js
 ```
 
-### User Accounts
-- No password recovery mechanism is currently implemented
-- Account deletion is permanent and deletes all financial data
-- Users must re-register if they forget their password
+`node --test tests/` does not work; pass the files.
 
-## 6. Maintenance
+## Password verifiers
 
-### Password Hashing Policy
-To adjust the iteration count (e.g., for CPU constraints):
+New accounts store `pbkdf2-sha256$<iterations>$<salt>$<key>`. Old accounts store
+a bare SHA-256 hex digest and are transparently upgraded on the next successful
+login. `PASSWORD_ITERATIONS` (default 210000) is read per request, so it can be
+changed as a dashboard variable without a data migration.
 
-```bash
-# Lower to 100k for CPU-constrained plans
-wrangler secret put PASSWORD_ITERATIONS
+## Recovery
 
-# In wrangler.toml:
-[env.production.vars]
-PASSWORD_ITERATIONS = "100000"
-```
-
-### Migration Updates
-If additional migrations are needed:
-1. Create SQL files in `migrations/`
-2. Apply with: `wrangler d1 execute personal-finance --file migrations/XXXX_name.sql --remote`
-3. Deploy code changes that depend on the new schema
-
-## 7. Troubleshooting
-
-### Login Fails with D1 Error
-- Missing `auth_throttle` table: run migration 0002
-- Check D1 binding in `wrangler.toml`
-
-### Turnstile Issues
-- If Turnstile is half-configured, all auth attempts will be blocked
-- Ensure both `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET` are set, or neither
-
-### Session Issues
-- Sessions are invalidated on password change
-- Check KV namespace binding is correct
-- Session cookies are HttpOnly, Secure, SameSite=Lax
-
-### Performance
-- PBKDF2 hashing adds ~30ms per login on Workers
-- Monitor for 1102 (CPU time limit) errors during login peaks
+- Forgot password: there is no reset flow. An operator must reset the row with a
+  known verifier, or delete and re-register the account.
+- Account deletion removes that user's `months` rows permanently.
+- Back up with `wrangler d1 export personal-expenses-db > backup.sql`.
