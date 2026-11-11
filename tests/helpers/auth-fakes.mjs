@@ -25,7 +25,11 @@ export function makeKV(initial = {}) {
 export function makeDB(users = new Map()) {
   const throttle = new Map();
   const recoveryCodes = new Map();
+  const months = new Map();
+  const deletedMonths = new Map();
   let pinLookups = 0;
+
+  const monthKey = (userID, month) => `${userID}|${month}`;
 
   function countCodes(userID) {
     let total = 0;
@@ -42,11 +46,15 @@ export function makeDB(users = new Map()) {
     users,
     throttle,
     recoveryCodes,
+    months,
+    deletedMonths,
     pinLookups: () => pinLookups,
     prepare(sql) {
       return {
         bind(...args) {
           return {
+            sql,
+            args,
             first: async () => {
               if (/SELECT id, salt, pin_hash FROM users WHERE id = \?/i.test(sql)) {
                 pinLookups += 1;
@@ -90,6 +98,20 @@ export function makeDB(users = new Map()) {
                 }
                 return { results };
               }
+              if (/SELECT month, salary, items_json, paid_json FROM months WHERE user_id = \?/i.test(sql)) {
+                const results = [];
+                for (const row of months.values()) {
+                  if (row.user_id !== args[0]) continue;
+                  results.push({
+                    month: row.month,
+                    salary: row.salary,
+                    items_json: row.items_json,
+                    paid_json: row.paid_json,
+                  });
+                }
+                results.sort((a, b) => a.month.localeCompare(b.month));
+                return { results };
+              }
               throw new Error(`unexpected all(): ${sql}`);
             },
             run: async () => {
@@ -114,8 +136,39 @@ export function makeDB(users = new Map()) {
                 users.set(id, { ...user, salt, pin_hash });
                 return { success: true, meta: { changes: 1 } };
               }
+              if (/INSERT INTO deleted_months/i.test(sql)) {
+                const [deletedAt, purgeAfter, userID] = args;
+                let changes = 0;
+                for (const row of months.values()) {
+                  if (row.user_id !== userID) continue;
+                  deletedMonths.set(monthKey(userID, row.month), {
+                    ...row,
+                    deleted_at: deletedAt,
+                    purge_after: purgeAfter,
+                  });
+                  changes += 1;
+                }
+                return { success: true, meta: { changes } };
+              }
               if (/DELETE FROM months WHERE user_id = \?/i.test(sql)) {
-                return { success: true, meta: { changes: 0 } };
+                let changes = 0;
+                for (const [key, row] of months) {
+                  if (row.user_id === args[0]) {
+                    months.delete(key);
+                    changes += 1;
+                  }
+                }
+                return { success: true, meta: { changes } };
+              }
+              if (/DELETE FROM deleted_months WHERE purge_after <= \?/i.test(sql)) {
+                let changes = 0;
+                for (const [key, row] of deletedMonths) {
+                  if (row.purge_after <= args[0]) {
+                    deletedMonths.delete(key);
+                    changes += 1;
+                  }
+                }
+                return { success: true, meta: { changes } };
               }
               if (/DELETE FROM recovery_codes WHERE user_id = \?/i.test(sql)) {
                 let changes = 0;
@@ -228,6 +281,34 @@ export function addUser(users, id, pinHash, salt = "salt") {
     pin_hash: pinHash,
     created_at: 1,
     updated_at: 1,
+  });
+}
+
+/** Seed one live ledger row, as the data endpoint would have written it. */
+export function addMonth(db, userID, month, { salary = 0, items = {}, paid = {} } = {}) {
+  db.months.set(`${userID}|${month}`, {
+    user_id: userID,
+    month,
+    salary,
+    items_json: JSON.stringify(items),
+    paid_json: JSON.stringify(paid),
+    updated_at: 1,
+    created_at: 1,
+  });
+}
+
+/** Seed a trash row, to model a deletion from an earlier day. */
+export function addDeletedMonth(db, userID, month, purgeAfter, { salary = 0 } = {}) {
+  db.deletedMonths.set(`${userID}|${month}`, {
+    user_id: userID,
+    month,
+    salary,
+    items_json: "{}",
+    paid_json: "{}",
+    updated_at: 1,
+    created_at: 1,
+    deleted_at: 1,
+    purge_after: purgeAfter,
   });
 }
 

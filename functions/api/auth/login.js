@@ -7,6 +7,7 @@ import {
   isValidRecoveryCode,
   matchesRecoveryCode,
 } from "../../_lib/recovery.js";
+import { purgeAfterFrom, purgeExpiredDeletedData, DELETED_DATA_RETENTION_DAYS } from "../../_lib/retention.js";
 
 export async function onRequestPost(context) {
   const { env, request } = context;
@@ -89,6 +90,7 @@ export async function onRequestPost(context) {
     // existing credential. It releases only the slot this request reserved;
     // the aggregate rate bucket is never reset by success.
     await releaseAuthFailure(env, clientIP);
+    await purgeExpiredDeletedData(env);
     return await issueSessionAndRespond(
       env,
       username,
@@ -120,6 +122,7 @@ export async function onRequestPost(context) {
     if (check.needsRehash) await upgradePasswordHash(env, user.id, password);
 
     await releaseAuthFailure(env, clientIP);
+    await purgeExpiredDeletedData(env);
     return await issueSessionAndRespond(env, user.id);
   }
 
@@ -185,6 +188,7 @@ export async function onRequestPost(context) {
       .run();
 
     await releaseAuthFailure(env, clientIP, "recover");
+    await purgeExpiredDeletedData(env);
 
     // No session is issued. The user must sign in with the new password, which
     // proves the reset worked instead of stranding them in a session they
@@ -251,9 +255,46 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: "Current password is incorrect." }, { status: 401 });
     }
 
-    await env.DB.prepare("DELETE FROM months WHERE user_id = ?").bind(userID).run();
-    await env.DB.prepare("DELETE FROM recovery_codes WHERE user_id = ?").bind(userID).run();
-    await env.DB.prepare("DELETE FROM users WHERE id = ?").bind(userID).run();
+    // The account itself closes at once: credentials, codes and sessions all
+    // go. Only the planner history is kept, in `deleted_months`, for
+    // DELETED_DATA_RETENTION_DAYS. That is the difference between a misclick
+    // and losing years of records.
+    const deletedAt = Date.now();
+    const purgeAfter = purgeAfterFrom(deletedAt);
+    const archive = env.DB.prepare(
+      `INSERT INTO deleted_months
+         (user_id, month, salary, items_json, paid_json, updated_at, created_at, deleted_at, purge_after)
+       SELECT user_id, month, salary, items_json, paid_json, updated_at, created_at, ?, ?
+       FROM months WHERE user_id = ?
+       ON CONFLICT(user_id, month) DO UPDATE SET
+         salary = excluded.salary,
+         items_json = excluded.items_json,
+         paid_json = excluded.paid_json,
+         updated_at = excluded.updated_at,
+         deleted_at = excluded.deleted_at,
+         purge_after = excluded.purge_after`
+    ).bind(deletedAt, purgeAfter, userID);
+
+    const scrub = [
+      env.DB.prepare("DELETE FROM months WHERE user_id = ?").bind(userID),
+      env.DB.prepare("DELETE FROM recovery_codes WHERE user_id = ?").bind(userID),
+      env.DB.prepare("DELETE FROM users WHERE id = ?").bind(userID),
+    ];
+
+    // One batch, so a crash cannot archive the rows without then unlinking
+    // them from the live table, or delete them without an archived copy.
+    try {
+      await env.DB.batch([archive, ...scrub]);
+    } catch (error) {
+      // A deployment without migration 0004 has no recycle bin. A missing
+      // archive must not block a deletion the user deliberately confirmed, so
+      // fall back to the old immediate erase. Any other failure is real: let it
+      // surface instead of quietly destroying the data.
+      if (!/deleted_months/i.test(String(error?.message || ""))) throw error;
+      await env.DB.batch(scrub);
+    }
+
+    await purgeExpiredDeletedData(env);
 
     const token = parseCookies(request).pf_session;
     if (token) {
@@ -262,7 +303,12 @@ export async function onRequestPost(context) {
 
     await releaseAuthFailure(env, clientIP);
     return json(
-      { ok: true, reset: true, message: "Account deleted. Create a new account." },
+      {
+        ok: true,
+        reset: true,
+        retentionDays: DELETED_DATA_RETENTION_DAYS,
+        message: `Account deleted. Your planner data is kept for ${DELETED_DATA_RETENTION_DAYS} days, then erased.`,
+      },
       { headers: { "Set-Cookie": sessionCookie("") } }
     );
   }

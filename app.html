@@ -2648,7 +2648,7 @@
                 <span class="menu-item-icon"><iconify-icon icon="lucide:trash-2" width="17" height="17" aria-hidden="true"></iconify-icon></span>
                 <span class="menu-item-copy">
                   <strong>Delete account</strong>
-                  <small>Permanently delete this account and all data</small>
+                  <small>Close it now; data is erased after 30 days</small>
                 </span>
               </button>
             </div>
@@ -4104,13 +4104,13 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         authPin.setAttribute("autocomplete", "new-password");
       } else if (mode === "resetaccount") {
         authTitle.textContent = "Delete account";
-        authSubtitle.textContent = "Enter your password to permanently delete this account and all your data. This cannot be undone.";
+        authSubtitle.textContent = "Enter your password to close this account. Your financial history is kept for 30 days, then erased. This cannot be undone.";
         authPinLabel.textContent = "Your password";
         authSubmitBtn.classList.add("hidden");
         authUndoBtn.classList.remove("hidden");
         authUndoBtn.disabled = false;
         authResetNote.classList.remove("hidden");
-        authResetNote.textContent = "Enter your password, then press Delete account. You'll get 10 seconds to cancel.";
+        authResetNote.textContent = "Enter your password, then press Delete account. You'll get 10 seconds to cancel. Your data is kept for 30 days.";
         authPin.setAttribute("autocomplete", "current-password");
       } else {
         authTitle.textContent = "Sign in";
