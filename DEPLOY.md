@@ -74,11 +74,18 @@ Database id: `f99159c3-82a7-405c-bf9e-6e65b5662be5`.
 The deployed code is the source of truth for errors. Tail the live deployment:
 
 ```powershell
+# Grab the current production deployment id, then tail that one.
 wrangler pages deployment list --project-name personal-finance
-wrangler pages deployment tail 5f0d4732-57a7-42a9-add4-f98a4ad3f2de --project-name personal-finance
+wrangler pages deployment tail <deployment-id> --project-name personal-finance --format json
 ```
 
-Then reproduce the failing action in the browser and read the exception.
+Then reproduce the failing action in the browser and read the `exceptions`
+array. Two details that cost real time when missed:
+
+- `--environment production` alone does not work in non-interactive shells; pass
+  the deployment id explicitly.
+- a tail is bound to the deployment that was live when it started. Push a fix,
+  and you need a new tail on the new deployment id.
 
 ## Local checks before pushing
 
