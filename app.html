@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monthly Finance Planner</title>
+  <title>Bucksy — Monthly money for freelancers</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2524,8 +2524,8 @@
       <div class="title-area">
         <span class="app-mark" aria-hidden="true"><iconify-icon icon="ph:chart-line-up-bold" width="20" height="20"></iconify-icon></span>
         <div>
-          <h1>Monthly Finance Planner</h1>
-          <p>Plan, track and settle your monthly money in one place</p>
+          <h1>Bucksy</h1>
+          <p>Plan the months that don't look alike</p>
         </div>
       </div>
 
@@ -2683,7 +2683,7 @@
         <div class="card-head"><span>Salary / Inflow</span><span class="edit-hint">editable</span></div>
         <label class="kpi-edit" for="salaryInput">
           <span class="currency" aria-hidden="true">₹</span>
-          <input id="salaryInput" class="tnum hideable-val" type="number" min="0" step="500" placeholder="0" aria-label="Set monthly salary" />
+          <input id="salaryInput" class="tnum hideable-val" type="number" min="0" step="500" placeholder="0" aria-label="Set monthly income" />
         </label>
         <div id="statSalaryMeta" class="meta">Tap the amount to set income</div>
       </div>
@@ -2856,11 +2856,11 @@
     </div>
     <div class="auth-shell">
       <div class="auth-card">
-        <div class="auth-card-brand" aria-label="MashMind Expense Planner">
+        <div class="auth-card-brand" aria-label="Bucksy">
           <span class="auth-card-mark" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg>
           </span>
-          <span>MashMind<small>EXPENSE PLANNER</small></span>
+          <span>Bucksy<small>FOR FREELANCERS</small></span>
         </div>
         <div class="auth-head">
           <span id="authBlobatar" class="auth-blobatar" aria-hidden="true"></span>
@@ -2954,7 +2954,7 @@
           <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
           <p id="authError" class="auth-error" aria-live="polite"></p>
         </form>
-        <div class="auth-card-footer"><span>© MashMind</span><span>Private finance workspace</span></div>
+        <div class="auth-card-footer"><span>© Bucksy</span><span>Private finance workspace</span></div>
       </div>
     </div>
   </div>
@@ -4153,7 +4153,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function recoveryCodesPlainText(codes) {
       return [
-        "MashMind Expense Planner - recovery codes",
+        "Bucksy - recovery codes",
         "",
         ...codes,
         "",
@@ -4206,7 +4206,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "mashmind-recovery-codes.txt";
+      link.download = "bucksy-recovery-codes.txt";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -4334,7 +4334,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!authBlobatar || !authHead) return;
       const visible = authMode === "login" || authMode === "register";
       const typed = (authUsername?.value || "").trim();
-      const seed = visible ? (typed || "mashmind") : "";
+      const seed = visible ? (typed || "bucksy") : "";
       const markup = seed ? blobatarMarkup(seed) : "";
       authHead.classList.toggle("has-blobatar", !!markup);
       // Retry while markup is unavailable (avatar engine not ready yet), and

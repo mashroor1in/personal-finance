@@ -1,11 +1,14 @@
-# Personal Finance Planner
+# Bucksy
 
-A monthly expense planner: salary in, itemised expenses out, totals and
-remaining balance computed live, with a bank-allocation section and a monthly
-trend view.
+A monthly money planner for freelancers and anyone with variable income.
+Income in, itemised expenses out, totals and remaining balance computed live,
+with a bank-allocation section and a monthly trend view.
 
-Live at **https://expenses.mashmind.in** (currently behind Cloudflare Access —
-see [Private mode](#private-mode)).
+Product domain: **bucksy.life**.
+
+Running at **https://expenses.mashmind.in** today (currently behind Cloudflare
+Access — see [Private mode](#private-mode)). The `mashmind.in` hostname is the
+live infrastructure; Bucksy is the product name.
 
 ## Stack
 
