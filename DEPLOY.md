@@ -15,6 +15,50 @@ Do **not** add a `wrangler.toml` with `main = ...` and do **not** run
 `wrangler deploy` against this repository. That creates a separate Worker which
 serves none of the static files. Bindings live in the Pages dashboard.
 
+## Private mode: Cloudflare Access
+
+`expenses.mashmind.in` is currently protected by a Zero Trust **Access**
+application (team domain `uncle-mash.cloudflareaccess.com`). Anything without an
+Access session gets a `302` to the SSO page before the request reaches Pages.
+
+Three consequences worth knowing before you debug something:
+
+| Effect | Detail |
+|---|---|
+| `/api/auth/status` returns `302` | Not broken. The Access policy answers first. |
+| Uptime monitors need a way in | Use an Access **service token**, or point the monitor at the `pages.dev` hostname instead. |
+| `personal-finance-8ch.pages.dev` is open | Access apps can only target hostnames in a zone you control, and `pages.dev` is Cloudflare's. Treat that hostname as the unprotected back door while private. |
+
+If sign-in through the custom domain ever starts failing while the site itself
+loads, check the Access policy before the app: Dashboard → **Zero Trust** →
+**Access** → **Applications**.
+
+## Going public
+
+Do these in order. They take about ten minutes and prevent a half-open launch.
+
+1. **Decide about `pages.dev`.** It becomes irrelevant once Access is removed
+   from the custom domain, but until then it is the way around the gate.
+2. **Remove or bypass the Access application** for `expenses.mashmind.in`:
+   Zero Trust → Access → Applications → the app → delete it, or add a `Bypass`
+   policy for `Everyone` if you want to re-enable it later in one click.
+3. **Check the public surface:**
+   ```powershell
+   curl.exe -s -o NUL -w "%{http_code}\n" https://expenses.mashmind.in/api/auth/status
+   curl.exe -s -o NUL -w "%{http_code}\n" https://expenses.mashmind.in/app
+   ```
+   Both must be `200`. A `302` means an Access policy is still in front.
+4. **Turnstile hostnames.** Dashboard → Turnstile → your widget → **Hostnames**.
+   `expenses.mashmind.in` must be listed, and `personal-finance-8ch.pages.dev`
+   must **not** be, otherwise the back door accepts sign-ups.
+5. **Start the uptime monitor** described in `OPERATIONS.md` §4, now that
+   `/api/auth/status` really answers `200`.
+6. **Create your own recovery codes** if you have not already: menu →
+   **Recovery codes**. Accounts made before migration 0003 have none.
+7. **Tail the first real sign-up** so you see a `200` on `/api/auth/login`, not
+   just a page load.
+
+
 ## How routing works
 
 There is no entry point file. Pages maps files under `functions/` to URLs:

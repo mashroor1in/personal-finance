@@ -154,6 +154,13 @@ https://expenses.mashmind.in/api/auth/status
 
 Check every minute. Alert when the status is not `200`.
 
+> **While Cloudflare Access is enabled**, that URL answers `302` to the SSO page
+> before Pages runs. Alert on `302` being *unexpected* is impossible to
+> distinguish from a normal redirect, so either give the monitor an Access
+> service token, or point it at
+> `https://personal-finance-8ch.pages.dev/api/auth/status` until the site is
+> public. See `DEPLOY.md` → "Going public".
+
 Expected healthy response:
 
 ```json
@@ -207,6 +214,7 @@ setup, paid. Not worth it at this size.
 | One endpoint 500s | Bug in that handler |
 | Login refused, site looks fine | Turnstile half-configured, or auth throttling |
 | `429` | Rate limit / lockout (`auth_throttle` table) |
+| Everything `302`s to `cloudflareaccess.com` | Access policy is on; expected while private |
 | Forgotten password | User redeems a recovery code; see `RUNBOOK.md` §3 |
 | Site 404s at `/` | A `functions/index.js` was added and is shadowing `index.html` |
 | `D1_ERROR` / no such table | A migration was not applied; see `DEPLOY.md` |

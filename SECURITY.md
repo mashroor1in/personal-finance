@@ -38,6 +38,11 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - **Separate Throttle Bucket**: Failed logins cannot lock a legitimate user out of recovery
 - **Full Rotation on Reset**: A new password rotates the session version, killing every older token
 
+### ✅ Access Control
+- **Zero Trust Gate**: While private, the custom domain sits behind Cloudflare Access; unauthenticated requests never reach Pages
+- **App-Level Auth**: Independent username/password + Turnstile check behind that gate
+- **Hostname Awareness**: The `pages.dev` alias is outside the Access app, so it is treated as a back door until launch (see `DEPLOY.md`)
+
 ## Security Features
 
 ### Password Hashing
@@ -92,10 +97,11 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - Losing both the password and every recovery code still needs an operator reset
 
 ### Product Gaps (Not Security Issues)
-- No multi-user support (single-user design)
+- No shared/household ledger: every account is fully isolated by design
 - No offline mode (cloud-dependent architecture)
 - No email-based recovery (deliberately avoided: recovery codes need no mail service)
 - No restore UI for deleted accounts (manual intervention via `RUNBOOK.md` §6)
+- While private, the `*.pages.dev` hostname is not covered by Access; see `DEPLOY.md`
 
 ## Deployment Notes
 

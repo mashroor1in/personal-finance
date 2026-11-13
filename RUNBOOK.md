@@ -47,6 +47,7 @@ cd C:\mash\Study\personal-finance
 | Symptom | Most likely cause | Go to |
 |---|---|---|
 | Everything 500s right after a deploy | Runtime exception in new code | [§1](#1-see-the-logs) then [§4](#4-put-a-bad-deploy-back) |
+| Everything `302`s to `cloudflareaccess.com` | The Access policy is on — expected while private | `DEPLOY.md` → Private mode |
 | One endpoint 500s, rest fine | Bug in that one handler | [§1](#1-see-the-logs) |
 | Login fails, site looks healthy | Turnstile half-configured, or lockout | [§3](#3-fix-a-password-by-hand) |
 | `429` on login | Rate limit / `auth_throttle` lockout | [§5](#5-unlock-a-locked-out-account) |

@@ -1,0 +1,26 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run the suites
+        # `node --test tests/` fails; each file is listed deliberately.
+        run: |
+          node --test \
+            tests/auth-session.test.mjs \
+            tests/data-sanitize.test.mjs \
+            tests/overlays.test.js \
+            tests/persistence.test.js \
+            tests/recovery.test.mjs \
+            tests/totals.test.js \
+            tests/deletion.test.mjs
