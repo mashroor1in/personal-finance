@@ -54,6 +54,7 @@ cd C:\mash\Study\personal-finance
 | `D1_ERROR` / `no such table` | A migration was never applied | [§6](#6-restore-the-database) |
 | Someone forgot their password | They should redeem a recovery code first | [§3](#3-fix-a-password-by-hand) |
 | Data is wrong / deleted | Needs a restore | [§6](#6-restore-the-database) |
+| Account was deleted by mistake | Financial data is kept for 30 days | [§6](#6-restore-the-database) |
 
 ---
 
@@ -238,6 +239,36 @@ wrangler d1 execute personal-expenses-db --remote --command "DELETE FROM recover
 
 The owner can then generate a fresh set from the account menu.
 
+### Restore a deleted account's data (30-day window)
+
+Deleting an account now archives its financial history to the `deleted_months` table for 30 days before permanent deletion. This is accidental-deletion insurance.
+
+If you need to restore a deleted account's data:
+
+1. Confirm the account is within the 30-day window:
+   ```powershell
+   wrangler d1 execute personal-expenses-db --remote --command "SELECT user_id, month, deleted_at, purge_after FROM deleted_months WHERE user_id = 'username';"
+   ```
+   If `purge_after` is in the future, the data is still recoverable.
+
+2. Restore the months to the live table:
+   ```powershell
+   wrangler d1 execute personal-expenses-db --remote --command "INSERT INTO months (user_id, month, salary, items_json, paid_json, updated_at, created_at) SELECT user_id, month, salary, items_json, paid_json, updated_at, created_at FROM deleted_months WHERE user_id = 'username';"
+   ```
+
+3. Optionally restore the user account (they will need to set a new password):
+   ```powershell
+   wrangler d1 execute personal-expenses-db --remote --command "INSERT INTO users (id, salt, pin_hash, updated_at, created_at) VALUES ('username', 'salt', 'hash', 0, 0);"
+   ```
+   Then use `scripts/reset-password.mjs` to set a real password for them.
+
+4. Clean up the restored data from the archive (optional):
+   ```powershell
+   wrangler d1 execute personal-expenses-db --remote --command "DELETE FROM deleted_months WHERE user_id = 'username';"
+   ```
+
+**Note:** The `deleted_months` table only exists after migration 0004 has been applied. If it doesn't exist, the data was permanently deleted on deletion.
+
 ---
 
 ## 4. Put a bad deploy back
@@ -400,6 +431,7 @@ tab.**
 | Ask a user to send you a recovery code | It is a password equivalent. Have them enter it themselves. |
 | Delete `migrations/*.sql` | They are the schema of record. |
 | Commit `backup.sql`, `reset-*.sql`, `*.log` | They are all gitignored; keep it that way. |
+| Expect recovery codes to be available on old accounts | Only accounts created after migration 0003 have them. |
 
 ---
 

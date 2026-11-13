@@ -174,6 +174,14 @@ the line number".
 
 Wrap the Pages Functions handlers so uncaught throws are reported.
 
+### Step 3 — database monitoring (optional)
+
+Use Cloudflare D1 alerts to notify of:
+- High error rates on auth endpoints
+- Unusual login failures
+- High CPU time during login peaks (PBKDF2 adds ~30ms per login)
+- Spikes in 429 responses (rate limiting)
+
 ### Step 3 — real retention (optional, paid)
 
 Cloudflare Logpush ships logs to storage you own (R2/S3). Real retention, more
@@ -202,6 +210,7 @@ setup, paid. Not worth it at this size.
 | Forgotten password | User redeems a recovery code; see `RUNBOOK.md` §3 |
 | Site 404s at `/` | A `functions/index.js` was added and is shadowing `index.html` |
 | `D1_ERROR` / no such table | A migration was not applied; see `DEPLOY.md` |
+| Account deleted by mistake | Financial data is kept for 30 days; see `RUNBOOK.md` §6 |
 | Deploy never goes live | Build failed — read the build log, not the runtime log |
 
 ---

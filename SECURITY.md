@@ -74,9 +74,10 @@ All confirmed vulnerabilities from the security audit have been addressed:
 
 ## Test Coverage
 
-- **150 tests** covering all security-critical paths
+- **157 tests** covering all security-critical paths
 - **Auth/Session Tests**: 38 tests covering authentication, session management, and rate limiting
 - **Recovery Tests**: 17 tests covering code generation, hashing, redemption, rotation and re-registration
+- **Deletion Tests**: 7 tests covering archival, purge, re-registration, and failure modes
 - **Data Sanitization Tests**: 13 tests covering input/output validation
 - **Persistence Tests**: 29 tests covering data isolation and sync security
 - **UI Tests**: 34 tests covering overlay and interaction security
@@ -94,14 +95,16 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - No multi-user support (single-user design)
 - No offline mode (cloud-dependent architecture)
 - No email-based recovery (deliberately avoided: recovery codes need no mail service)
+- No restore UI for deleted accounts (manual intervention via `RUNBOOK.md` §6)
 
 ## Deployment Notes
 
-1. **Migrations Required**: Apply `migrations/0002_auth_throttle.sql` and `migrations/0003_recovery_codes.sql` before deployment
+1. **Migrations Required**: Apply `migrations/0002_auth_throttle.sql`, `migrations/0003_recovery_codes.sql`, and `migrations/0004_deleted_months.sql` before deployment
 2. **Sessions Invalidated**: All users will need to re-login after first deployment
 3. **Legacy Data**: Legacy `user_id='default'` rows remain orphaned but not deleted
 4. **Turnstile**: Fails closed if only half-configured (blocks all auth if incomplete)
 5. **Existing Accounts**: Accounts created before recovery codes existed have none; they can generate a set from the account menu
+6. **Data Retention**: Deleted accounts' financial data is kept for 30 days in `deleted_months` before permanent deletion
 
 ## Monitoring
 

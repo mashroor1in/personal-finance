@@ -34,7 +34,7 @@ Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
 
 | Binding | Kind | Purpose |
 |---|---|---|
-| `DB` | D1 database | users, months, auth_throttle |
+| `DB` | D1 database | users, months, auth_throttle, recovery_codes, deleted_months |
 | `SESSIONS` | KV namespace | `sess:<token>` session records |
 | `TURNSTILE_SITE_KEY` | variable | client widget key |
 | `TURNSTILE_SECRET` | secret | server-side verification |
@@ -62,6 +62,7 @@ them goes live:
 ```powershell
 wrangler d1 execute personal-expenses-db --file migrations/0002_auth_throttle.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0003_recovery_codes.sql --remote
+wrangler d1 execute personal-expenses-db --file migrations/0004_deleted_months.sql --remote
 ```
 
 Both are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`),
@@ -70,6 +71,10 @@ so re-running them is safe.
 > `0003_recovery_codes.sql` must be applied before pushing the recovery-code
 > feature. Registration degrades gracefully without it (the account is created,
 > just without codes), but recovery itself cannot work until the table exists.
+>
+> > `0004_deleted_months.sql` enables the 30-day retention window for deleted
+> > accounts. Apply it before pushing the retention feature. If not applied,
+> > deletion falls back to immediate erasure but still completes.
 
 Database id: `f99159c3-82a7-405c-bf9e-6e65b5662be5`.
 
@@ -103,6 +108,8 @@ node --test tests/data-sanitize.test.mjs
 node --test tests/persistence.test.js
 node --test tests/totals.test.js
 node --test tests/overlays.test.js
+node --test tests/recovery.test.mjs
+node --test tests/deletion.test.mjs
 ```
 
 `node --test tests/` does not work; pass the files.
@@ -125,8 +132,8 @@ every login into a 500.
 - Recovery codes are shown once, at signup, and stored only as salted hashes.
   They can be replaced from the account menu (`Recovery codes`), which requires
   the current password.
-- Account deletion removes that user's `months` rows and recovery codes
-  permanently.
+- Account deletion archives the user's `months` to `deleted_months` for 30 days
+  before permanent deletion. Recovery codes are removed immediately.
 - Back up with `wrangler d1 export personal-expenses-db --remote --output backup.sql`.
 
 ## See also
