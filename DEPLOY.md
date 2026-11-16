@@ -5,25 +5,11 @@ This project is a **Cloudflare Pages** project, not a standalone Worker.
 | | |
 |---|---|
 | Project name | `personal-finance` |
-| Production domain | `bucksy.life` |
-| Back door | `personal-finance-8ch.pages.dev` (open; cannot be disabled) |
-| Previous domain | `expenses.mashmind.in` (Access-gated, retirement pending) |
+| Production domains | `bucksy.life` |
 | Build output | repository root (no build step) |
 | Backend | `functions/` = Pages Functions, auto-routed by path |
 | Deploy trigger | push to `main` (Pages Git integration) |
 | Preview deploys | every other branch, e.g. `security/session-and-sentinel` |
-
-Both hostnames serve the **same deployment and the same D1/KV**, so there is no
-data split. The only per-host difference is the session cookie: `pf_session` is
-set without a `Domain=` attribute, so it is host-only and a sign-in at one
-hostname does not carry to the other.
-
-### URLs lose `.html`
-
-Pages redirects `*.html` to the extensionless path with a **308**:
-`/app.html` → `/app`, `/index.html` → `/`. Anything that matches on a path —
-Access policies above all — has to be written against what the browser actually
-requests: `/app*`, never `/app.html`.
 
 Do **not** add a `wrangler.toml` with `main = ...` and do **not** run
 `wrangler deploy` against this repository. That creates a separate Worker which
@@ -31,85 +17,27 @@ serves none of the static files. Bindings live in the Pages dashboard.
 
 ## Private mode: Cloudflare Access
 
-Team domain: `uncle-mash.cloudflareaccess.com`. An Access application answers
-unauthenticated requests with a `302` to the SSO page before Pages ever runs.
+`bucksy.life` is protected by Zero Trust **Access** (team domain `uncle-mash.cloudflareaccess.com`). Anything without an Access session gets `302` to the SSO page before the request reaches Pages. The Access policy is scoped to `/app.html` and `/api/*` — the landing page and assets remain public.
 
-### Where the gate goes
-
-The brand site should stay shareable, so scope Access to the planner rather than
-the whole hostname. A self-hosted application on `bucksy.life` with these paths:
-
-| Path | Why |
-|---|---|
-| `/app*` | The planner. Covers `/app` and anything under it. |
-| `/api/*` | The data and auth endpoints behind it. |
-
-Leave `/`, `/assets/*` and `/brand/*` outside the policy. That keeps link
-unfurls working — a `302` in front of `og-1200x630.png` makes every social card
-blank.
-
-If you would rather protect the landing page too, use a single `bucksy.life/*`
-application. Be aware it costs you previews and makes the brand site unshareable.
-
-### Status as of 2026-11-17
-
-`bucksy.life` is live but **has no Access application yet**. Verified:
-
-```text
-https://bucksy.life/                     200
-https://bucksy.life/app                  200  (no SSO prompt)
-https://bucksy.life/api/auth/status      200
-https://bucksy.life/assets/og-1200x630.png  200
-```
-
-The app's own username/password + Turnstile still guards the data, but the
-sign-in screen is public and `POST /api/auth/login` with `mode: register` will
-create an account for anyone who sends it — registration is not closed once a
-user exists. Add the access application above to restore the old posture.
-
-### Three consequences worth knowing before you debug something
+Three consequences worth knowing before you debug something:
 
 | Effect | Detail |
 |---|---|
 | `/api/auth/status` returns `302` | Not broken. The Access policy answers first. |
-| Uptime monitors need a way in | Use an Access **service token**, or point the monitor at the `pages.dev` hostname instead. |
-| `personal-finance-8ch.pages.dev` is open | Access apps can only target hostnames in a zone you control, and `pages.dev` is Cloudflare's. Treat that hostname as the unprotected back door. |
+| Uptime monitors need a way in | Use an Access **service token**, or point the monitor at the `pages.dev` preview hostname instead. |
+| `personal-finance-8ch.pages.dev` is open | Access apps cannot target `pages.dev` because it is not a zone you control. It remains an unprotected back door; Turnstile hostname management blocks sign-in/registration from there. |
 
 If sign-in through the custom domain ever starts failing while the site itself
 loads, check the Access policy before the app: Dashboard → **Zero Trust** →
 **Access** → **Applications**.
 
-## Retiring `expenses.mashmind.in`
-
-The old hostname is still served and still Access-gated. Remove it **after**
-`bucksy.life` has been verified end to end, never before — the reverse order
-leaves a window with no working address.
-
-1. Sign in on `bucksy.life` once and confirm the month data is there. The
-   host-only session cookie means the old sign-in does not carry over, so this
-   is a real test, not a formality.
-2. `personal-finance` → **Custom domains** → `expenses.mashmind.in` → Remove.
-   This drops its certificate and DNS record. D1, KV and the account are
-   untouched.
-3. **Zero Trust** → **Access** → **Applications** → delete the
-   `expenses.mashmind.in` app. Leaving it is harmless but will mislead you later.
-4. **Turnstile** → widget → **Hostnames** → remove `expenses.mashmind.in`.
-5. Optional: keep an `expenses.mashmind.in` DNS record behind a **Redirect
-   Rule → 301 → `https://bucksy.life`** (preserve path), so old bookmarks land
-   on the gated planner instead of a dead host.
-6. Sweep for references: the uptime monitor in `OPERATIONS.md` §4, browser
-   bookmarks, and anything in `RUNBOOK.md` still naming the old host.
-
 ## Going public
 
-Only relevant if you decide the planner should stop being private.
+If you ever want to remove Access entirely (not recommended for a private finance app):
 
-1. **Decide about `pages.dev`.** It cannot be disabled on Pages, and Access
-   cannot target it. What limits it is Turnstile with hostname management on and
-   `pages.dev` unlisted — then sign-in and registration fail the bot check there.
-2. **Remove or bypass the Access application** on `bucksy.life`: Zero Trust →
-   Access → Applications → the app → delete it, or add a `Bypass` policy for
-   `Everyone` if you want to re-enable it later in one click.
+
+2. **Delete the Access application** for `bucksy.life`:
+   Zero Trust → Access → Applications → the app → delete it.
 3. **Check the public surface:**
    ```powershell
    curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/api/auth/status
@@ -117,13 +45,12 @@ Only relevant if you decide the planner should stop being private.
    ```
    Both must be `200`. A `302` means an Access policy is still in front.
 4. **Turnstile hostnames.** Dashboard → Turnstile → your widget → **Hostnames**.
-   `bucksy.life` must be listed, and `personal-finance-8ch.pages.dev` must
-   **not** be, otherwise the back door accepts sign-ups.
-5. **Start the uptime monitor** described in `OPERATIONS.md` §4, now that
-   `/api/auth/status` really answers `200`.
-6. **Create your own recovery codes** if you have not already: menu →
+   `bucksy.life` must be listed, and `personal-finance-8ch.pages.dev`
+   must **not** be, otherwise the back door accepts sign-ups.
+4. **Start the uptime monitor** described in `OPERATIONS.md` §4.
+5. **Create your own recovery codes** if you have not already: menu →
    **Recovery codes**. Accounts made before migration 0003 have none.
-7. **Tail the first real sign-up** so you see a `200` on `/api/auth/login`, not
+6. **Tail the first real sign-up** so you see a `200` on `/api/auth/login`, not
    just a page load.
 
 
@@ -253,3 +180,4 @@ every login into a 500.
 - `RUNBOOK.md` — the "it broke" page: logs, password reset, restore.
 - `OPERATIONS.md` — watching live logs, reading errors, setting up alerts.
 - `SECURITY.md` — what is hardened and what remains.
+
