@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Bucksy app icon, dark">
+  <!-- v0.2 geometry (matches mark.svg) on a pine roundel -->
+  <circle cx="60" cy="60" r="58" fill="#10332B"/>
+  <g transform="translate(22 22) scale(0.8)">
+    <g fill="none" stroke="#E8A33D" stroke-width="6" stroke-linecap="round">
+      <path d="M36 32 C29 27 24 19 25 8"/>
+      <path d="M30 23 C25 20 22 15 22 9"/>
+      <path d="M33 15 C30 12 29 8 30 3"/>
+      <path d="M60 32 C67 27 72 19 71 8"/>
+      <path d="M66 23 C71 20 74 15 74 9"/>
+      <path d="M63 15 C66 12 67 8 66 3"/>
+    </g>
+    <ellipse cx="20" cy="42" rx="8" ry="14" transform="rotate(-30 20 42)" fill="#F7F3EA"/>
+    <ellipse cx="76" cy="42" rx="8" ry="14" transform="rotate(30 76 42)" fill="#F7F3EA"/>
+    <path d="M48 84 C38 75 27 61 27 45 C27 34 36 28 48 28 C60 28 69 34 69 45 C69 61 58 75 48 84 Z" fill="#F7F3EA"/>
+    <circle cx="41" cy="51" r="3.2" fill="#10332B"/>
+    <circle cx="55" cy="51" r="3.2" fill="#10332B"/>
+    <path d="M44 63 Q48 67 52 63" fill="none" stroke="#10332B" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>

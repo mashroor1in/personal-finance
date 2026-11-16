@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Bucksy — Brand Board v0.2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --pine-900:#10332B; --pine-700:#1C4A3C;
+      --sage-500:#7FA98E; --sage-200:#D8E5D3;
+      --cream:#F7F3EA; --paper:#FBF8F1; --ink:#20241F;
+      --amber:#E8A33D; --amber-700:#C9821F;
+      --clay:#C25450; --clay-100:#F7E3E1;
+      --line:#E3DECF;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--cream);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased;padding:56px 24px 96px}
+    .wrap{max-width:1020px;margin:0 auto}
+    header{display:flex;align-items:center;gap:18px;padding-bottom:34px;border-bottom:1px solid var(--line);margin-bottom:44px}
+    header img{height:64px}
+    header .meta{margin-left:auto;text-align:right}
+    header .meta strong{font-size:14px}
+    header .meta small{display:block;color:var(--pine-700);opacity:.7;font-size:12px;margin-top:2px}
+    h2{font-family:'Fraunces',serif;font-optical-sizing:auto;font-weight:600;font-size:26px;letter-spacing:-.5px;margin:56px 0 6px}
+    .sub{font-size:13.5px;color:var(--pine-700);opacity:.75;margin-bottom:22px}
+    .panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px}
+
+    /* palette */
+    .swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+    .swatch{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+    .swatch .chip{height:86px}
+    .swatch .info{padding:10px 12px}
+    .swatch .info strong{font-size:13px;display:block}
+    .swatch .info code{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--pine-700)}
+    .swatch .info small{display:block;font-size:11px;color:var(--ink);opacity:.6;margin-top:3px}
+
+    /* type */
+    .type-row{display:grid;grid-template-columns:210px 1fr;gap:20px;align-items:baseline;padding:18px 0;border-bottom:1px dashed var(--line)}
+    .type-row:last-child{border-bottom:0}
+    .type-row .label{font-size:12px;font-weight:700;color:var(--pine-700)}
+    .type-row .label small{display:block;font-weight:500;opacity:.65;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:10.5px}
+    .d-display{font-family:'Fraunces',serif;font-optical-sizing:auto;font-weight:600;font-size:56px;letter-spacing:-1.5px;line-height:1.05}
+    .d-h1{font-family:'Fraunces',serif;font-weight:600;font-size:32px;letter-spacing:-.5px}
+    .d-h2{font-family:'Fraunces',serif;font-weight:500;font-size:24px}
+    .d-h3{font-weight:700;font-size:16px}
+    .d-body{font-size:15px;line-height:1.6}
+    .d-money{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:15px}
+    .amber-note{font-size:12px;color:var(--amber-700);margin-top:14px;font-weight:600}
+
+    /* logo sizes */
+    .size-row{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap}
+    .size-item{text-align:center}
+    .size-item img{display:block;margin:0 auto 8px}
+    .size-item small{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--pine-700);opacity:.7}
+    .lockups{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
+    .lockups .panel{display:flex;align-items:center;justify-content:center;min-height:150px}
+    .lockups img{max-width:78%}
+
+    /* dark strip */
+    .dark-strip{background:var(--pine-900);border-radius:16px;padding:30px;display:flex;gap:34px;align-items:center;flex-wrap:wrap;margin-top:22px}
+    .dark-strip img{height:72px}
+    .dark-strip .dots span{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--amber);margin-right:7px}
+
+    /* dots + usage */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .dots-demo{display:flex;gap:9px;align-items:center;margin:10px 0}
+    .dots-demo span{width:11px;height:11px;border-radius:50%;background:var(--amber)}
+    ul.rules{list-style:none;margin-top:6px}
+    ul.rules li{font-size:13.5px;padding:7px 0 7px 22px;position:relative;border-bottom:1px dashed var(--line)}
+    ul.rules li:last-child{border-bottom:0}
+    ul.rules li::before{content:"";position:absolute;left:2px;top:13px;width:8px;height:8px;border-radius:50%}
+    ul.rules.do li::before{background:var(--sage-500)}
+    ul.rules.dont li::before{background:var(--clay)}
+    footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);font-size:12px;color:var(--pine-700);opacity:.7}
+    @media(max-width:760px){.type-row{grid-template-columns:1fr}.lockups,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="logo-horizontal.svg" alt="Bucksy logo">
+    <div class="meta">
+      <strong>Brand Board</strong>
+      <small>v0.2 · hand-built SVG · not yet wired into the app</small>
+    </div>
+  </header>
+
+  <h2>Palette</h2>
+  <p class="sub">Quiet until it means something: pine, cream and sage carry the screen; amber marks attention; clay marks problems.</p>
+  <div class="swatches">
+    <div class="swatch"><div class="chip" style="background:#10332B"></div><div class="info"><strong>Pine 900</strong><code>#10332B</code><small>dark surfaces · dark mode base</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#1C4A3C"></div><div class="info"><strong>Pine 700</strong><code>#1C4A3C</code><small>primary actions · the deer</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#7FA98E"></div><div class="info"><strong>Sage 500</strong><code>#7FA98E</code><small>secondary UI · charts</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#D8E5D3"></div><div class="info"><strong>Sage 200</strong><code>#D8E5D3</code><small>tints · dividers · hover</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#F7F3EA;border-bottom:1px solid var(--line)"></div><div class="info"><strong>Cream 100</strong><code>#F7F3EA</code><small>page canvas</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#FBF8F1;border-bottom:1px solid var(--line)"></div><div class="info"><strong>Paper</strong><code>#FBF8F1</code><small>cards on cream</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#E8A33D"></div><div class="info"><strong>Amber 500</strong><code>#E8A33D</code><small>accent · antlers · attention</small></div></div>
+    <div class="swatch"><div class="chip" style="background:#C25450"></div><div class="info"><strong>Clay 500</strong><code>#C25450</code><small>errors · over-budget</small></div></div>
+  </div>
+
+  <h2>Typography</h2>
+  <p class="sub">Fraunces persuades. Plus Jakarta Sans works. JetBrains Mono counts. All money is mono, always.</p>
+  <div class="panel">
+    <div class="type-row">
+      <div class="label">Display<small>Fraunces 600 · 44–72px</small></div>
+      <div class="d-display">Money, minus the drama.</div>
+    </div>
+    <div class="type-row">
+      <div class="label">H1<small>Fraunces 600 · 32px</small></div>
+      <div class="d-h1">Built for months that don't look alike.</div>
+    </div>
+    <div class="type-row">
+      <div class="label">H2<small>Fraunces 500 · 24px</small></div>
+      <div class="d-h2">Your month, in one glance.</div>
+    </div>
+    <div class="type-row">
+      <div class="label">Body<small>Plus Jakarta 400 · 15px/1.6</small></div>
+      <div class="d-body">No bank linking. No ads. No watching. See what's left and what's still owed, updated the moment you type.</div>
+    </div>
+    <div class="type-row">
+      <div class="label">Money<small>JetBrains Mono 500 · tabular</small></div>
+      <div class="d-money">₹ 1,48,500 &nbsp;&nbsp; $ 1,742.00 &nbsp;&nbsp; −₹ 2,340</div>
+    </div>
+    <p class="amber-note">Amber on cream fails contrast (~2:1) — it is decorative only. Amber-toned text on cream uses Amber 700 (#C9821F).</p>
+  </div>
+
+  <h2>Logo</h2>
+  <p class="sub">The mark reads three ways: a deer, a sprout, and a rising chart. The antler glyph survives 16px; the full head does not.</p>
+  <div class="panel">
+    <div class="size-row">
+      <div class="size-item"><img src="mark.svg" width="96" height="96" alt=""><small>96px</small></div>
+      <div class="size-item"><img src="mark.svg" width="64" height="64" alt=""><small>64px</small></div>
+      <div class="size-item"><img src="mark.svg" width="32" height="32" alt=""><small>32px</small></div>
+      <div class="size-item"><img src="mark.svg" width="24" height="24" alt=""><small>24px min</small></div>
+      <div class="size-item"><img src="glyph.svg" width="52" height="27" alt=""><small>glyph 52px</small></div>
+      <div class="size-item"><img src="glyph.svg" width="32" height="17" alt=""><small>glyph 32px</small></div>
+      <div class="size-item"><img src="glyph.svg" width="16" height="8" alt=""><small>glyph 16px</small></div>
+    </div>
+    <div class="lockups">
+      <div class="panel"><img src="logo-horizontal.svg" alt="Horizontal lockup"></div>
+      <div class="panel"><img src="logo-stacked.svg" alt="Stacked lockup" style="max-width:44%"></div>
+    </div>
+  </div>
+
+  <h2>On dark surfaces</h2>
+  <p class="sub">Cream deer on pine. Antlers stay amber — they are the only colour allowed on dark.</p>
+  <div class="dark-strip">
+    <img src="mark-mono-cream.svg" alt="Cream mark on pine">
+    <img src="mark-badge-dark.svg" alt="Dark app icon" style="height:64px">
+    <img src="mark-badge-light.svg" alt="Light app icon" style="height:64px">
+    <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  </div>
+
+  <h2>The Dots</h2>
+  <p class="sub">Privacy mode already hides amounts behind dots. Promoted to the brand's signature motif: it means “yours alone.”</p>
+  <div class="two-col">
+    <div class="panel">
+      <div class="dots-demo"><span></span><span></span><span></span></div>
+      <p class="d-body" style="font-size:13.5px">Loading states, redacted copy in marketing, the “no watching” claim, and background texture at 8% opacity. Never inside the ledger area of the app — data zones stay clean.</p>
+    </div>
+    <div class="panel">
+      <div class="d-money" style="font-size:22px;margin-bottom:10px">●●●●● &nbsp; <span style="color:var(--sage-500)">Net balance</span></div>
+      <p class="d-body" style="font-size:13.5px">“Amounts hidden. Your screen, your business.” — privacy mode copy, and the tone every surface should keep.</p>
+    </div>
+  </div>
+
+  <h2>Rules</h2>
+  <div class="two-col">
+    <div class="panel">
+      <p class="d-h3" style="margin-bottom:8px">Do</p>
+      <ul class="rules do">
+        <li>Keep money in JetBrains Mono, tabular, always.</li>
+        <li>Give the deer one moment per screen — never wallpaper.</li>
+        <li>Use amber like saffron: sparingly, where attention belongs.</li>
+        <li>Make failure copy honest and helpful in the same breath.</li>
+        <li>Use the antler glyph below 32px.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="d-h3" style="margin-bottom:8px">Don't</p>
+      <ul class="rules dont">
+        <li>Currency symbols in the antlers or the eyes.</li>
+        <li>Blue/purple fintech gradients — ever.</li>
+        <li>Confetti on save; one amber dot pulse is the celebration.</li>
+        <li>"Oops!", guilt framing, or stock photography.</li>
+        <li>A second mascot. The deer is the animal, full stop.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Bucksy brand board · v0.2 · assets are hand-built SVG in this folder (mark, glyph, wordmark, lockups, mono, badges).
+    Fonts load from Google Fonts; everything else is self-contained. Type stack mapping and rollout order live in the brand book (§14–§16).
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bucksy — logo concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine-900:#10332B; --pine-700:#1C4A3C;
+    --sage-500:#7FA98E; --sage-200:#D8E5D3;
+    --cream:#F7F3EA; --paper:#FBF8F1; --ink:#20241F;
+    --amber:#E8A33D; --amber-700:#C9821F;
+    --clay:#C25450; --line:#E3DECF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;padding:52px 24px 90px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:38px;letter-spacing:-1px;margin-bottom:6px}
+  .lede{font-size:14px;color:var(--pine-700);opacity:.8;margin-bottom:38px;max-width:64ch;line-height:1.6}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:18px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-700)}
+  .card h2{font-family:'Fraunces',serif;font-weight:600;font-size:21px;letter-spacing:-.3px;margin-top:2px}
+  .stage{display:flex;align-items:center;justify-content:center;min-height:150px;background:var(--cream);border-radius:14px;border:1px solid var(--line)}
+  .stage img{width:118px;height:118px}
+  .sizes{display:flex;align-items:flex-end;gap:26px;padding:0 4px}
+  .sizes figure{text-align:center}
+  .sizes img{display:block;margin:0 auto 6px}
+  .sizes figcaption{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--pine-700);opacity:.65}
+  .dark{background:var(--pine-900);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px;justify-content:center}
+  .dark .tile{background:var(--cream);border-radius:12px;padding:9px;display:grid;place-items:center}
+  .dark .tile img{width:44px;height:44px}
+  .dark .lock{display:flex;align-items:center;gap:10px}
+  .dark .lock img.mark{width:34px;height:34px}
+  .dark .lock img.word{height:18px;filter:brightness(0) invert(1)}
+  .lockrow{display:flex;align-items:center;gap:14px;justify-content:center;min-height:60px}
+  .lockrow img.mark{width:46px;height:46px}
+  .lockrow img.word{height:26px}
+  .why{font-size:13px;line-height:1.62}
+  .why b{font-weight:700}
+  .weak{font-size:12.5px;color:var(--clay);line-height:1.55;border-top:1px dashed var(--line);padding-top:12px}
+  footer{margin-top:46px;font-size:12.5px;color:var(--pine-700);opacity:.72;line-height:1.7;border-top:1px solid var(--line);padding-top:18px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Four ways to be Bucksy</h1>
+  <p class="lede">Same name, same promise — four different ideas. Each is shown as a full mark, at 96 / 48 / 32 / 16 px, on a dark surface, and locked up with the wordmark. Tell me the number you want and I'll refine it into the full asset kit (lockups, favicon, app icon, PNG exports).</p>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <section class="card">
+      <div>
+        <p class="tag">Concept 1 · name-first</p>
+        <h2>The b that grows antlers</h2>
+      </div>
+      <div class="stage"><img src="c1-monogram.svg" alt="Concept 1"></div>
+      <div class="sizes">
+        <figure><img src="c1-monogram.svg" width="96" height="96" alt=""><figcaption>96</figcaption></figure>
+        <figure><img src="c1-monogram.svg" width="48" height="48" alt=""><figcaption>48</figcaption></figure>
+        <figure><img src="c1-monogram.svg" width="32" height="32" alt=""><figcaption>32</figcaption></figure>
+        <figure><img src="c1-monogram.svg" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+      </div>
+      <div class="dark">
+        <div class="tile"><img src="c1-monogram.svg" alt=""></div>
+        <div class="lock"><img class="mark" src="c1-monogram.svg" alt=""><img class="word" src="../wordmark.svg" alt="bucksy"></div>
+      </div>
+      <p class="why"><b>Why it fits:</b> the wordmark's first letter carries the animal. Read once, it's a clean lowercase <i>b</i>; read twice, its ascender is a three-tine antler. A monogram also means the mark and the name can never disagree.</p>
+      <p class="weak"><b>Weakness:</b> two ideas share one shape, so at 16px the fork can read as a stray tick. Likely needs a simplified 16px cut.</p>
+    </section>
+
+    <!-- 2 -->
+    <section class="card">
+      <div>
+        <p class="tag">Concept 2 · animal-first</p>
+        <h2>The quiet buck</h2>
+      </div>
+      <div class="stage"><img src="c2-silhouette.svg" alt="Concept 2"></div>
+      <div class="sizes">
+        <figure><img src="c2-silhouette.svg" width="96" height="96" alt=""><figcaption>96</figcaption></figure>
+        <figure><img src="c2-silhouette.svg" width="48" height="48" alt=""><figcaption>48</figcaption></figure>
+        <figure><img src="c2-silhouette.svg" width="32" height="32" alt=""><figcaption>32</figcaption></figure>
+        <figure><img src="c2-silhouette.svg" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+      </div>
+      <div class="dark">
+        <div class="tile"><img src="c2-silhouette.svg" alt=""></div>
+        <div class="lock"><img class="mark" src="c2-silhouette.svg" alt=""><img class="word" src="../wordmark.svg" alt="bucksy"></div>
+      </div>
+      <p class="why"><b>Why it fits:</b> the same animal, with no face — so no expression to get wrong and nothing to look childish in five years. A solid silhouette in one pine weight reads calm and expensive rather than cute. The antlers still do double duty as rising ticks.</p>
+      <p class="weak"><b>Weakness:</b> without eyes it's cooler and less friendly; "premium" wins at the cost of some warmth.</p>
+    </section>
+
+    <!-- 3 -->
+    <section class="card">
+      <div>
+        <p class="tag">Concept 3 · privacy-first</p>
+        <h2>The buck behind the disc</h2>
+      </div>
+      <div class="stage"><img src="c3-roundel.svg" alt="Concept 3"></div>
+      <div class="sizes">
+        <figure><img src="c3-roundel.svg" width="96" height="96" alt=""><figcaption>96</figcaption></figure>
+        <figure><img src="c3-roundel.svg" width="48" height="48" alt=""><figcaption>48</figcaption></figure>
+        <figure><img src="c3-roundel.svg" width="32" height="32" alt=""><figcaption>32</figcaption></figure>
+        <figure><img src="c3-roundel.svg" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+      </div>
+      <div class="dark">
+        <div class="tile"><img src="c3-roundel.svg" alt=""></div>
+        <div class="lock"><img class="mark" src="c3-roundel.svg" alt=""><img class="word" src="../wordmark.svg" alt="bucksy"></div>
+      </div>
+      <p class="why"><b>Why it fits:</b> a solid dark disc with the buck cut out of it — the "your money is private" promise made literal. It's the only concept already shaped like an app icon, a favicon and an avatar, so every small surface gets the same silhouette.</p>
+      <p class="weak"><b>Weakness:</b> a filled disc is the most conventional container shape; the detail inside is lost under 24px, so it needs the antler-glyph fallback.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="card">
+      <div>
+        <p class="tag">Concept 4 · meaning-first</p>
+        <h2>The antler is the chart</h2>
+      </div>
+      <div class="stage"><img src="c4-antler-chart.svg" alt="Concept 4"></div>
+      <div class="sizes">
+        <figure><img src="c4-antler-chart.svg" width="96" height="96" alt=""><figcaption>96</figcaption></figure>
+        <figure><img src="c4-antler-chart.svg" width="48" height="48" alt=""><figcaption>48</figcaption></figure>
+        <figure><img src="c4-antler-chart.svg" width="32" height="32" alt=""><figcaption>32</figcaption></figure>
+        <figure><img src="c4-antler-chart.svg" width="16" height="16" alt=""><figcaption>16</figcaption></figure>
+      </div>
+      <div class="dark">
+        <div class="tile"><img src="c4-antler-chart.svg" alt=""></div>
+        <div class="lock"><img class="mark" src="c4-antler-chart.svg" alt=""><img class="word" src="../wordmark.svg" alt="bucksy"></div>
+      </div>
+      <p class="why"><b>Why it fits:</b> no head at all — one amber antler that also reads as a rising line chart, branching upward three times. That is the pitch in a single stroke: income that arrives in uneven lumps, still trending up. Cleanest at 16px of the four.</p>
+      <p class="weak"><b>Weakness:</b> the most abstract, so it leans on the wordmark to say "this is money"; the small pine dot at the base carries the whole "buck" idea.</p>
+    </section>
+
+  </div>
+
+  <footer>
+    Open this file straight from disk — the marks are local SVG, only the type specimens and the wordmark lockup load a font.
+    My recommendation is <b>Concept 2</b> for the website and <b>Concept 3</b> as the app icon, since they're the same animal drawn for two different sizes — but you're the one who has to like it.
+  </footer>
+</div>
+</body>
+</html>

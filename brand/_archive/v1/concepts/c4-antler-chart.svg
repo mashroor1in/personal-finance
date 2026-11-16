@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Bucksy concept 4, antler drawn as a rising chart">
+  <!-- Concept 4: the antler IS the rising chart. Uneven income, still trending up.
+       Most abstract, most scalable — survives 16px without a head -->
+  <g fill="none" stroke="#E8A33D" stroke-width="7" stroke-linecap="round">
+    <path d="M22 84 C34 70 48 52 62 30 C67 23 71 15 73 7"/>
+    <path d="M36 63 C34 55 34 48 36 42"/>
+    <path d="M50 45 C48 37 48 30 50 24"/>
+    <path d="M63 31 C61 24 61 17 63 12"/>
+  </g>
+  <circle cx="19" cy="87" r="5" fill="#1C4A3C"/>
+</svg>

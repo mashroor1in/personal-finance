@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="384 168 306 220" role="img" aria-labelledby="t">
+  <title id="t">Bucksy antler glyph</title>
+  <!-- Standalone antler glyph: the same three tines, no head. Use below 24px, or as a
+       decorative repeat. Never recolour the tines to anything but Amber, Cream or Pine. -->
+  <g fill="none" stroke="#F7931A" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M574 365 C548 345 520 330 482 324 C446 318 421 295 411 266 C402 239 410 210 430 188"/>
+    <path d="M496 326 C514 299 518 267 510 236"/>
+    <path d="M574 365 C614 359 642 340 655 310 C667 282 659 251 642 231"/>
+  </g>
+</svg>

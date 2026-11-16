@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Bucksy concept 2, faceless buck silhouette">
+  <!-- Concept 2: faceless silhouette. Calm, editorial, no cartoon expression to age badly -->
+  <g fill="none" stroke="#E8A33D" stroke-width="6" stroke-linecap="round">
+    <path d="M34 38 C29 30 27 20 29 9"/>
+    <path d="M31 27 C26 23 23 17 23 11"/>
+    <path d="M32 18 C30 14 30 9 31 5"/>
+    <path d="M62 38 C67 30 69 20 67 9"/>
+    <path d="M65 27 C70 23 73 17 73 11"/>
+    <path d="M64 18 C66 14 66 9 65 5"/>
+  </g>
+  <ellipse cx="24" cy="48" rx="7" ry="13" transform="rotate(-28 24 48)" fill="#1C4A3C"/>
+  <ellipse cx="72" cy="48" rx="7" ry="13" transform="rotate(28 72 48)" fill="#1C4A3C"/>
+  <path d="M48 88 C39 83 31 72 29 58 C27 45 35 35 48 35 C61 35 69 45 67 58 C65 72 57 83 48 88 Z" fill="#1C4A3C"/>
+</svg>

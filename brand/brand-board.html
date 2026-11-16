@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bucksy — Forest Finance Brand Board</title>
+<meta name="description" content="Bucksy brand identity system: logo, sizing, colors, typography and brand essence.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+:root{--pine:#0B3D2E;--fern:#18815A;--sage:#A8D5B2;--amber:#F7931A;--cream:#F9F6EE;--stone:#E6E1D7;--ink:#102F27;--muted:#648177;--line:#d9ddd4;--pale:#edf4ec;--font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html{background:#e8e8e2}body{margin:0;color:var(--ink);font-family:var(--font);background:var(--cream)}
+.board{max-width:1600px;margin:0 auto;background:var(--cream);overflow:hidden;box-shadow:0 20px 70px #132d251a}
+.hero{display:grid;grid-template-columns:1.52fr 1fr 220px;gap:32px;align-items:center;padding:62px 7.2% 40px;position:relative;min-height:330px}
+.brand-lockup{display:flex;align-items:center;gap:26px;min-width:0}.brand-mark{width:176px;height:auto;flex:none;filter:drop-shadow(0 2px 0 #0b3d2e0d)}.wordmark{font-size:clamp(50px,6.3vw,91px);font-weight:800;line-height:.92;letter-spacing:-.075em;color:var(--pine);white-space:nowrap}.tagline{font-size:clamp(12px,1.35vw,18px);font-weight:600;letter-spacing:.23em;margin-top:22px;color:var(--pine);white-space:nowrap}
+.hero-copy{border-left:1px solid #c8d0c8;padding-left:38px;align-self:stretch;display:flex;flex-direction:column;justify-content:center}.hero-copy h1{font-size:clamp(22px,2.3vw,32px);margin:0 0 15px;letter-spacing:-.045em}.hero-copy p{font-size:17px;line-height:1.52;margin:0;max-width:370px}.pillars{display:flex;gap:20px;margin-top:22px}.pillar{min-width:66px;text-align:center;font-size:14px;font-weight:600}.pillar-icon{width:62px;height:62px;border:1px solid #dce6d9;border-radius:18px;background:#f0f5ec;display:grid;place-items:center;margin:0 auto 8px;color:var(--fern)}.pillar svg{width:31px;height:31px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app-tile{width:190px;height:190px;border-radius:0;background:transparent;display:grid;place-items:center;margin:auto;box-shadow:none}.app-tile img{width:190px;height:190px;object-fit:contain;filter:drop-shadow(0 18px 22px #0b3d2e24)}
+.hills{height:110px;margin-top:-2px;display:block;width:100%}.content{padding:22px 4% 0}.section-title{font-size:21px;letter-spacing:-.035em;margin:0 0 24px;font-weight:750}.logo-row{display:grid;grid-template-columns:1.22fr 1.45fr;gap:34px;border-bottom:1px solid var(--line);padding:0 0 28px}.variations{display:flex;align-items:center;justify-content:space-between;gap:14px}.variant{flex:1;text-align:center;min-width:0}.variant img{height:100px;max-width:100%;object-fit:contain}.variant .word{font-size:24px;font-weight:750;letter-spacing:-.06em;margin-top:4px}.variant .hint{font-size:11px;color:var(--muted);margin-top:7px;letter-spacing:.05em}.variant.dark{background:var(--pine);border-radius:20px;padding:18px 10px;color:var(--cream)}.variant.dark img{height:78px}.variant.light{background:#f4efe2;border-radius:20px;padding:18px 10px}.separator{width:1px;height:105px;background:var(--line);flex:none}
+.sizing{border-left:1px solid var(--line);padding-left:34px}.size-groups{display:grid;grid-template-columns:1.3fr 1fr;gap:22px}.size-scale{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}.size-item{text-align:center;flex:1;font-size:12px;color:var(--muted)}.size-item img{display:block;margin:0 auto 9px;object-fit:contain}.size-item .label{white-space:nowrap;color:var(--ink)}.antler-group{border-left:1px solid var(--line);padding-left:22px}.antler-items{display:flex;justify-content:space-between;align-items:center;gap:8px}.antler-items img{object-fit:contain;display:block;margin:0 auto 9px}.lower{display:grid;grid-template-columns:1.35fr 1.25fr .68fr;gap:28px;padding:28px 0 24px;border-bottom:1px solid var(--line)}.dark-panel{border-radius:22px;background:linear-gradient(130deg,#0b3d2e,#073629);padding:24px 28px;color:var(--cream);min-height:198px;position:relative;overflow:hidden}.dark-panel h2{margin:0 0 7px;font-size:20px;letter-spacing:-.03em}.dark-panel p{margin:0;color:#e1ebe3;font-size:13px}.dark-examples{display:flex;align-items:center;gap:22px;margin-top:21px}.dark-mark{width:70px;height:82px;object-fit:contain}.dark-mark.small{width:48px;height:58px}.badge-mark{width:76px;height:76px;border-radius:50%;background:var(--cream);display:grid;place-items:center}.badge-mark img{width:48px;height:auto}.dots{display:flex;gap:10px;margin-left:auto}.dots i{width:13px;height:13px;background:var(--amber);border-radius:50%;display:block}
+.palette h2,.type h2{font-size:20px;margin:0 0 24px;letter-spacing:-.03em}.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.swatch{text-align:center;font-size:11px}.chip{height:68px;border-radius:17px;margin-bottom:10px;border:1px solid #00000008}.swatch b{display:block;font-size:12px}.swatch code{display:block;font:11px var(--font);color:var(--muted);margin-top:4px}.type{border-left:1px solid var(--line);padding-left:25px}.type-row{display:flex;align-items:center;gap:15px}.aa{font-weight:700;font-size:65px;letter-spacing:-.09em;color:var(--pine);line-height:1}.type-name{font-size:18px;font-weight:700}.type-desc{font-size:12px;line-height:1.45;color:var(--muted);margin-top:5px}
+.essence{margin:24px 0 28px;background:#edf4ec;border-radius:20px;padding:20px 26px;display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:12px;align-items:center}.essence-intro{display:flex;align-items:flex-start;gap:15px;padding-right:20px}.essence-intro svg,.essence-item svg{width:34px;height:34px;stroke:var(--fern);fill:none;stroke-width:1.8;flex:none}.essence-intro h2{font-size:19px;margin:0 0 7px}.essence-intro p{margin:0;font-size:13px;line-height:1.45;color:#36594d;max-width:350px}.essence-item{border-left:1px solid #cbdacb;padding:4px 10px 4px 24px;display:flex;align-items:flex-start;gap:12px;min-height:58px}.essence-item h3{margin:2px 0 5px;font-size:15px}.essence-item p{margin:0;font-size:12px;color:#45675b;line-height:1.4}
+.footer{display:flex;justify-content:space-between;align-items:center;padding:0 4% 20px;color:#799087;font-size:10px;letter-spacing:.12em;text-transform:uppercase}.footer strong{color:var(--pine)}
+@media(max-width:1100px){.hero{grid-template-columns:1.4fr 1fr 150px;gap:20px;padding-left:4%;padding-right:4%}.brand-mark{width:130px}.wordmark{font-size:60px}.app-tile{width:145px;height:145px}.app-tile img{width:145px;height:145px}.logo-row{grid-template-columns:1fr}.sizing{border-left:0;border-top:1px solid var(--line);padding:24px 0 0}.lower{grid-template-columns:1fr 1fr}.type{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);padding:20px 0 0}.essence{grid-template-columns:1fr 1fr}.essence-intro{grid-column:1/-1}.essence-item:nth-child(2){border-left:0}}
+@media(max-width:720px){.hero{grid-template-columns:1fr 112px;padding:30px 22px 16px;gap:18px}.brand-lockup{grid-column:1/-1;gap:14px}.brand-mark{width:90px}.wordmark{font-size:clamp(46px,12vw,64px)}.tagline{font-size:10px;letter-spacing:.17em;margin-top:12px}.hero-copy{grid-column:1;padding:0;border:0}.hero-copy h1{font-size:23px}.hero-copy p{font-size:14px}.pillars{gap:10px;margin-top:14px}.pillar-icon{width:48px;height:48px;border-radius:13px}.pillar{font-size:12px}.app-tile{grid-column:2;grid-row:2;width:108px;height:108px;border-radius:0}.app-tile img{width:108px;height:108px}.hills{height:68px}.content{padding:20px 18px 0}.logo-row{gap:22px}.variations{flex-wrap:wrap}.variant{min-width:38%;}.separator{display:none}.variant img{height:75px}.variant .word{font-size:20px}.size-groups{grid-template-columns:1fr;gap:18px}.antler-group{border-left:0;border-top:1px solid var(--line);padding:18px 0 0}.lower{grid-template-columns:1fr;gap:20px}.dark-panel{min-height:185px}.swatches{gap:7px}.chip{height:50px;border-radius:12px}.swatch{font-size:10px}.swatch b{font-size:10px}.swatch code{font-size:9px}.type{grid-column:auto}.essence{grid-template-columns:1fr 1fr;padding:18px}.essence-intro{grid-column:1/-1}.essence-item{padding-left:10px}.essence-item:nth-child(2n){border-left:0}.footer{padding:0 18px 18px}}
+@media print{html,body{background:#fff}.board{max-width:none;box-shadow:none}.hero{min-height:300px}.footer{padding-bottom:10px}}
+</style>
+</head>
+<body>
+<main class="board">
+  <section class="hero">
+    <div class="brand-lockup">
+      <img class="brand-mark" src="assets/bucksy-mark-large.png" alt="Bucksy B-shaped deer mark">
+      <div><div class="wordmark">Bucksy</div><div class="tagline">EXPENSES MADE SIMPLE</div></div>
+    </div>
+    <div class="hero-copy">
+      <h1>Track. Plan. Grow.</h1>
+      <p>A personal finance companion to track your spending, manage budgets and build healthier money habits.</p>
+      <div class="pillars">
+        <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 32 32"><path d="M4 25h5V15H4zM13 25h5V9h-5zM22 25h5V4h-5z"/></svg></div>Track</div>
+        <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 32 32"><path d="M4 9h23v18H4zM4 9l18-4v4M23 16h7v6h-7a3 3 0 0 1 0-6z"/></svg></div>Manage</div>
+        <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 32 32"><path d="M27 5C14 5 6 10 6 20c0 4 3 7 7 7 10 0 14-9 14-22zM5 28l15-15"/></svg></div>Grow</div>
+      </div>
+    </div>
+    <div class="app-tile"><img src="app-icons/bucksy-app-icon.svg" alt="Bucksy app icon"></div>
+  </section>
+  <svg class="hills" viewBox="0 0 1600 110" preserveAspectRatio="none" aria-hidden="true"><path fill="#dcebdd" d="M0 25C130 85 180 62 300 48S500 92 650 42 890 74 1030 67s220-62 340-40 150 10 230-5v88H0z"/><path fill="#a8d5b2" d="M0 45C155 80 225 37 350 69s210 5 310-26 225 62 360 41 185-68 300-34 180 6 280-13v73H0z"/><path fill="#70b99b" d="M0 72c120-22 190 40 315 17s215-44 335-8 205 9 310-17 230 50 360 22 190-48 280-28v52H0z"/><path fill="#18815a" d="M0 85c170-28 230 40 390 18s210-28 315-5 220-4 320-30 205 52 340 25 160-36 235-20v37H0z"/><path fill="#0b3d2e" d="M0 98c130-16 235 21 360 3s250-23 360-6 235 5 330-14 210 28 330 8 150-17 220-5v26H0z"/></svg>
+  <section class="content">
+    <div class="logo-row">
+      <div>
+        <h2 class="section-title">Logo Variations</h2>
+        <div class="variations">
+          <div class="variant"><img src="assets/bucksy-mark-large.png" alt="Primary mark"><div class="word">Bucksy</div><div class="hint">PRIMARY</div></div>
+          <div class="separator"></div>
+          <div class="variant"><img src="assets/bucksy-mark-large.png" alt="Single-color style" style="filter:grayscale(1)"><div class="word">Bucksy</div><div class="hint">MONOCHROME</div></div>
+          <div class="variant dark"><img src="assets/bucksy-mark-dark.png" alt="Cream mark on pine surface"><div class="word">Bucksy</div><div class="hint" style="color:#d7e5dc">DARK SURFACE</div></div>
+          <div class="variant light"><img src="assets/bucksy-mark-large.png" alt="Mark on cream surface"><div class="word">Bucksy</div><div class="hint">CREAM SURFACE</div></div>
+        </div>
+      </div>
+      <div class="sizing">
+        <h2 class="section-title">Logo System &amp; Sizing</h2>
+        <div class="size-groups">
+          <div class="size-scale">
+            <div class="size-item"><img src="assets/bucksy-mark-large.png" style="width:76px;height:80px"><span class="label">96 px</span></div>
+            <div class="size-item"><img src="assets/bucksy-mark-large.png" style="width:58px;height:62px"><span class="label">64 px</span></div>
+            <div class="size-item"><img src="assets/bucksy-mark-large.png" style="width:38px;height:42px"><span class="label">32 px</span></div>
+            <div class="size-item"><img src="assets/bucksy-mark-large.png" style="width:29px;height:32px"><span class="label">24 px<br>(min)</span></div>
+          </div>
+          <div class="antler-group"><div style="font-size:13px;font-weight:650;margin-bottom:14px">Standalone antler glyph</div><div class="antler-items">
+            <div class="size-item"><img src="assets/bucksy-antler-glyph.png" style="width:58px;height:42px"><span class="label">52 px</span></div>
+            <div class="size-item"><img src="assets/bucksy-antler-glyph.png" style="width:42px;height:32px"><span class="label">32 px</span></div>
+            <div class="size-item"><img src="assets/bucksy-antler-glyph.png" style="width:25px;height:22px"><span class="label">16 px</span></div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="lower">
+      <div class="dark-panel">
+        <h2>On Dark Surfaces</h2><p>Cream logo on pine. Antler accent stays amber.</p>
+        <div class="dark-examples"><img class="dark-mark" src="assets/bucksy-mark-dark.png" alt="Cream logo on pine surface"><img class="dark-mark small" src="assets/bucksy-mark-dark.png" alt="Small cream mark"><div class="badge-mark"><img src="assets/bucksy-mark-large.png" alt="Circular badge mark"></div><div class="dots"><i></i><i></i><i></i></div></div>
+      </div>
+      <div class="palette"><h2>Colour Palette</h2><div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#0B3D2E"></div><b>Pine</b><code>#0B3D2E</code></div>
+        <div class="swatch"><div class="chip" style="background:#18815A"></div><b>Fern</b><code>#18815A</code></div>
+        <div class="swatch"><div class="chip" style="background:#A8D5B2"></div><b>Sage</b><code>#A8D5B2</code></div>
+        <div class="swatch"><div class="chip" style="background:#F7931A"></div><b>Amber</b><code>#F7931A</code></div>
+        <div class="swatch"><div class="chip" style="background:#F9F6EE;border-color:#e6e1d7"></div><b>Cream</b><code>#F9F6EE</code></div>
+        <div class="swatch"><div class="chip" style="background:#E6E1D7"></div><b>Stone</b><code>#E6E1D7</code></div>
+      </div></div>
+      <div class="type"><h2>Typography</h2><div class="type-row"><div class="aa">Aa</div><div><div class="type-name">Inter</div><div class="type-desc">A modern, clean and highly readable typeface.</div></div></div></div>
+    </div>
+
+    <section class="production-assets" style="margin:0 0 28px;padding:22px 26px;border:1px solid #d9ddd4;border-radius:18px;background:#fffdf8">
+      <h2 style="font-size:20px;margin:0 0 8px;letter-spacing:-.03em">Production App Icon</h2>
+      <p style="margin:0 0 16px;color:#648177;font-size:13px;line-height:1.5">The app icon is supplied as a dedicated SVG master with PNG exports rendered directly from that vector source.</p>
+      <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+        <img src="app-icons/bucksy-app-icon.svg" alt="Bucksy production app icon" style="width:112px;height:112px;object-fit:contain">
+        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+          <div style="text-align:center"><img src="app-icons/bucksy-icon-1024.png" alt="" style="width:76px;height:76px"><small style="display:block;color:#648177">1024 px</small></div>
+          <div style="text-align:center"><img src="app-icons/bucksy-icon-512.png" alt="" style="width:58px;height:58px"><small style="display:block;color:#648177">512 px</small></div>
+          <div style="text-align:center"><img src="app-icons/bucksy-icon-192.png" alt="" style="width:42px;height:42px"><small style="display:block;color:#648177">192 px</small></div>
+          <div style="text-align:center"><img src="app-icons/bucksy-icon-32.png" alt="" style="width:32px;height:32px"><small style="display:block;color:#648177">32 px</small></div>
+        </div>
+        <div style="margin-left:auto;min-width:180px">
+          <a href="app-icons/bucksy-app-icon.svg" style="color:#0B3D2E;font-weight:700">Open SVG master ↗</a><br>
+          <a href="app-icons/bucksy-icon-1024.png" style="color:#0B3D2E;font-weight:600">1024 px PNG ↗</a>
+        </div>
+      </div>
+    </section>
+    <section class="essence">
+      <div class="essence-intro"><svg viewBox="0 0 36 36"><path d="M31 5C16 4 6 10 6 22c0 5 4 8 8 8C25 30 30 20 31 5zM6 31l16-16"/></svg><div><h2>Brand Essence</h2><p>A simple, trustworthy and growth-oriented expense tracker for everyday life.</p></div></div>
+      <div class="essence-item"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="13"/><circle cx="18" cy="18" r="6"/></svg><div><h3>Simple</h3><p>Clear and easy to use</p></div></div>
+      <div class="essence-item"><svg viewBox="0 0 36 36"><path d="M18 4l12 5v9c0 8-5 12-12 15C11 30 6 26 6 18V9zM12 18l4 4 8-9"/></svg><div><h3>Private</h3><p>Your data, your control</p></div></div>
+      <div class="essence-item"><svg viewBox="0 0 36 36"><path d="M5 30h5V20H5zM15 30h5V13h-5zM25 30h5V6h-5z"/></svg><div><h3>Insightful</h3><p>Turn spending into useful insights</p></div></div>
+      <div class="essence-item"><svg viewBox="0 0 36 36"><path d="M4 22c8-1 13-6 16-14 5 10 4 19-3 23-6 3-11-1-13-9zM20 20c4-6 8-9 13-9-1 8-6 13-13 13"/></svg><div><h3>Growth-oriented</h3><p>Build better money habits</p></div></div>
+    </section>
+  </section>
+  <footer class="footer"><span><strong>BUCKSY</strong> · FOREST FINANCE</span><span>FULL BRAND SYSTEM · PRODUCTION ASSETS INCLUDED</span></footer>
+</main>
+</body></html>

@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Bucksy — Forest Finance design tokens
+   Palette, type and roles transcribed from the supplied brand board.
+   Original designer file: assets/design-tokens.css (kept untouched).
+   This file adds semantic roles and a commented drop-in map for the app's
+   existing CSS variables. Nothing in the app imports this file yet.
+   ========================================================================== */
+
+:root {
+  /* --- raw palette ------------------------------------------------------ */
+  --bucksy-pine:      #0B3D2E;
+  --bucksy-fern:      #18815A;
+  --bucksy-sage:      #A8D5B2;
+  --bucksy-amber:     #F7931A;
+  --bucksy-cream:     #F9F6EE;
+  --bucksy-stone:     #E6E1D7;
+  --bucksy-ink:       #102F27;
+
+  /* logo-only greens (the two-tone leaf) */
+  --bucksy-leaf:      #79C94A;
+  --bucksy-leaf-deep: #078B4F;
+
+  /* --- type ------------------------------------------------------------- */
+  --bucksy-font: Inter, ui-sans-serif, system-ui, -apple-system,
+                 BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --bucksy-weight-wordmark: 800;
+  --bucksy-tracking-wordmark: -0.075em;  /* set on the "Bucksy" wordmark */
+  --bucksy-tracking-tagline:  0.23em;    /* set on "EXPENSES MADE SIMPLE" */
+
+  /* --- semantic roles --------------------------------------------------- */
+  --brand-surface:        var(--bucksy-cream);
+  --brand-surface-raised: #FFFDF8;              /* card on cream */
+  --brand-surface-tint:   #EDF4EC;              /* pillar / highlight fill */
+  --brand-text:           var(--bucksy-ink);
+  --brand-text-muted:     #648177;
+  --brand-line:           #D9DDD4;
+
+  --brand-primary:        var(--bucksy-pine);   /* buttons, headings */
+  --brand-secondary:      var(--bucksy-fern);   /* links, active, icons */
+  --brand-accent:         var(--bucksy-amber);  /* attention only */
+  --brand-positive:       var(--bucksy-leaf-deep);
+  --brand-negative:       #B5453C;              /* warm red, not alarm red */
+
+  --brand-dark-surface:   var(--bucksy-pine);
+  --brand-dark-text:      var(--bucksy-cream);
+
+  /* --- contrast (measured, not estimated) -------------------------------
+     Pine on Cream ......... 11.30 : 1   body + headings, safe
+     Cream on Pine ......... 11.30 : 1   dark surfaces, safe
+     Ink on Cream .......... 13.34 : 1   body copy, safe
+     Stone on Pine .......... 9.36 : 1   secondary text on dark
+     Sage on Pine ........... 7.45 : 1   icon accents on dark
+     Amber on Pine .......... 5.31 : 1   icons, large text, button labels
+     Fern on Cream .......... 4.49 : 1   AA for normal text, no margin
+     Amber on Cream ......... 2.13 : 1   FAILS — decorative only, never text
+     Fern on Pine ........... 2.51 : 1   FAILS — never use as text on pine
+     ------------------------------------------------------------------ */
+}
+
+/* ==========================================================================
+   Drop-in map for app.html (not enabled — paste when the reskin is approved)
+
+   :root {
+     --bg:            var(--bucksy-cream);
+     --card:          var(--brand-surface-raised);
+     --card-muted:    #F2EEE3;
+     --text:          var(--bucksy-ink);
+     --muted:         #648177;
+     --line:          #D9DDD4;
+     --accent:        var(--bucksy-pine);      /* was #2563eb */
+     --accent-soft:   #EDF4EC;
+     --green:         var(--bucksy-leaf-deep);
+     --green-soft:    #E7F3E9;
+     --amber:         #C97A0C;                 /* amber 700 step for text use */
+     --amber-soft:    #FDF1DF;
+     --red:           #B5453C;
+     --red-soft:      #FBEAE8;
+   }
+
+   Dark mode (pine canvas rather than slate):
+   [data-theme="dark"] {
+     --bg:            #07281F;
+     --card:          var(--bucksy-pine);
+     --card-muted:    #0F4A39;
+     --text:          var(--bucksy-cream);
+     --muted:         #A8C3B6;
+     --line:          #1B5442;
+     --accent:        var(--bucksy-sage);
+     --accent-soft:   #123F31;
+     --amber:         var(--bucksy-amber);
+     --red:           #E5837B;
+   }
+   ========================================================================== */
