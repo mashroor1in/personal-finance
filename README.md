@@ -1,11 +1,11 @@
-# Personal Finance Planner
+# Bucksy — personal finance planner
 
 A monthly expense planner: salary in, itemised expenses out, totals and
 remaining balance computed live, with a bank-allocation section and a monthly
 trend view.
 
-Live at **https://expenses.mashmind.in** (currently behind Cloudflare Access —
-see [Private mode](#private-mode)).
+Live at **https://bucksy.life**. `expenses.mashmind.in` is the previous address
+and is being retired — see [Private mode](#private-mode).
 
 ## Stack
 
@@ -61,14 +61,22 @@ and run them before pushing code that needs them.
 
 ## Private mode
 
-The custom domain currently sits behind a Cloudflare **Zero Trust Access**
-application, so unauthenticated visitors are redirected to the team login page.
-That is deliberate: the product is not public yet.
+The planner is meant to be private and the brand site meant to be shareable, so
+the gate belongs on `/app*` and `/api/*` via a Cloudflare **Zero Trust Access**
+application on `bucksy.life`, not on the whole hostname.
 
-- The `*.pages.dev` hostname is **not** covered by that Access app. Treat it as
-  the unprotected back door while private.
-- An uptime monitor pointed at `/api/auth/status` will see `302`, not `200`.
-- `DEPLOY.md` has the checklist for switching to public.
+As of 2026-11-17 that application does not exist yet: `/app` answers `200` to an
+unauthenticated request. The app's own login still protects the data, but the
+sign-in screen is public and registration is not closed server-side. `DEPLOY.md`
+→ "Private mode" has the paths to add and the current status.
+
+- The `*.pages.dev` hostname **cannot** be covered by Access. What limits it is
+  Turnstile hostname management: list `bucksy.life` only, so the back door fails
+  the bot check on sign-in and registration.
+- An uptime monitor pointed at a gate-protected `/api/auth/status` will see
+  `302`, not `200`.
+- `DEPLOY.md` has the checklist for switching to public, and for retiring
+  `expenses.mashmind.in`.
 
 ## Docs
 

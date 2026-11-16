@@ -15,9 +15,10 @@ Nothing here is exploratory. Every command was run against this project.
 | Thing | Value |
 |---|---|
 | Project (Pages) | `personal-finance` |
-| Live URL | `https://expenses.mashmind.in` |
+| Live URL | `https://bucksy.life` |
+| Planner URL | `https://bucksy.life/app` (`.html` 308-redirects here) |
 | Fallback URL | `https://personal-finance-8ch.pages.dev` |
-| Health check | `https://expenses.mashmind.in/api/auth/status` |
+| Health check | `https://bucksy.life/api/auth/status` |
 | D1 database | `personal-expenses-db` |
 | D1 database id | `f99159c3-82a7-405c-bf9e-6e65b5662be5` |
 | KV namespace (`SESSIONS`) | `d70752bc58ac491fba7f23441ba1f2f4` |
@@ -382,14 +383,14 @@ Two categories never reach your code, so they never reach the tail:
 directly. A `404` here means the file is missing from the deploy, or a
 `functions/index.js` is shadowing `index.html`.
 
-**Edge blocks.** Your custom domain sits on the `mashmind.in` zone, so the
+**Edge blocks.** Your custom domain sits on the `bucksy.life` zone, so the
 following reject the request before your function runs:
 
 - WAF custom rules
 - Cloudflare rate-limiting rules
 - Bot Fight Mode
 
-Dashboard → `mashmind.in` zone → **Security → Events**. That lists each block
+Dashboard → `bucksy.life` zone → **Security → Events**. That lists each block
 and the exact rule that fired.
 
 If a user reports a block and your tail is silent, this is almost always why.

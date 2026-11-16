@@ -39,9 +39,10 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - **Full Rotation on Reset**: A new password rotates the session version, killing every older token
 
 ### ✅ Access Control
-- **Zero Trust Gate**: While private, the custom domain sits behind Cloudflare Access; unauthenticated requests never reach Pages
-- **App-Level Auth**: Independent username/password + Turnstile check behind that gate
-- **Hostname Awareness**: The `pages.dev` alias is outside the Access app, so it is treated as a back door until launch (see `DEPLOY.md`)
+- **Zero Trust Gate**: Intended posture is a Cloudflare Access application on `bucksy.life` scoped to `/app*` and `/api/*`, leaving the brand page and `/assets` shareable. **As of 2026-11-17 that application is not attached**, so `/app` answers `200` unauthenticated (see `DEPLOY.md` → "Private mode")
+- **App-Level Auth**: Independent username/password + Turnstile check in front of all data
+- **Hostname Awareness**: The `pages.dev` alias cannot be covered by Access. The practical mitigation is Turnstile hostname management with only `bucksy.life` listed, which fails sign-in and registration on every other host (see `DEPLOY.md`)
+- **Registration Is Open**: `POST /api/auth/login` with `mode: register` creates an account regardless of how many exist; `hasUsers` only steers the UI. Until Access is attached, the public sign-in screen is the only thing between a stranger and an account
 
 ## Security Features
 
@@ -101,7 +102,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - No offline mode (cloud-dependent architecture)
 - No email-based recovery (deliberately avoided: recovery codes need no mail service)
 - No restore UI for deleted accounts (manual intervention via `RUNBOOK.md` §6)
-- While private, the `*.pages.dev` hostname is not covered by Access; see `DEPLOY.md`
+- The `*.pages.dev` hostname cannot be covered by Access; see `DEPLOY.md`
 
 ## Deployment Notes
 

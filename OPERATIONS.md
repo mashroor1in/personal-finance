@@ -78,14 +78,15 @@ whole categories:
 | Missing from the tail | Why | Where to look instead |
 |---|---|---|
 | `/`, `/app.html`, CSS, images, `_headers` | Served directly by Cloudflare, never enter a function | Nowhere — they are static files |
-| WAF / rate-limit / Bot Fight blocks on `mashmind.in` | Rejected at the edge, before your code runs | Dashboard → `mashmind.in` zone → Security → Events |
+| WAF / rate-limit / Bot Fight blocks on `bucksy.life` | Rejected at the edge, before your code runs | Dashboard → `bucksy.life` zone → Security → Events |
 
 So only `/api/*` traffic appears. Page loads show up indirectly, through the
 `/api/auth/status` and `/api/auth/me` calls the page makes.
 
 The tail is scoped to a **deployment**, not a hostname: requests from
-`expenses.mashmind.in` and `personal-finance-8ch.pages.dev` both appear, and the
-`host` field tells you which one a request came through.
+`bucksy.life`, the old `expenses.mashmind.in` and
+`personal-finance-8ch.pages.dev` all appear, and the `host` field tells you
+which one a request came through.
 
 ### Order matters
 
@@ -138,7 +139,7 @@ Cloudflare Dashboard → **Workers & Pages** → `personal-finance`:
 - **Logs** — live runtime logs, only if the plan includes Workers Logs. Short
   retention.
 
-Custom domains: `expenses.mashmind.in`, `personal-finance-8ch.pages.dev`.
+Custom domains: `bucksy.life`, `personal-finance-8ch.pages.dev`.
 
 ---
 
@@ -149,17 +150,17 @@ Custom domains: `expenses.mashmind.in`, `personal-finance-8ch.pages.dev`.
 Point a free monitor (UptimeRobot, Cloudflare Health Checks, or similar) at:
 
 ```
-https://expenses.mashmind.in/api/auth/status
+https://bucksy.life/api/auth/status
 ```
 
 Check every minute. Alert when the status is not `200`.
 
-> **While Cloudflare Access is enabled**, that URL answers `302` to the SSO page
-> before Pages runs. Alert on `302` being *unexpected* is impossible to
-> distinguish from a normal redirect, so either give the monitor an Access
-> service token, or point it at
-> `https://personal-finance-8ch.pages.dev/api/auth/status` until the site is
-> public. See `DEPLOY.md` → "Going public".
+> **If an Access application covers `/api/*`**, that URL answers `302` to the SSO
+> page before Pages runs. A `302` is indistinguishable from a normal redirect, so
+> either give the monitor an Access service token, or point it at
+> `https://personal-finance-8ch.pages.dev/api/auth/status`. As of 2026-11-17
+> `bucksy.life` has no Access app, so the monitor works directly. See `DEPLOY.md`
+> → "Private mode".
 
 Expected healthy response:
 
@@ -167,7 +168,8 @@ Expected healthy response:
 {"ok":true,"hasUsers":true,"turnstileEnabled":true,"turnstileSiteKey":"...","turnstileMisconfigured":false}
 ```
 
-This endpoint touches no database rows, so it is safe to hammer.
+This endpoint runs a single `COUNT(*)` over `users` and writes nothing, so it is
+safe to hammer.
 
 Watch for `turnstileMisconfigured: true` in a healthy `200` too — that means only
 one of the two Turnstile values is set, and **all logins are being refused** even
