@@ -65,14 +65,21 @@ Icons live in `/assets` and are linked from both `index.html` and `app.html`:
 `favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192.png`,
 `icon-512.png`, `icon-1024.png`.
 
+The in-app mark is `assets/mark.svg` (pine) and `assets/mark-cream.svg` (cream,
+swapped by `body.dark-theme`). Both are **knockout builds**: the B and the deer
+are one `fill-rule="evenodd"` path, so the deer is the real background rather
+than a painted fill. That keeps the deer correct on cream *and* pine, instead of
+approximating the surface colour.
+
 **Applied:** `app.html` now runs on the brand palette — Pine/Fern/Sage/Cream/Stone
 tokens for light and dark mode, Inter as the UI typeface, and the chart and
 category colours re-hued to the palette (no blues left). Muted text and amber
 text were darkened to hold AA contrast on cream (`#566F62`, `#9C5B08`).
+The header and auth card now carry the Bucksy mark, wordmark and tagline, and the
+app is titled Bucksy.
 
-**Not applied:** `index.html` is still MashMind-era copy with its own blue theme,
-and `app.html` still says "Monthly Finance Planner" in the title and header. The
-landing page and the app's copy are the next steps.
+**Not applied:** `index.html` is still MashMind-era copy with its own blue theme.
+The landing page is the next step.
 
 ## Rules
 

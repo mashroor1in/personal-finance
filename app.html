@@ -6,7 +6,8 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <title>Monthly Finance Planner</title>
+  <meta name="theme-color" content="#F9F6EE" />
+  <title>Bucksy — Expenses made simple</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -333,7 +334,7 @@
       white-space: nowrap;
     }
     .timed-undo.is-armed {
-      background: rgba(239, 68, 68, 0.12);
+      background: rgba(181, 69, 60, 0.12);
       color: #D98A83;
     }
     .timed-undo:disabled { opacity: 0.6; cursor: default; }
@@ -722,7 +723,7 @@
 
     .stat-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 22px -6px rgba(15, 23, 42, 0.14);
+      box-shadow: 0 10px 22px -6px rgba(11, 61, 46, 0.14);
     }
 
     .stat-card .card-head {
@@ -767,7 +768,7 @@
 
     .chart-panel:hover {
       transform: translateY(-1px);
-      box-shadow: 0 10px 22px -6px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 10px 22px -6px rgba(11, 61, 46, 0.12);
     }
 
     .chart-panel-head {
@@ -1125,7 +1126,7 @@
       border: 2px solid var(--line);
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 28px 64px -24px rgba(15, 23, 42, 0.5), 0 8px 22px -12px rgba(15, 23, 42, 0.28);
+      box-shadow: 0 28px 64px -24px rgba(11, 61, 46, 0.5), 0 8px 22px -12px rgba(11, 61, 46, 0.28);
       opacity: 0; transform: scale(0.94);
       transform-origin: center;
       pointer-events: none;
@@ -1378,10 +1379,10 @@
       --sileo-width: 344px;
       --sileo-radius: 16px;
       --sileo-fill: #ffffff;
-      --sileo-tint: rgba(148, 163, 184, 0.22);
-      --sileo-desc: rgba(15, 23, 42, 0.58);
-      --sileo-border: rgba(15, 23, 42, 0.06);
-      --sileo-shadow: 0 18px 38px -18px rgba(15, 23, 42, 0.4), 0 4px 12px -6px rgba(15, 23, 42, 0.14);
+      --sileo-tint: rgba(140, 163, 150, 0.22);
+      --sileo-desc: rgba(11, 61, 46, 0.58);
+      --sileo-border: rgba(11, 61, 46, 0.06);
+      --sileo-shadow: 0 18px 38px -18px rgba(11, 61, 46, 0.4), 0 4px 12px -6px rgba(11, 61, 46, 0.14);
       --sileo-success: #0E4537;
       --sileo-loading: #566F62;
       --sileo-error: #B5453C;
@@ -1391,9 +1392,9 @@
     }
     body.dark-theme {
       --sileo-fill: #0B3D2E;
-      --sileo-tint: rgba(148, 163, 184, 0.16);
-      --sileo-desc: rgba(203, 213, 225, 0.68);
-      --sileo-border: rgba(148, 163, 184, 0.16);
+      --sileo-tint: rgba(140, 163, 150, 0.16);
+      --sileo-desc: rgba(217, 221, 212, 0.68);
+      --sileo-border: rgba(140, 163, 150, 0.16);
       --sileo-shadow: 0 20px 44px -18px rgba(0, 0, 0, 0.85), 0 4px 14px -8px rgba(0, 0, 0, 0.6);
       --sileo-success: #79C94A;
       --sileo-loading: #A8C3B6;
@@ -1657,19 +1658,17 @@
       gap: 12px;
       margin: 0 0 30px;
       color: #102F27;
-      font: 700 17px/1.1 Inter, sans-serif;
-      letter-spacing: -.5px;
+      font: 800 18px/1.05 Inter, sans-serif;
+      letter-spacing: -0.06em;
     }
     .auth-card-mark {
-      width: 34px;
+      width: 30px;
       height: 34px;
       display: grid;
       place-items: center;
-      border: 1px solid #D9DDD4;
-      border-radius: 11px;
-      background: #fff;
-      color: #0B3D2E;
+      flex: 0 0 auto;
     }
+    .auth-card-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .auth-card-mark svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; }
     .auth-card-brand small { display: block; margin-top: 1px; color: #566F62; font: 600 8px Inter, sans-serif; letter-spacing: 1.75px; text-transform: uppercase; }
 
@@ -1723,7 +1722,7 @@
       display: grid;
       place-items: center;
       padding: 16px;
-      background: rgba(2, 6, 23, 0.55);
+      background: rgba(7, 40, 31, 0.55);
       backdrop-filter: blur(4px);
     }
     .expense-modal-card {
@@ -1826,7 +1825,7 @@
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 12px;
-      box-shadow: 0 16px 36px -14px rgba(15, 23, 42, 0.30), 0 4px 12px -4px rgba(15, 23, 42, 0.10);
+      box-shadow: 0 16px 36px -14px rgba(11, 61, 46, 0.30), 0 4px 12px -4px rgba(11, 61, 46, 0.10);
       max-height: min(288px, 46vh);
       overflow-y: auto;
     }
@@ -1892,12 +1891,14 @@
     .top-header { align-items: flex-start; gap: 18px; padding-bottom: 18px; }
     .title-area { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .app-mark {
-      width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
-      display: grid; place-items: center; color: #fff;
-      background: linear-gradient(135deg, #0B3D2E, #18815A);
-      box-shadow: 0 8px 16px -6px rgba(37, 99, 235, 0.55);
+      position: relative;
+      width: 34px; height: 40px; flex-shrink: 0;
     }
-    .title-area h1 { font-size: 25px; }
+    .app-mark img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .app-mark .mark-dark { display: none; }
+    body.dark-theme .app-mark .mark-light { display: none; }
+    body.dark-theme .app-mark .mark-dark { display: block; }
+    .title-area h1 { font-size: 25px; letter-spacing: -0.06em; }
     .title-area p { font-size: 13px; margin-top: 2px; }
 
     .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
@@ -1941,7 +1942,7 @@
       overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
       padding: 8px; display: grid; gap: 2px;
       background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
+      box-shadow: 0 24px 48px -16px rgba(11, 61, 46, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
       animation: menuIn 0.14s ease-out;
     }
     .profile-popover.hidden { display: none; }
@@ -2011,7 +2012,7 @@
       position: absolute; right: 0; left: auto; top: calc(100% + 8px); z-index: 1115;
       width: 300px; max-width: calc(100vw - 24px); padding: 12px;
       background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
+      box-shadow: 0 24px 48px -16px rgba(11, 61, 46, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
       transform-origin: top right;
       animation: monthPopIn 0.16s cubic-bezier(0.2, 0.8, 0.3, 1);
     }
@@ -2125,7 +2126,7 @@
       body.month-open { overflow: hidden; }
       body.month-open::before {
         content: ""; position: fixed; inset: 0; z-index: 1090;
-        background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
+        background: rgba(7, 40, 31, 0.42); backdrop-filter: blur(2px);
       }
     }
 
@@ -2140,7 +2141,7 @@
       width: 330px; max-height: min(72vh, 520px);
       overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
       background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-      box-shadow: 0 24px 48px -16px rgba(15, 23, 42, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
+      box-shadow: 0 24px 48px -16px rgba(11, 61, 46, 0.32), 0 2px 6px rgba(11, 61, 46, 0.06);
       padding: 7px; display: grid; gap: 1px;
       animation: menuIn 0.14s ease-out;
     }
@@ -2252,14 +2253,14 @@
     .stat-hero {
       background: linear-gradient(135deg, #07281F 0%, #0B3D2E 58%, #18815A 100%);
       border-color: transparent; color: #fff;
-      box-shadow: 0 16px 30px -16px rgba(29, 78, 216, 0.7);
+      box-shadow: 0 16px 30px -16px rgba(14, 69, 55, 0.7);
     }
     .stat-hero .card-head,
     .stat-hero .meta { color: #A8C3B6; }
     .stat-hero .value { color: #fff; font-size: 32px; }
     .stat-hero.is-negative {
       background: linear-gradient(135deg, #3A1518 0%, #6B2823 55%, #8E332C 100%);
-      box-shadow: 0 16px 30px -16px rgba(185, 28, 28, 0.7);
+      box-shadow: 0 16px 30px -16px rgba(142, 51, 44, 0.7);
     }
     .stat-hero.is-negative .card-head,
     .stat-hero.is-negative .meta { color: #F2D3CF; }
@@ -2356,7 +2357,7 @@
     .view-tab:hover { color: var(--text); }
     .view-tab.btn-active {
       background: var(--card); color: var(--text);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.09);
+      box-shadow: 0 1px 2px rgba(11, 61, 46, 0.09);
     }
     .view-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .search-wrap {
@@ -2417,7 +2418,7 @@
       }
       body.profile-open::before {
         content: ""; position: fixed; inset: 0; z-index: 1090;
-        background: rgba(2, 6, 23, 0.42); backdrop-filter: blur(2px);
+        background: rgba(7, 40, 31, 0.42); backdrop-filter: blur(2px);
       }
       @keyframes sheetIn { from { opacity: 0; transform: translateY(16px); } }
       .stats-grid { grid-template-columns: 1fr; }
@@ -2525,10 +2526,13 @@
     <!-- Header -->
     <header class="top-header">
       <div class="title-area">
-        <span class="app-mark" aria-hidden="true"><iconify-icon icon="ph:chart-line-up-bold" width="20" height="20"></iconify-icon></span>
+        <span class="app-mark" aria-hidden="true">
+          <img class="mark-light" src="assets/mark.svg" alt="" width="34" height="38" />
+          <img class="mark-dark" src="assets/mark-cream.svg" alt="" width="34" height="38" />
+        </span>
         <div>
-          <h1>Monthly Finance Planner</h1>
-          <p>Plan, track and settle your monthly money in one place</p>
+          <h1>Bucksy</h1>
+          <p>Expenses made simple</p>
         </div>
       </div>
 
@@ -2859,11 +2863,11 @@
     </div>
     <div class="auth-shell">
       <div class="auth-card">
-        <div class="auth-card-brand" aria-label="MashMind Expense Planner">
+        <div class="auth-card-brand" aria-label="Bucksy">
           <span class="auth-card-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg>
+            <img src="assets/mark.svg" alt="" width="30" height="34" />
           </span>
-          <span>MashMind<small>EXPENSE PLANNER</small></span>
+          <span>Bucksy<small>EXPENSES MADE SIMPLE</small></span>
         </div>
         <div class="auth-head">
           <span id="authBlobatar" class="auth-blobatar" aria-hidden="true"></span>
@@ -2957,7 +2961,7 @@
           <p class="auth-note">Your session is protected and data syncs to your cloud account.</p>
           <p id="authError" class="auth-error" aria-live="polite"></p>
         </form>
-        <div class="auth-card-footer"><span>© MashMind</span><span>Private finance workspace</span></div>
+        <div class="auth-card-footer"><span>© Bucksy</span><span>Private finance workspace</span></div>
       </div>
     </div>
   </div>
@@ -4156,7 +4160,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function recoveryCodesPlainText(codes) {
       return [
-        "MashMind Expense Planner - recovery codes",
+        "Bucksy — recovery codes",
         "",
         ...codes,
         "",
@@ -4209,7 +4213,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "mashmind-recovery-codes.txt";
+      link.download = "bucksy-recovery-codes.txt";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -5369,7 +5373,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function colorWithAlpha(hex, alpha) {
       const h = String(hex || "").replace("#", "");
-      if (![3, 6].includes(h.length)) return `rgba(100,116,139,${alpha})`;
+      if (![3, 6].includes(h.length)) return `rgba(86,111,98,${alpha})`;
       const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
       const r = parseInt(full.slice(0, 2), 16);
       const g = parseInt(full.slice(2, 4), 16);
