@@ -78,8 +78,11 @@ text were darkened to hold AA contrast on cream (`#566F62`, `#9C5B08`).
 The header and auth card now carry the Bucksy mark, wordmark and tagline, and the
 app is titled Bucksy.
 
-**Not applied:** `index.html` is still MashMind-era copy with its own blue theme.
-The landing page is the next step.
+**Applied:** `index.html` is rebuilt on the same language — cream canvas, pine
+type, Inter, the board's "Track. Plan. Grow." hero copy, the three pillars, the
+hills band and the four essence words. Feature copy is limited to what the app
+actually does; pricing, bank connections, CSV export and certifications are
+deliberately absent.
 
 ## Rules
 
@@ -95,7 +98,5 @@ The landing page is the next step.
 ## Known gaps
 
 - No 1200×630 OG/social image yet (needs a raster export step).
-- `index.html` still declares `theme-color: #f2f6fc` (blue) because the page is
-  still blue; change it with the reskin, not before.
 - `brand/_archive/v1/` holds my earlier drafts, superseded by this board. Kept
   only for reference; safe to delete.

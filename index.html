@@ -6,310 +6,747 @@
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <meta name="theme-color" content="#f2f6fc">
-  <meta name="description" content="MashMind Expense Planner helps you plan monthly finances, track paid items, and stay secure with cloud-backed sync.">
-  <title>MashMind Expense Planner — A clearer view of your money</title>
+  <meta name="theme-color" content="#F9F6EE">
+  <meta name="description" content="Bucksy is a private, single-account finance planner. Track monthly expenses, set category budgets and see where your money goes.">
+  <meta property="og:title" content="Bucksy — Expenses made simple">
+  <meta property="og:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <title>Bucksy — Expenses made simple</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--paper:#f7f8f5;--white:#fff;--ink:#171d19;--muted:#747d75;--line:#e6eae4;--green:#304c37;--green2:#58775c;--soft:#eef3ed;--lime:#d9e7ce;--shadow:0 30px 80px rgba(30,49,34,.11)}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-    a{color:inherit;text-decoration:none}
-    button{font:inherit}
-    .shell{width:min(1160px,calc(100% - 64px));margin-inline:auto}
-    .nav{height:88px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
-    .brand{display:flex;align-items:center;gap:12px;font:700 17px 'Manrope',sans-serif;letter-spacing:-.8px}
-    .brand-mark{width:34px;height:34px;border:1px solid #d9e2d8;border-radius:11px;display:grid;place-items:center;background:#fff;color:var(--green)}
-    .brand-mark svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-    .brand small{display:block;margin-top:1px;color:#8a938b;font:600 8px 'DM Sans',sans-serif;letter-spacing:1.75px;text-transform:uppercase}
-    .nav-right{display:flex;align-items:center;gap:34px;font-size:12px;color:#6f786f}
-    .nav-right>a:not(.nav-cta){transition:color .2s}.nav-right>a:not(.nav-cta):hover{color:var(--green)}
-    .nav-cta{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--green);color:#fff;border-radius:7px;font-size:11px;font-weight:600;transition:transform .2s,background .2s,box-shadow .2s;box-shadow:0 5px 14px rgba(48,76,55,.12)}
-    .nav-cta:hover,.button-primary:hover{background:#223a29;transform:translateY(-2px);box-shadow:0 8px 22px rgba(48,76,55,.17)}
-    .arrow{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
-    a:hover .arrow{transform:translate(2px,-2px)}
-    .hero{min-height:650px;display:grid;grid-template-columns:.93fr 1.07fr;align-items:center;gap:58px;padding:70px 0 76px;position:relative}
-    .hero-copy{position:relative;z-index:2;padding-bottom:10px}
-    .eyebrow{display:flex;align-items:center;gap:11px;color:var(--green2);font-size:9px;font-weight:700;letter-spacing:1.85px;text-transform:uppercase;margin-bottom:27px}
-    .eyebrow:before{content:'';width:23px;height:1px;background:#78927a}
-    h1{font:600 clamp(48px,5.7vw,76px)/1.05 'Manrope',sans-serif;letter-spacing:-4.8px;margin:0;max-width:590px}
-    h1 .serif{font:400 1.03em/1 'Instrument Serif',serif;letter-spacing:-2.5px;color:var(--green2);font-style:italic}
-    .hero-copy>p{font-size:15px;line-height:1.85;color:var(--muted);max-width:440px;margin:26px 0 29px}
-    .hero-actions{display:flex;align-items:center;gap:21px;flex-wrap:wrap}
-    .button-primary{display:inline-flex;align-items:center;gap:12px;padding:15px 19px;border:0;border-radius:7px;background:var(--green);color:#fff;font-size:11px;font-weight:600;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s;box-shadow:0 6px 16px rgba(48,76,55,.13)}
-    .button-secondary{display:inline-flex;align-items:center;gap:8px;color:#68736a;font-size:11px;font-weight:600;padding:12px 0;transition:color .2s}
-    .button-secondary:hover{color:var(--green)}
-    .fineprint{margin-top:24px;display:flex;align-items:center;gap:8px;color:#929b92;font-size:10px}
-    .fineprint svg{width:14px;height:14px;stroke:#719074;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
-    .visual{position:relative;min-width:0;padding:26px 0 26px 14px;perspective:1200px}
-    .visual-glow{position:absolute;inset:4% -9% 2% 5%;background:radial-gradient(ellipse at 58% 45%,#dce7d9 0%,#edf1ea 38%,rgba(247,248,245,0) 72%);filter:blur(8px);pointer-events:none}
-    .dashboard{position:relative;z-index:1;background:rgba(255,255,255,.94);border:1px solid #e5eae4;border-radius:13px;box-shadow:var(--shadow);padding:25px 27px 23px;transform:rotateY(-5deg) rotateX(1deg);transform-origin:center;animation:float-card 8s ease-in-out infinite}
-    .dash-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:19px;border-bottom:1px solid #edf0eb}
-    .dash-title{display:flex;align-items:center;gap:10px;font:650 13px 'Manrope',sans-serif;letter-spacing:-.25px}
-    .dash-logo{width:27px;height:27px;border-radius:8px;background:#edf3ed;color:var(--green);display:grid;place-items:center}
-    .dash-logo svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-    .month-pill{padding:7px 10px;border:1px solid #edf0eb;border-radius:5px;color:#7c857d;font-size:9px}
-    .balance-block{padding:24px 0 19px}
-    .overline{font-size:8px;letter-spacing:1.25px;font-weight:700;color:#939c93;text-transform:uppercase}
-    .balance{font:650 35px/1.2 'Manrope',sans-serif;letter-spacing:-1.7px;margin:8px 0 5px;color:#19221b}
-    .balance-note{display:flex;align-items:center;gap:6px;color:#829084;font-size:9px}
-    .balance-note svg{width:12px;height:12px;stroke:#64866b;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:21px}
-    .mini-stat{border:1px solid #edf0eb;border-radius:8px;padding:13px 14px;background:#fcfdfb}
-    .mini-stat-top{display:flex;align-items:center;gap:7px;color:#89928a;font-size:9px;margin-bottom:8px}
-    .mini-stat-top svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-    .mini-stat strong{font:650 17px 'Manrope',sans-serif;letter-spacing:-.5px;color:#29392d}
-    .mini-stat small{display:block;margin-top:4px;font-size:8px;color:#9aa39a}
-    .chart-card{border:1px solid #edf0eb;border-radius:8px;padding:14px 14px 10px;margin-bottom:16px}
-    .chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
-    .chart-head strong{font:650 10px 'Manrope',sans-serif}
-    .chart-head span{color:#9aa39a;font-size:8px}
-    .chart-svg{width:100%;height:115px;display:block;overflow:visible}
-    .chart-svg .gridline{stroke:#eef1ed;stroke-width:1;stroke-dasharray:3 4}
-    .chart-svg .area{fill:url(#chartFill)}
-    .chart-svg .line{fill:none;stroke:#65866b;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:draw-line 2s .5s ease forwards}
-    .chart-svg .point{fill:#fff;stroke:#65866b;stroke-width:2}
-    .chart-labels{display:flex;justify-content:space-between;color:#a1aaa1;font-size:8px;padding:0 4px}
-    .payments{display:grid;gap:0}
-    .payments-head{display:flex;align-items:center;justify-content:space-between;padding:0 1px 8px}
-    .payments-head strong{font:650 10px 'Manrope',sans-serif}
-    .payments-head span{color:#929b92;font-size:8px}
-    .payment{display:flex;align-items:center;gap:10px;padding:10px 1px;border-top:1px solid #f0f2ee}
-    .payment-icon{width:29px;height:29px;border:1px solid #edf0eb;border-radius:7px;display:grid;place-items:center;color:#667e69;background:#fbfcfa}
-    .payment-icon svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-    .payment-copy{flex:1}.payment-copy strong{display:block;font-size:9px;font-weight:600;color:#3b453d}.payment-copy small{color:#9ca49c;font-size:8px}
-    .payment-amount{text-align:right;font-size:9px;font-weight:600;color:#47564a}.payment-amount small{display:block;margin-top:3px;font-size:8px;color:#719174;font-weight:500}
-    .float-note{position:absolute;z-index:2;right:-24px;bottom:46px;display:flex;align-items:center;gap:10px;padding:13px 15px;background:#fff;border:1px solid #e7ece6;border-radius:9px;box-shadow:0 13px 34px rgba(34,52,37,.1);animation:float-note 6s ease-in-out infinite}
-    .float-check{width:29px;height:29px;border-radius:50%;background:#edf4eb;color:#628466;display:grid;place-items:center}
-    .float-check svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .float-note strong{display:block;font:650 10px 'Manrope',sans-serif}.float-note small{display:block;margin-top:2px;font-size:8px;color:#8d978e}
-    .capabilities{border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding:27px 0}
-    .capability{display:flex;gap:13px;align-items:flex-start;padding:0 26px;border-right:1px solid var(--line)}
-    .capability:first-child{padding-left:0}.capability:last-child{border-right:0;padding-right:0}
-    .cap-icon{width:34px;height:34px;border:1px solid #e3e9e2;background:#fff;border-radius:9px;display:grid;place-items:center;color:var(--green2);flex:none}
-    .cap-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.55;stroke-linecap:round;stroke-linejoin:round}
-    .capability strong{display:block;font:650 11px 'Manrope',sans-serif;margin:2px 0 4px;letter-spacing:-.2px}
-    .capability p{font-size:10px;line-height:1.6;color:#879188;margin:0;max-width:230px}
-    .closing{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;padding:87px 0 82px}
-    .closing .eyebrow{margin-bottom:17px}
-    .closing h2{font:550 clamp(30px,3.3vw,43px)/1.17 'Manrope',sans-serif;letter-spacing:-2px;margin:0;max-width:600px}
-    .closing h2 em{font:400 1.06em 'Instrument Serif',serif;color:var(--green2)}
-    .closing p{font-size:12px;line-height:1.8;color:var(--muted);max-width:460px;margin:14px 0 0}
-    .closing-cta{white-space:nowrap}
-    footer{border-top:1px solid var(--line);padding:22px 0}
-    .footer-row{display:flex;align-items:center;justify-content:space-between;gap:18px;color:#929a92;font-size:9px}
-    .footer-brand{font:650 11px 'Manrope',sans-serif;color:#677269}
-    .footer-note{display:flex;align-items:center;gap:7px}.footer-note svg{width:12px;height:12px;stroke:#829982;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-    .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
-    .reveal.is-visible{opacity:1;transform:translateY(0)}
-    .hero-copy{animation:copy-enter .85s .08s both cubic-bezier(.2,.7,.2,1)}
-    .visual{animation:visual-enter 1s .14s both cubic-bezier(.2,.7,.2,1)}
-    @keyframes copy-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes visual-enter{from{opacity:0;transform:translateY(22px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-    @keyframes float-card{0%,100%{transform:rotateY(-5deg) rotateX(1deg) translateY(0)}50%{transform:rotateY(-5deg) rotateX(1deg) translateY(-7px)}}
-    @keyframes float-note{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    @keyframes draw-line{to{stroke-dashoffset:0}}
-    @media(max-width:1000px){.hero{gap:30px;grid-template-columns:.9fr 1.1fr}.visual{padding-left:0}.dashboard{padding:21px}.float-note{right:-10px}.hero h1{font-size:clamp(46px,6vw,64px);letter-spacing:-3.8px}}
-    @media(max-width:760px){.shell{width:min(100% - 38px,560px)}.nav{height:72px}.nav-right{gap:15px}.nav-right>a:not(.nav-cta){display:none}.nav-cta{padding:10px 12px}.hero{display:flex;flex-direction:column;align-items:stretch;gap:25px;padding:58px 0 43px;min-height:0}.hero-copy{padding:0}.hero h1{font-size:clamp(49px,11vw,67px);letter-spacing:-3.7px}.hero-copy>p{font-size:13px;margin:20px 0 23px}.visual{padding:4px 2px 24px}.dashboard{transform:none;animation:none;padding:19px}.float-note{right:-4px;bottom:7px}.capabilities{grid-template-columns:1fr;gap:0;padding:6px 0}.capability,.capability:first-child,.capability:last-child{padding:17px 0;border-right:0;border-bottom:1px solid var(--line)}.capability:last-child{border-bottom:0}.capability p{max-width:none}.closing{grid-template-columns:1fr;gap:22px;padding:58px 0}.closing h2{font-size:34px}.closing-cta{justify-self:start}.footer-row{align-items:flex-start;flex-direction:column;gap:9px}}
-    @media(max-width:420px){.shell{width:calc(100% - 30px)}.brand{font-size:15px}.hero h1{font-size:47px;letter-spacing:-3.1px}.hero-actions{gap:13px}.button-primary{padding:14px 16px}.dashboard{padding:16px}.balance{font-size:30px}.float-note{transform:scale(.92);transform-origin:right bottom}.mini-stat strong{font-size:15px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
+    :root {
+      --pine: #0B3D2E;
+      --fern: #18815A;
+      --fern-text: #177A55;
+      --sage: #A8D5B2;
+      --amber: #F7931A;
+      --cream: #F9F6EE;
+      --paper: #FFFDF8;
+      --stone: #E6E1D7;
+      --ink: #102F27;
+      --muted: #566F62;
+      --line: #D9DDD4;
+      --amber-text: #9C5B08;
+      --amber-bar: #C97A0C;
+      --shell: min(1140px, calc(100% - 48px));
+      --radius: 16px;
+      --shadow: 0 24px 60px -18px rgba(11, 61, 46, .22), 0 4px 14px -6px rgba(11, 61, 46, .10);
+      --ease: cubic-bezier(.2, .7, .2, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      overflow-x: clip;
+    }
+
+    img { display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; }
+
+    .shell { width: var(--shell); margin-inline: auto; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+
+    :focus-visible { outline: 3px solid var(--amber-bar); outline-offset: 3px; border-radius: 4px; }
+
+    /* ---------- Nav ---------- */
+    .nav {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(249, 246, 238, .9);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner { height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 30px; height: 34px; flex: none; }
+    .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+    .brand-text { display: grid; gap: 2px; }
+    .wordmark {
+      font-size: 22px; font-weight: 800; line-height: 1;
+      letter-spacing: -.075em; color: var(--pine);
+    }
+    .brand-tag {
+      font-size: 7.5px; font-weight: 700; line-height: 1;
+      letter-spacing: .23em; text-transform: uppercase; color: var(--muted);
+    }
+    .nav-links { display: flex; align-items: center; gap: 30px; }
+    .nav-links > a:not(.nav-cta) {
+      font-size: 13.5px; font-weight: 600; color: var(--muted);
+      transition: color .2s var(--ease);
+    }
+    .nav-links > a:not(.nav-cta):hover { color: var(--pine); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      padding: 13px 20px; border: 1px solid transparent; border-radius: 10px;
+      background: var(--pine); color: var(--cream);
+      font-size: 13.5px; font-weight: 650; letter-spacing: -.01em;
+      cursor: pointer; white-space: nowrap;
+      transition: background .2s var(--ease), transform .2s var(--ease), box-shadow .2s var(--ease);
+      box-shadow: 0 6px 16px -8px rgba(11, 61, 46, .6);
+    }
+    .btn:hover { background: var(--fern); transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgba(11, 61, 46, .6); }
+    .btn .arrow { width: 15px; height: 15px; flex: none; }
+    .btn-ghost {
+      background: transparent; color: var(--pine); border-color: var(--line);
+      box-shadow: none;
+    }
+    .btn-ghost:hover { background: var(--paper); border-color: var(--sage); color: var(--pine); transform: translateY(-1px); }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative;
+      display: grid; grid-template-columns: 1fr 1.02fr;
+      align-items: center; gap: 64px;
+      padding: 72px 0 88px;
+      isolation: isolate;
+    }
+    .hero::before {
+      content: ""; position: absolute; z-index: -1;
+      width: 640px; height: 640px; left: -220px; top: -180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 213, 178, .42), rgba(168, 213, 178, 0) 68%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 10.5px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--fern-text);
+      margin: 0 0 22px;
+    }
+    .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--sage); }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(54px, 7vw, 88px);
+      font-weight: 800;
+      line-height: .94;
+      letter-spacing: -.06em;
+      color: var(--pine);
+    }
+    h1 .accent { color: var(--fern); }
+    .hero-lede {
+      margin: 26px 0 0;
+      max-width: 44ch;
+      font-size: 16.5px; line-height: 1.7; color: var(--muted);
+    }
+
+    .pillars {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 10px; margin: 30px 0 0; padding: 0; list-style: none;
+    }
+    .pillar {
+      display: inline-flex; align-items: center; gap: 9px;
+      padding: 9px 14px 9px 11px;
+      border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(255, 253, 248, .7);
+      font-size: 12.5px; font-weight: 650; color: var(--pine);
+    }
+    .pillar svg { width: 16px; height: 16px; flex: none; color: var(--fern); }
+
+    .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 32px 0 0; }
+    .fineprint {
+      display: flex; align-items: center; gap: 8px;
+      margin: 22px 0 0; font-size: 12px; color: var(--muted);
+    }
+    .fineprint svg { width: 15px; height: 15px; flex: none; color: var(--fern); }
+
+    /* ---------- Preview mockup ---------- */
+    .preview { position: relative; min-width: 0; padding: 16px 0 58px; }
+    .preview::before {
+      content: ""; position: absolute; inset: 34px -14px 6px 34px;
+      border-radius: 24px; background: var(--stone); opacity: .55;
+    }
+    .preview-card {
+      position: relative; z-index: 1;
+      padding: 20px 22px 18px;
+      border: 1px solid var(--line); border-radius: 20px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .preview-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid #EDE8DE; }
+    .dots { display: flex; gap: 5px; }
+    .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--stone); }
+    .dots i:first-child { background: var(--sage); }
+    .preview-pill {
+      padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px;
+      font-size: 10.5px; font-weight: 600; color: var(--muted);
+    }
+    .preview-balance { padding: 18px 0 14px; }
+    .overline {
+      display: block; font-size: 9.5px; font-weight: 700;
+      letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
+    }
+    .preview-balance strong {
+      display: block; margin: 7px 0 6px;
+      font-size: 32px; font-weight: 700; letter-spacing: -.04em;
+      color: var(--pine); font-variant-numeric: tabular-nums;
+    }
+    .delta {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 8px; border-radius: 999px;
+      background: #E7F3E9; color: #0E4537;
+      font-size: 10.5px; font-weight: 650;
+    }
+    .delta svg { width: 11px; height: 11px; }
+
+    .preview-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .preview-kpi {
+      padding: 11px 13px; border: 1px solid #EDE8DE; border-radius: 12px;
+      background: #FCFAF4;
+    }
+    .preview-kpi span { display: block; font-size: 10px; color: var(--muted); }
+    .preview-kpi strong {
+      display: block; margin-top: 3px;
+      font-size: 16.5px; font-weight: 700; letter-spacing: -.02em;
+      color: var(--ink); font-variant-numeric: tabular-nums;
+    }
+
+    .preview-chart { margin-top: 14px; padding: 13px 13px 10px; border: 1px solid #EDE8DE; border-radius: 12px; }
+    .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .chart-head strong { font-size: 11px; font-weight: 650; color: var(--ink); }
+    .chart-legend { display: flex; align-items: center; gap: 10px; font-size: 9.5px; color: var(--muted); }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 4px; }
+    .chart-legend i { width: 6px; height: 6px; border-radius: 2px; background: var(--fern); }
+    .chart-legend i.out { background: var(--amber-bar); }
+    .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 84px; }
+    .bar-group { display: flex; align-items: flex-end; gap: 3px; height: 100%; flex: 1; justify-content: center; }
+    .bar-group i { width: 6px; border-radius: 3px 3px 0 0; background: #BFE0C8; }
+    .bar-group i.out { background: #EFC08A; }
+    .bar-group.is-now i { background: var(--fern); }
+    .bar-group.is-now i.out { background: var(--amber-bar); }
+    .bar-labels { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; font-size: 9.5px; color: var(--muted); }
+    .bar-labels span { flex: 1; text-align: center; }
+
+    .preview-settle { margin-top: 14px; }
+    .preview-settle-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 10.5px; }
+    .preview-settle-top strong { font-weight: 650; color: var(--ink); }
+    .preview-settle-top span { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .track { height: 6px; margin-top: 7px; border-radius: 999px; background: #EDE8DE; overflow: hidden; }
+    .track i { display: block; height: 100%; border-radius: 999px; background: var(--fern); }
+
+    .preview-rows { margin-top: 14px; border-top: 1px solid #EDE8DE; }
+    .preview-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F1EDE4; }
+    .preview-row:last-child { border-bottom: 0; padding-bottom: 2px; }
+    .row-icon {
+      width: 28px; height: 28px; flex: none; display: grid; place-items: center;
+      border: 1px solid #EDE8DE; border-radius: 8px; background: #FCFAF4; color: var(--pine);
+    }
+    .row-icon svg { width: 14px; height: 14px; }
+    .row-copy { flex: 1; min-width: 0; }
+    .row-copy strong { display: block; font-size: 11px; font-weight: 600; color: var(--ink); }
+    .row-copy small { display: block; font-size: 9.5px; color: var(--muted); }
+    .row-amount { display: grid; justify-items: end; gap: 3px; font-size: 11px; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .chip {
+      display: inline-block; padding: 2px 6px; border-radius: 999px;
+      font-size: 8.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .chip-paid { background: #E7F3E9; color: #0E4537; }
+    .chip-pending { background: #FDF1DF; color: var(--amber-text); }
+
+    .preview-note {
+      margin: 10px 0 0; text-align: right;
+      font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+    }
+    .preview-float {
+      position: absolute; z-index: 2; right: 0; bottom: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 15px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper); box-shadow: 0 16px 36px -18px rgba(11, 61, 46, .45);
+    }
+    .float-check {
+      width: 28px; height: 28px; flex: none; display: grid; place-items: center;
+      border-radius: 50%; background: #E7F3E9; color: var(--fern);
+    }
+    .float-check svg { width: 14px; height: 14px; }
+    .preview-float strong { display: block; font-size: 11px; font-weight: 700; color: var(--pine); }
+    .preview-float small { display: block; font-size: 9.5px; color: var(--muted); }
+
+    /* ---------- Hills ---------- */
+    .hills { display: block; width: 100%; height: 110px; margin-bottom: -1px; }
+
+    /* ---------- Essence strip (on pine) ---------- */
+    .essence { background: var(--pine); color: var(--cream); padding: 8px 0 60px; }
+    .essence-grid { display: grid; grid-template-columns: 1.05fr 1.95fr; gap: 44px; align-items: start; }
+    .essence-intro .overline { color: var(--sage); }
+    .essence-intro h2 {
+      margin: 12px 0 0; max-width: 26ch;
+      font-size: clamp(21px, 2.3vw, 27px); font-weight: 700;
+      line-height: 1.32; letter-spacing: -.03em; color: var(--cream);
+    }
+    .essence-items { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 34px; }
+    .essence-item { display: flex; gap: 12px; align-items: flex-start; }
+    .essence-item svg { width: 30px; height: 30px; flex: none; color: var(--sage); }
+    .essence-item h3 { margin: 2px 0 3px; font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--cream); }
+    .essence-item p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--sage); }
+
+    /* ---------- Features ---------- */
+    #features, #security { scroll-margin-top: 96px; }
+    .features { padding: 96px 0 88px; }
+    .section-head { max-width: 620px; margin-bottom: 40px; }
+    .section-head h2 {
+      margin: 12px 0 0;
+      font-size: clamp(30px, 3.6vw, 44px); font-weight: 800;
+      line-height: 1.1; letter-spacing: -.045em; color: var(--pine);
+    }
+    .section-head p { margin: 14px 0 0; font-size: 15px; line-height: 1.7; color: var(--muted); }
+
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card {
+      padding: 26px 24px 28px;
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: var(--paper);
+      transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
+    }
+    .card:hover { transform: translateY(-3px); border-color: var(--sage); box-shadow: 0 18px 36px -24px rgba(11, 61, 46, .45); }
+    .card-icon {
+      width: 40px; height: 40px; display: grid; place-items: center;
+      border-radius: 12px; background: #E7F3E9; color: #0E4537;
+      margin-bottom: 18px;
+    }
+    .card-icon svg { width: 20px; height: 20px; }
+    .card h3 { margin: 0 0 7px; font-size: 15.5px; font-weight: 700; letter-spacing: -.02em; color: var(--pine); }
+    .card p { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--muted); }
+
+    /* ---------- Security panel ---------- */
+    .security { padding-bottom: 96px; }
+    .security-panel {
+      position: relative; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px;
+      padding: clamp(30px, 4.4vw, 56px);
+      border-radius: 24px;
+      background: radial-gradient(120% 140% at 100% 0%, #12513E 0%, var(--pine) 58%);
+      color: var(--cream);
+    }
+    .security-panel::after {
+      content: ""; position: absolute; right: -80px; bottom: -110px;
+      width: 340px; height: 340px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 213, 178, .14), transparent 70%);
+      pointer-events: none;
+    }
+    .security-panel .overline { color: var(--sage); }
+    .security-panel h2 {
+      margin: 12px 0 0;
+      font-size: clamp(28px, 3.2vw, 40px); font-weight: 800;
+      line-height: 1.12; letter-spacing: -.04em; color: var(--cream);
+    }
+    .security-panel p { margin: 16px 0 0; font-size: 14px; line-height: 1.75; color: #CDE7D6; max-width: 42ch; }
+    .security-list { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; align-content: start; position: relative; z-index: 1; }
+    .security-item { display: flex; gap: 9px; align-items: flex-start; }
+    .security-item svg { width: 16px; height: 16px; flex: none; margin-top: 3px; color: var(--amber); }
+    .security-item strong { display: block; font-size: 12.5px; font-weight: 650; color: var(--cream); }
+    .security-item span { display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.5; color: var(--sage); }
+    .security-note {
+      position: relative; z-index: 1;
+      grid-column: 1 / -1;
+      margin: 4px 0 0; padding-top: 20px;
+      border-top: 1px solid rgba(168, 213, 178, .22);
+      font-size: 12px; color: var(--sage);
+    }
+
+    /* ---------- Closing ---------- */
+    .closing { padding: 4px 0 92px; }
+    .closing-inner {
+      display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end;
+      padding-top: 44px; border-top: 1px solid var(--line);
+    }
+    .closing h2 {
+      margin: 12px 0 0; max-width: 18ch;
+      font-size: clamp(30px, 3.8vw, 46px); font-weight: 800;
+      line-height: 1.08; letter-spacing: -.045em; color: var(--pine);
+    }
+    .closing p { margin: 14px 0 0; max-width: 46ch; font-size: 14.5px; line-height: 1.7; color: var(--muted); }
+    .closing-cta { display: flex; align-items: center; gap: 14px; }
+    .closing-cta .note { font-size: 11.5px; color: var(--muted); max-width: 14ch; }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--line); padding: 26px 0 34px; }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; }
+    .footer-brand img { width: 22px; height: 24px; }
+    .footer-brand strong { font-size: 14px; font-weight: 800; letter-spacing: -.06em; color: var(--pine); }
+    .footer-brand span { font-size: 11.5px; color: var(--muted); }
+    .footer-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
+    .footer-meta .disclaimer { display: flex; align-items: center; gap: 7px; }
+    .footer-meta .disclaimer svg { width: 13px; height: 13px; flex: none; color: var(--fern); }
+
+    /* ---------- Reveal ---------- */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+    .reveal.is-visible { opacity: 1; transform: none; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 72px; }
+      .hero-lede { max-width: 52ch; }
+      .preview { max-width: 560px; padding-bottom: 52px; }
+      .preview::before { inset: 30px -10px 6px 28px; }
+      .preview-float { right: 0; bottom: 0; }
+      .essence-grid { grid-template-columns: 1fr; gap: 30px; }
+      .essence-intro h2 { max-width: 34ch; }
+      .security-panel { grid-template-columns: 1fr; gap: 32px; }
+      .feature-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      :root { --shell: calc(100% - 36px); }
+      .nav-inner { height: 70px; }
+      .brand-tag { display: none; }
+      .wordmark { font-size: 20px; }
+      .nav-links { gap: 14px; }
+      .nav-links > a:not(.nav-cta) { display: none; }
+      .btn { padding: 11px 15px; font-size: 12.5px; }
+      .hero { padding: 42px 0 56px; }
+      h1 { font-size: clamp(50px, 13vw, 68px); }
+      .hero-lede { font-size: 15px; margin-top: 20px; }
+      .pillars { gap: 8px; margin-top: 24px; }
+      .pillar { padding: 8px 12px 8px 10px; font-size: 11.5px; }
+      .hero-actions { margin-top: 26px; }
+      .hero-actions .btn { flex: 1 1 auto; }
+      .fineprint { font-size: 11px; align-items: flex-start; }
+      .preview { padding-top: 8px; padding-bottom: 0; }
+      .preview::before { display: none; }
+      .preview-card { padding: 17px 16px 15px; }
+      .preview-float { position: static; margin: 12px 0 0 auto; width: max-content; max-width: 100%; }
+      .hills { height: 78px; }
+      .essence { padding-bottom: 46px; }
+      .essence-items { grid-template-columns: 1fr; gap: 20px; }
+      .features { padding: 62px 0 54px; }
+      .section-head { margin-bottom: 28px; }
+      .feature-grid { grid-template-columns: 1fr; gap: 12px; }
+      .card { padding: 22px 20px; }
+      .security { padding-bottom: 62px; }
+      .security-list { grid-template-columns: 1fr; gap: 16px; }
+      .security-panel { border-radius: 18px; }
+      .closing { padding-bottom: 60px; }
+      .closing-inner { grid-template-columns: 1fr; gap: 26px; align-items: start; padding-top: 34px; }
+      .closing-cta { flex-wrap: wrap; }
+      .closing-cta .note { max-width: none; }
+      .footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+    }
+
+    @media (max-width: 400px) {
+      h1 { font-size: 48px; }
+      .preview-kpis { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
   </style>
-
-<style id="mashmind-blue-motion-landing">
-  :root{
-    --paper:#f3f7fc;--white:#fff;--ink:#14243b;--muted:#667891;--line:#e1eaf5;
-    --green:#2f6fc5;--green2:#538ee1;--soft:#eaf2ff;--lime:#d9e9ff;
-    --shadow:0 30px 90px rgba(35,82,145,.13)
-  }
-  body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;letter-spacing:-.012em}
-  .nav{height:92px;border-color:#dfe8f3}
-  .brand{font-size:19px;letter-spacing:-.95px}
-  .brand-mark{width:38px;height:38px;border-color:#d5e3f5;color:#2865ad;background:linear-gradient(145deg,#fff,#edf4ff);box-shadow:0 6px 18px rgba(48,103,172,.08)}
-  .brand small{font-size:9px;letter-spacing:1.9px;color:#8292a8}
-  .nav-right{font-size:15px;gap:36px;color:#687b94}
-  .nav-right>a:not(.nav-cta):hover{color:#2f6fc5}
-  .nav-cta{font-size:14px;padding:13px 18px;background:linear-gradient(115deg,#397ed4,#245da8);border-radius:9px;box-shadow:0 8px 20px rgba(47,111,197,.16)}
-  .nav-cta:hover,.button-primary:hover{background:linear-gradient(115deg,#2d71c7,#194f95);box-shadow:0 12px 27px rgba(47,111,197,.23)}
-  .hero{min-height:520px;gap:44px;padding:12px 0 56px;isolation:isolate}
-  .hero::before{content:"";position:absolute;z-index:-1;width:520px;height:520px;right:22%;top:1%;border-radius:50%;background:radial-gradient(circle,rgba(123,174,239,.15),rgba(190,215,245,.08) 45%,transparent 72%);filter:blur(12px);animation:ambient-drift 16s ease-in-out infinite alternate}
-  .hero::after{content:"";position:absolute;z-index:-1;right:-60px;top:80px;width:230px;height:230px;opacity:.35;background-image:radial-gradient(#8eb4e5 1px,transparent 1px);background-size:15px 15px;mask-image:radial-gradient(circle,black,transparent 72%);animation:dot-drift 18s linear infinite}
-  .eyebrow{font-size:12px;letter-spacing:2.1px;color:#4d7fbd;margin-bottom:29px}
-  .eyebrow:before{width:27px;background:#6c9edb}
-  h1{font-size:clamp(58px,6.6vw,88px);line-height:1.02;letter-spacing:-5.7px;font-weight:650;max-width:620px}
-  h1 .serif{color:#4384d2;letter-spacing:-2.8px;background:linear-gradient(100deg,#3974ba,#73a8eb 48%,#3e79c7);background-size:180% auto;background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 9s ease-in-out infinite}
-  .hero-copy>p{font-size:18px;line-height:1.85;color:#687b94;max-width:470px;margin:29px 0 33px}
-  .hero-actions{gap:24px}
-  .button-primary{position:relative;overflow:hidden;padding:17px 21px;border-radius:9px;background:linear-gradient(115deg,#397ed4,#245da8);font-size:14px;box-shadow:0 9px 22px rgba(47,111,197,.17)}
-  .button-primary::after{content:"";position:absolute;inset:0;transform:translateX(-130%);background:linear-gradient(105deg,transparent 25%,rgba(255,255,255,.27) 48%,transparent 70%);transition:transform .7s}
-  .button-primary:hover::after{transform:translateX(130%)}
-  .button-secondary{font-size:14px;color:#71839a}
-  .fineprint{font-size:13px;color:#8595aa;margin-top:26px}
-  .fineprint svg{stroke:#538bd2;width:16px;height:16px}
-  .visual{padding:28px 0 31px 14px}
-  .visual-glow{inset:-4% -12% -2% 1%;background:radial-gradient(ellipse at 56% 44%,#dceaff 0%,#e9f2ff 38%,rgba(243,247,252,0) 73%);filter:blur(13px);animation:glow-breathe 8s ease-in-out infinite}
-  .dashboard{border-color:#e0e9f5;border-radius:17px;box-shadow:0 34px 85px rgba(31,74,131,.15),0 5px 18px rgba(41,78,122,.055);backdrop-filter:blur(16px)}
-  .dash-title{font-size:15px}.dash-logo{background:#e9f2ff;color:#2f6fc5}
-  .month-pill{font-size:11px;color:#7588a2;border-color:#e5edf7}
-  .overline{font-size:10px;color:#8394ab;letter-spacing:1.35px}
-  .balance{font-size:39px;color:#172b48}
-  .balance-note{font-size:11px;color:#7187a2}.balance-note svg{stroke:#4288dc}
-  .mini-stat{background:#fafdff;border-color:#e5edf7;padding:14px 15px}
-  .mini-stat-top{font-size:11px;color:#768aa4}.mini-stat-top svg{color:#4b84c9}
-  .mini-stat strong{font-size:21px;color:#213c61}.mini-stat small{font-size:10px}
-  .chart-card{border-color:#e4edf8;background:#fff;padding:15px 15px 11px}
-  .chart-head strong{font-size:12px;color:#233c5d}.chart-head span{font-size:10px}
-  .chart-svg .gridline{stroke:#edf2f8}.chart-svg .line{stroke:#4489dc;stroke-width:2.5;animation:draw-line 2.4s .6s cubic-bezier(.2,.7,.2,1) forwards}
-  .chart-svg .point{stroke:#4489dc}.chart-labels{font-size:10px}
-  .payments-head strong{font-size:12px}.payments-head span{font-size:10px}
-  .payment{padding:11px 1px;transition:background .22s,transform .22s;border-radius:7px}
-  .payment:hover{background:#f5f9ff;transform:translateX(3px)}
-  .payment-icon{background:#f5f9ff;border-color:#e8eff8;color:#4d83c3}
-  .payment-copy strong{font-size:11px;color:#2a405e}.payment-copy small{font-size:10px}
-  .payment-amount{font-size:11px;color:#334e70}.payment-amount small{font-size:10px;color:#4387d3}
-  .float-note{border-color:#dfebf8;border-radius:11px;box-shadow:0 17px 40px rgba(34,78,133,.13);animation:float-note 5.4s ease-in-out infinite}
-  .float-check{background:#e9f3ff;color:#347acb}
-  .float-note strong{font-size:12px;color:#233b5b}.float-note small{font-size:10px;color:#7c8da4}
-  .capabilities{padding:31px 0;border-color:#dfe8f3}
-  .capability{gap:15px;padding-inline:28px;transition:transform .28s}
-  .capability:hover{transform:translateY(-4px)}
-  .cap-icon{width:52px;height:52px;border-color:#dce8f6;background:#fff;color:#4d86ca;border-radius:13px;transition:transform .3s,box-shadow .3s}
-  .capability:hover .cap-icon{transform:translateY(-2px) rotate(-5deg);box-shadow:0 8px 18px rgba(48,104,175,.12)}
-  .cap-icon svg{width:25px;height:25px}
-  .capability strong{font-size:16px;color:#1e3452;margin:1px 0 5px}
-  .capability p{font-size:13px;line-height:1.7;color:#72839a}
-  .closing{padding:98px 0 90px}
-  .closing .eyebrow{margin-bottom:20px}
-  .closing h2{font-size:clamp(40px,4.2vw,54px);letter-spacing:-2.4px}
-  .closing h2 em{color:#4e8bd4}
-  .closing p{font-size:16px;color:#71839a;line-height:1.9}
-  .footer-row{font-size:12px;color:#8494a8}
-  .footer-brand{font-size:14px;color:#607690}
-  .footer-note svg{stroke:#4e89d1}
-  .reveal{opacity:0;transform:translateY(28px) scale(.99);filter:blur(2px);transition:opacity .9s cubic-bezier(.16,.72,.18,1),transform .9s cubic-bezier(.16,.72,.18,1),filter .9s}
-  .reveal.is-visible{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
-  .capabilities.is-visible .capability{animation:cap-rise .7s both cubic-bezier(.2,.7,.2,1)}
-  .capabilities.is-visible .capability:nth-child(2){animation-delay:.12s}.capabilities.is-visible .capability:nth-child(3){animation-delay:.24s}
-  .hero-copy{animation:copy-enter 1s .08s both cubic-bezier(.16,.72,.18,1)}
-  .hero-copy .eyebrow{animation:eyebrow-in .8s .14s both}
-  .hero-copy h1{animation:headline-in 1.05s .19s both cubic-bezier(.16,.72,.18,1)}
-  .hero-copy>p{animation:copy-enter .9s .36s both}
-  .hero-actions{animation:copy-enter .9s .46s both}
-  .fineprint{animation:copy-enter .9s .56s both}
-  .visual{animation:visual-enter 1.15s .18s both cubic-bezier(.16,.72,.18,1)}
-  .dashboard .dash-top{animation:dash-item .75s .55s both}.dashboard .balance-block{animation:dash-item .75s .68s both}
-  .dashboard .mini-stat:nth-child(1){animation:dash-item .7s .78s both}.dashboard .mini-stat:nth-child(2){animation:dash-item .7s .88s both}
-  .dashboard .chart-card{animation:dash-item .8s .94s both}.dashboard .payments{animation:dash-item .8s 1.05s both}
-  .closing.is-visible>*{animation:cap-rise .8s both}.closing.is-visible .closing-cta{animation-delay:.14s}
-  @keyframes ambient-drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(25px,-20px,0) scale(1.1)}}
-  @keyframes dot-drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-18px,22px,0)}}
-  @keyframes glow-breathe{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.045)}}
-  @keyframes text-shimmer{0%,100%{background-position:0% center}50%{background-position:100% center}}
-  @keyframes headline-in{from{opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(17px)}to{opacity:1;clip-path:inset(0 0 0 0);transform:translateY(0)}}
-  @keyframes eyebrow-in{from{opacity:0;letter-spacing:5px;transform:translateX(-12px)}to{opacity:1;letter-spacing:2.1px;transform:translateX(0)}}
-  @keyframes dash-item{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes cap-rise{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
-  @media(max-width:1000px){.hero{gap:36px}.hero h1{font-size:clamp(54px,6.3vw,72px);letter-spacing:-4.5px}}
-  @media(max-width:760px){.nav{height:76px}.brand{font-size:17px}.nav-right{gap:13px}.nav-cta{font-size:13px;padding:11px 13px}.hero{padding:12px 0 44px;gap:20px}.hero h1{font-size:clamp(53px,11.8vw,70px);letter-spacing:-4px}.hero-copy>p{font-size:16px;line-height:1.8;margin:21px 0 25px}.eyebrow{font-size:11px;margin-bottom:22px}.visual{padding:6px 2px 26px}.dashboard{animation:float-card 8s ease-in-out infinite;padding:18px}.balance{font-size:34px}.mini-stat strong{font-size:18px}.capabilities{padding:8px 0}.capability,.capability:first-child,.capability:last-child{padding:18px 0}.capability strong{font-size:14px}.capability p{font-size:13px}.closing{padding:62px 0}.closing h2{font-size:38px}.closing p{font-size:14px}}
-  @media(max-width:420px){.shell{width:calc(100% - 30px)}.brand{font-size:16px}.hero h1{font-size:51px;letter-spacing:-3.5px}.hero-copy>p{font-size:15px}.button-primary{font-size:13px;padding:15px 16px}.dashboard{padding:15px}.balance{font-size:30px}.mini-stat{padding:11px}.float-note{transform:scale(.9);transform-origin:right bottom}.closing h2{font-size:34px}}
-  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none;filter:none}}
-</style>
-
 </head>
 <body>
   <div id="landing-page">
-    <div class="shell">
-      <nav class="nav" aria-label="Main navigation">
-        <a class="brand" href="#top" aria-label="MashMind home">
-          <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17.5 5 6.5l7 7 7-7v11"/><path d="M5 6.5h14"/></svg></span>
-          <span>MashMind<small>EXPENSE PLANNER</small></span>
+    <header class="nav">
+      <div class="shell nav-inner">
+        <a class="brand" href="#top" aria-label="Bucksy home">
+          <span class="brand-mark"><img src="assets/mark.svg" alt="" width="30" height="34"></span>
+          <span class="brand-text">
+            <span class="wordmark">Bucksy</span>
+            <span class="brand-tag">Expenses made simple</span>
+          </span>
         </a>
-        <div class="nav-right">
-          <a href="#approach">Features</a>
-          <a href="#privacy">Security</a>
-          <a href="/app.html" class="nav-cta">Open planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#features">Features</a>
+          <a href="#security">Privacy</a>
+          <a href="/app.html" class="btn nav-cta">Open Bucksy
+            <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="shell hero">
+        <div class="hero-copy">
+          <p class="eyebrow">A personal finance companion</p>
+          <h1>Track.<br>Plan.<br><span class="accent">Grow.</span></h1>
+          <p class="hero-lede">A personal finance companion to track your spending, manage budgets and build healthier money habits.</p>
+
+          <ul class="pillars" aria-label="Track, plan and grow">
+            <li class="pillar">
+              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 26h22M8 26V16M15 26V10M22 26V5"/></svg>
+              Track
+            </li>
+            <li class="pillar">
+              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h22v16H5zM5 10l17-4v4"/><path d="M21 17h8v6h-8a3 3 0 0 1 0-6Z"/></svg>
+              Manage
+            </li>
+            <li class="pillar">
+              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M27 5C14 5 6 10 6 20c0 4 3 7 7 7 10 0 14-9 14-22Z"/><path d="M5 28 20 13"/></svg>
+              Grow
+            </li>
+          </ul>
+
+          <div class="hero-actions">
+            <a href="/app.html" class="btn">Open your planner
+              <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </a>
+            <a href="#features" class="btn btn-ghost">See what's inside</a>
+          </div>
+
+          <p class="fineprint">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+            One private account, bot checks and server-side lockouts.
+          </p>
         </div>
-      </nav>
 
-      <main id="top">
-        <section class="hero">
-          <div class="hero-copy">
-            <div class="eyebrow">A calmer way to plan each month</div>
-            <h1>Make room for<br><span class="serif">what matters.</span></h1>
-            <p>Plan monthly expenses, track paid items, and keep your cashflow clear in one focused workspace.</p>
-            <div class="hero-actions">
-              <a href="/app.html" class="button-primary">Open your planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
-              <a href="#approach" class="button-secondary">Explore features <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        <div class="preview">
+          <div class="preview-card">
+            <div class="preview-top">
+              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="preview-pill">November 2026</span>
             </div>
-            <div class="fineprint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Protected by Cloudflare Turnstile, WAF rate limiting, and server-side lockouts.</div>
+
+            <div class="preview-balance">
+              <span class="overline">Total outflow</span>
+              <strong>₹48,500</strong>
+              <span class="delta">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+                6% below October
+              </span>
+            </div>
+
+            <div class="preview-kpis">
+              <div class="preview-kpi"><span>Salary / inflow</span><strong>₹85,000</strong></div>
+              <div class="preview-kpi"><span>Savings rate</span><strong>22%</strong></div>
+            </div>
+
+            <div class="preview-chart">
+              <div class="chart-head">
+                <strong>Income vs outflow</strong>
+                <div class="chart-legend" aria-hidden="true">
+                  <span><i></i>Income</span>
+                  <span><i class="out"></i>Outflow</span>
+                </div>
+              </div>
+              <div class="bars" role="img" aria-label="Illustrative six-month income and outflow trend">
+                <div class="bar-group"><i style="height:24px"></i><i class="out" style="height:15px"></i></div>
+                <div class="bar-group"><i style="height:29px"></i><i class="out" style="height:19px"></i></div>
+                <div class="bar-group"><i style="height:33px"></i><i class="out" style="height:24px"></i></div>
+                <div class="bar-group"><i style="height:31px"></i><i class="out" style="height:29px"></i></div>
+                <div class="bar-group"><i style="height:38px"></i><i class="out" style="height:34px"></i></div>
+                <div class="bar-group is-now"><i style="height:44px"></i><i class="out" style="height:26px"></i></div>
+              </div>
+              <div class="bar-labels" aria-hidden="true"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span></div>
+            </div>
+
+            <div class="preview-settle">
+              <div class="preview-settle-top"><strong>Paid 14 of 22 items</strong><span>₹32,500 cleared</span></div>
+              <div class="track"><i style="width:64%"></i></div>
+            </div>
+
+            <div class="preview-rows">
+              <div class="preview-row">
+                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5.5 9v11h13V9"/><path d="M9.5 20v-7h5v7"/></svg></span>
+                <span class="row-copy"><strong>House rent</strong><small>Home / Living</small></span>
+                <span class="row-amount">₹20,000<span class="chip chip-paid">Paid</span></span>
+              </div>
+              <div class="preview-row">
+                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z"/></svg></span>
+                <span class="row-copy"><strong>Electricity</strong><small>Utilities</small></span>
+                <span class="row-amount">₹2,500<span class="chip chip-paid">Paid</span></span>
+              </div>
+              <div class="preview-row">
+                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h3"/></svg></span>
+                <span class="row-copy"><strong>Credit card</strong><small>Repayments</small></span>
+                <span class="row-amount">₹8,000<span class="chip chip-pending">Pending</span></span>
+              </div>
+            </div>
+
+            <p class="preview-note">Illustrative preview</p>
           </div>
 
-          <div class="visual" aria-label="Illustrative finance dashboard preview">
-            <div class="visual-glow"></div>
-            <div class="dashboard">
-              <div class="dash-top">
-                <div class="dash-title"><span class="dash-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 18V6l7.5 7.5L19.5 6v12"/></svg></span>Monthly overview</div>
-                <span class="month-pill">October 2026&nbsp;⌄</span>
-              </div>
-              <div class="balance-block">
-                <div class="overline">Total monthly expenses</div>
-                <div class="balance">₹48,500</div>
-                <div class="balance-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> A clear picture of your month</div>
-              </div>
-              <div class="mini-stats">
-                <div class="mini-stat"><div class="mini-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 15 6-6 4 4 5-7M14 6h6v6"/></svg>Paid so far</div><strong>₹32,500</strong><small>3 payments completed</small></div>
-                <div class="mini-stat"><div class="mini-stat-top"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>Still to go</div><strong>₹16,000</strong><small>2 payments remaining</small></div>
-              </div>
-              <div class="chart-card">
-                <div class="chart-head"><strong>Spending at a glance</strong><span>Illustrative data</span></div>
-                <svg class="chart-svg" viewBox="0 0 440 120" role="img" aria-label="Illustrative spending trend line">
-                  <defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8ba98d" stop-opacity=".24"/><stop offset="1" stop-color="#8ba98d" stop-opacity="0"/></linearGradient></defs>
-                  <path class="gridline" d="M0 20H440M0 55H440M0 90H440"/>
-                  <path class="area" d="M0 89 C25 82 37 67 63 72 S103 93 130 67 S171 46 196 58 S234 78 260 47 S300 45 326 34 S368 50 390 25 S422 23 440 12 V110 H0Z"/>
-                  <path class="line" d="M0 89 C25 82 37 67 63 72 S103 93 130 67 S171 46 196 58 S234 78 260 47 S300 45 326 34 S368 50 390 25 S422 23 440 12"/>
-                  <circle class="point" cx="326" cy="34" r="4"/><circle class="point" cx="440" cy="12" r="4"/>
-                </svg>
-                <div class="chart-labels"><span>Week 1</span><span>Week 2</span><span>Week 3</span><span>Week 4</span></div>
-              </div>
-              <div class="payments">
-                <div class="payments-head"><strong>Recent payments</strong><span>View all&nbsp; ↗</span></div>
-                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5.5 9v11h13V9M9 20v-7h6v7"/></svg></span><span class="payment-copy"><strong>House rent</strong><small>Fixed expense</small></span><span class="payment-amount">₹20,000<small>Paid</small></span></div>
-                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z"/></svg></span><span class="payment-copy"><strong>Electricity</strong><small>Utilities</small></span><span class="payment-amount">₹2,500<small>Paid</small></span></div>
-                <div class="payment"><span class="payment-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><span class="payment-copy"><strong>Credit card</strong><small>Monthly payment</small></span><span class="payment-amount">₹8,000<small style="color:#ad8b5f">Pending</small></span></div>
-              </div>
-            </div>
-            <div class="float-note"><span class="float-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span><span><strong>You're on track</strong><small>One step at a time.</small></span></div>
+          <div class="preview-float">
+            <span class="float-check"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+            <span><strong>On track</strong><small>8 items left this month</small></span>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="capabilities reveal" id="approach" aria-label="What the planner helps with">
-          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M7.5 8h9M7.5 12h5M7.5 16h9"/></svg></span><div><strong>One view for the month</strong><p>Keep salary, expenses, and investments together in a clean monthly layout.</p></div></div>
-          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg></span><div><strong>Progress that persists</strong><p>Save checked items so paid-vs-pending status stays accurate every time you return.</p></div></div>
-          <div class="capability"><span class="cap-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><div><strong>Secure by default</strong><p>Username/password auth, Turnstile bot checks, D1 data storage, and KV-backed sessions.</p></div></div>
-        </section>
+      <svg class="hills" viewBox="0 0 1600 110" preserveAspectRatio="none" aria-hidden="true">
+        <path fill="#dcebdd" d="M0 25C130 85 180 62 300 48S500 92 650 42 890 74 1030 67s220-62 340-40 150 10 230-5v88H0z"/>
+        <path fill="#a8d5b2" d="M0 45C155 80 225 37 350 69s210 5 310-26 225 62 360 41 185-68 300-34 180 6 280-13v73H0z"/>
+        <path fill="#70b99b" d="M0 72c120-22 190 40 315 17s215-44 335-8 205 9 310-17 230 50 360 22 190-48 280-28v52H0z"/>
+        <path fill="#18815a" d="M0 85c170-28 230 40 390 18s210-28 315-5 220-4 320-30 205 52 340 25 160-36 235-20v37H0z"/>
+        <path fill="#0b3d2e" d="M0 98c130-16 235 21 360 3s250-23 360-6 235 5 330-14 210 28 330 8 150-17 220-5v26H0z"/>
+      </svg>
 
-        <section class="closing reveal" id="privacy">
+      <section class="essence">
+        <div class="shell essence-grid">
+          <div class="essence-intro">
+            <span class="overline">Brand essence</span>
+            <h2>A simple, trustworthy and growth-oriented tracker for everyday life.</h2>
+          </div>
+          <div class="essence-items">
+            <div class="essence-item">
+              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="13"/><circle cx="18" cy="18" r="6"/></svg>
+              <div><h3>Simple</h3><p>Clear and easy to use</p></div>
+            </div>
+            <div class="essence-item">
+              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l12 5v9c0 8-5 12-12 15C11 30 6 26 6 18V9z"/><path d="m12 18 4 4 8-9"/></svg>
+              <div><h3>Private</h3><p>Your data, your control</p></div>
+            </div>
+            <div class="essence-item">
+              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 30h5V20H5zM15 30h5V13h-5zM25 30h5V6h-5z"/></svg>
+              <div><h3>Insightful</h3><p>Turn spending into useful insights</p></div>
+            </div>
+            <div class="essence-item">
+              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22c8-1 13-6 16-14 5 10 4 19-3 23-6 3-11-1-13-9z"/><path d="M20 20c4-6 8-9 13-9-1 8-6 13-13 13"/></svg>
+              <div><h3>Growth-oriented</h3><p>Build better money habits</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="shell features reveal" id="features">
+        <div class="section-head">
+          <span class="overline">What's inside</span>
+          <h2>Built for the way a month actually works.</h2>
+          <p>Income, fixed expenses, spending and savings live on one screen, so the month adds up without a second spreadsheet.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8.5h10M7 12.5h6M7 16.5h10"/></svg></span>
+            <h3>One month, one ledger</h3>
+            <p>Salary, fixed expenses, investments and savings share a single monthly layout, with a settlement bar showing cleared versus remaining.</p>
+          </article>
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8 12 3 3 5-6"/></svg></span>
+            <h3>Paid, not guessed</h3>
+            <p>Tick items off as they clear. Paid amounts and progress save to your account, so the month stays current when you come back.</p>
+          </article>
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
+            <h3>Budgets that speak up</h3>
+            <p>Set a monthly cap per category. The bar fills as you spend, turns amber as you approach the limit and clay when you cross it.</p>
+          </article>
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-6M11 20v-9M16 20V7M21 20V4"/></svg></span>
+            <h3>Numbers you can read</h3>
+            <p>An allocation donut, a six-month income-versus-outflow trend, month-over-month insights and your savings rate, all from your own data.</p>
+          </article>
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2.5"/><path d="M2.5 10.5h19"/><path d="M16.5 15h1.5"/></svg></span>
+            <h3>Accounts and routing</h3>
+            <p>Each account shows the transfer balance it needs and where its debits land, so payday moves are planned before the money moves.</p>
+          </article>
+          <article class="card">
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m8 10 4 4 4-4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+            <h3>Backup on your terms</h3>
+            <p>Download a JSON copy of your planner whenever you want, and load it back later. Your numbers never depend on a single tab.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="shell security reveal" id="security">
+        <div class="security-panel">
           <div>
-            <div class="eyebrow">Security that stays quiet</div>
-            <h2>Better money habits start with <em>clear monthly rhythm.</em></h2>
-            <p>Sign in securely, sync month data in D1, keep sessions in KV, and stay protected with Turnstile, WAF, and login lockouts.</p>
+            <span class="overline">Private by design</span>
+            <h2>One account. Closed door.</h2>
+            <p>Bucksy is a personal tool, not a sign-up product. The live app sits behind Cloudflare Access, and every request passes bot checks, rate limits and server-side login lockouts before it reaches your data.</p>
           </div>
-          <a href="/app.html" class="button-primary closing-cta">Go to your planner <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
-        </section>
-      </main>
+          <div class="security-list">
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Cloudflare Access</strong><span>A Zero Trust gate in front of the app</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Turnstile</strong><span>Bot checks on every sign-in</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Rate limits and lockouts</strong><span>WAF rules plus server-side attempt tracking</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>D1 storage, KV sessions</strong><span>Data in Cloudflare D1, sessions cleared on sign-out</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Recovery codes</strong><span>Printable one-time codes for account recovery</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Strict headers</strong><span>CSP, HSTS and clickjacking protection</span></div>
+            </div>
+            <p class="security-note">No bank connections, no ad trackers and no third-party analytics scripts. What you enter is what the app knows.</p>
+          </div>
+        </div>
+      </section>
 
-      <footer><div class="footer-row"><span class="footer-brand">MashMind <span style="font-weight:400;color:#929a92">/ Expense Planner</span></span><span>A clearer way to run each month.</span><span class="footer-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/></svg> Cloud sync with D1 + KV sessions</span></div></footer>
-    </div>
+      <section class="shell closing">
+        <div class="closing-inner">
+          <div>
+            <span class="overline">Ready when you are</span>
+            <h2>Your next month, already in order.</h2>
+            <p>Set your income, fill in the fixed lines, and let the plan follow from there. Bucksy is a planning tool, not financial advice.</p>
+          </div>
+          <div class="closing-cta">
+            <a href="/app.html" class="btn">Open Bucksy
+              <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+            </a>
+            <span class="note">Sign in with your existing account.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell footer-row">
+        <span class="footer-brand">
+          <img src="assets/mark.svg" alt="" width="22" height="24">
+          <strong>Bucksy</strong>
+          <span>Expenses made simple</span>
+        </span>
+        <span class="footer-meta">
+          <span class="disclaimer">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+            A planning tool, not financial advice.
+          </span>
+          <span>© Bucksy</span>
+        </span>
+      </div>
+    </footer>
   </div>
-<script>
-    (()=>{
-      const revealNodes=document.querySelectorAll('.reveal');
-      if('IntersectionObserver' in window){
-        const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target);}}),{threshold:.12});
-        revealNodes.forEach(node=>observer.observe(node));
-      }else{revealNodes.forEach(node=>node.classList.add('is-visible'));}
+
+  <script>
+    (() => {
+      const nodes = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) {
+        nodes.forEach((node) => node.classList.add('is-visible'));
+        return;
+      }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.08 });
+      nodes.forEach((node) => observer.observe(node));
     })();
   </script>
 </body>
