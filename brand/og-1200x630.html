@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Bucksy OG card source — 1200×630</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pine: #0B3D2E;
+      --fern: #18815A;
+      --fern-text: #177A55;
+      --sage: #A8D5B2;
+      --cream: #F9F6EE;
+      --paper: #FFFDF8;
+      --ink: #102F27;
+      --muted: #4E6D60;
+      --line: #D9DDD4;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; width: 1200px; height: 630px; }
+    body {
+      position: relative;
+      overflow: hidden;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: Inter, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .glow {
+      position: absolute; right: -80px; top: -160px;
+      width: 620px; height: 620px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 213, 178, .45), rgba(168, 213, 178, 0) 68%);
+    }
+
+    .top {
+      position: absolute; left: 72px; right: 72px; top: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .lockup { display: flex; align-items: center; gap: 15px; }
+    .lockup img { width: 40px; height: 45px; object-fit: contain; }
+    .lockup .word { font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -.075em; color: var(--pine); }
+    .lockup .tag { margin-top: 4px; font-size: 8.5px; font-weight: 700; letter-spacing: .23em; text-transform: uppercase; color: var(--muted); }
+    .url { font-size: 12px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+    .copy { position: absolute; left: 72px; top: 168px; width: 640px; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 11px;
+      margin: 0 0 20px; font-size: 11.5px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--fern-text);
+    }
+    .eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--sage); }
+    h1 {
+      margin: 0;
+      font-size: 104px; font-weight: 800; line-height: .93; letter-spacing: -.062em;
+      color: var(--pine);
+    }
+    h1 .accent { color: var(--fern); }
+    .lede {
+      margin: 24px 0 0; max-width: 31ch;
+      font-size: 21px; line-height: 1.5; color: var(--muted);
+    }
+
+    .mark { position: absolute; right: 96px; top: 150px; width: 268px; height: 299px; }
+    .mark img { width: 100%; height: 100%; object-fit: contain; }
+
+    .hills { position: absolute; left: 0; bottom: 0; width: 1200px; height: 124px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+
+  <div class="top">
+    <div class="lockup">
+      <img src="../assets/mark.svg" alt="">
+      <div>
+        <div class="word">Bucksy</div>
+        <div class="tag">Expenses made simple</div>
+      </div>
+    </div>
+    <div class="url">bucksy.life</div>
+  </div>
+
+  <div class="copy">
+    <p class="eyebrow">A personal finance companion</p>
+    <h1>Track. Plan.<br><span class="accent">Grow.</span></h1>
+    <p class="lede">Track your spending, manage budgets and build healthier money habits.</p>
+  </div>
+
+  <div class="mark"><img src="../assets/mark.svg" alt="Bucksy mark"></div>
+
+  <svg class="hills" viewBox="0 0 1600 110" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="#dcebdd" d="M0 25C130 85 180 62 300 48S500 92 650 42 890 74 1030 67s220-62 340-40 150 10 230-5v88H0z"/>
+    <path fill="#a8d5b2" d="M0 45C155 80 225 37 350 69s210 5 310-26 225 62 360 41 185-68 300-34 180 6 280-13v73H0z"/>
+    <path fill="#70b99b" d="M0 72c120-22 190 40 315 17s215-44 335-8 205 9 310-17 230 50 360 22 190-48 280-28v52H0z"/>
+    <path fill="#18815a" d="M0 85c170-28 230 40 390 18s210-28 315-5 220-4 320-30 205 52 340 25 160-36 235-20v37H0z"/>
+    <path fill="#0b3d2e" d="M0 98c130-16 235 21 360 3s250-23 360-6 235 5 330-14 210 28 330 8 150-17 220-5v26H0z"/>
+  </svg>
+</body>
+</html>

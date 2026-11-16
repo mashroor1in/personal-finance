@@ -13,6 +13,7 @@ website needs (the delivered primary mark is raster).
 | `exports/bucksy-brand-board-preview.png` | Static preview of the board (1600×1200). |
 | `reference/bucksy-brand-board-reference.webp` | The original visual reference, unchanged. |
 | `tokens.css` | Palette + type + roles as CSS, with a commented drop-in map for `app.html`. |
+| `og-1200x630.html` | Source for the social card. Rendered to `/assets/og-1200x630.png`. |
 
 ## The identity, transcribed
 
@@ -84,6 +85,30 @@ hills band and the four essence words. Feature copy is limited to what the app
 actually does; pricing, bank connections, CSV export and certifications are
 deliberately absent.
 
+**Applied:** the app's in-product voice was tightened in the same pass — toasts
+now say what happened in plain words ("Ledger saved for November", "Paid items
+saved for November", "Backup restored"), empty states name the month instead of
+apologising, and a search that matches nothing now says so instead of leaving a
+blank grid. The default avatar seed was changed from `mashmind` to `bucksy`.
+
+## Social card
+
+`og-1200x630.html` is the card: cream canvas, the lockup and tagline, "Track.
+Plan. Grow." with *Grow* in fern, the mark at full size, and the hills band. It
+is rendered with headless Chrome (no design tool needed) and committed as
+`/assets/og-1200x630.png` (1200×630, 151 KB).
+
+```powershell
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless=new --disable-gpu `
+  --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 `
+  --virtual-time-budget=6000 --screenshot=assets/og-1200x630.png `
+  "file:///C:/mash/Study/personal-finance/brand/og-1200x630.html"
+```
+
+`index.html` references it with absolute URLs (`og:image`, `twitter:image`,
+`summary_large_image`), because link unfurlers need a full URL. If the live
+domain ever stops being `bucksy.life`, update those tags and `og:url` with it.
+
 ## Rules
 
 1. Amber on cream fails contrast (2.13:1) — decorative only. For amber-toned
@@ -97,6 +122,8 @@ deliberately absent.
 
 ## Known gaps
 
-- No 1200×630 OG/social image yet (needs a raster export step).
+- `brand/` and `assets/` sit inside the Pages deploy root, so `brand/*.html` is
+  publicly reachable on the open `*.pages.dev` URL. Fine for a private site, but
+  do not treat this folder as hidden.
 - `brand/_archive/v1/` holds my earlier drafts, superseded by this board. Kept
   only for reference; safe to delete.

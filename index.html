@@ -7,11 +7,23 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#F9F6EE">
+  <link rel="canonical" href="https://bucksy.life/">
   <meta name="description" content="Bucksy is a private, single-account finance planner. Track monthly expenses, set category budgets and see where your money goes.">
   <meta property="og:title" content="Bucksy — Expenses made simple">
   <meta property="og:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
   <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:site_name" content="Bucksy">
+  <meta property="og:url" content="https://bucksy.life/">
+  <meta property="og:image" content="https://bucksy.life/assets/og-1200x630.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Bucksy — Track. Plan. Grow. The Bucksy deer mark on a cream background.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bucksy — Expenses made simple">
+  <meta name="twitter:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
+  <meta name="twitter:image" content="https://bucksy.life/assets/og-1200x630.png">
+  <meta name="twitter:image:alt" content="Bucksy — Track. Plan. Grow. The Bucksy deer mark on a cream background.">
   <title>Bucksy — Expenses made simple</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -121,6 +133,7 @@
     .hero::before {
       content: ""; position: absolute; z-index: -1;
       width: 640px; height: 640px; left: -220px; top: -180px;
+      max-width: 100vw;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(168, 213, 178, .42), rgba(168, 213, 178, 0) 68%);
       pointer-events: none;
@@ -226,9 +239,9 @@
     .chart-legend span { display: inline-flex; align-items: center; gap: 4px; }
     .chart-legend i { width: 6px; height: 6px; border-radius: 2px; background: var(--fern); }
     .chart-legend i.out { background: var(--amber-bar); }
-    .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 84px; }
-    .bar-group { display: flex; align-items: flex-end; gap: 3px; height: 100%; flex: 1; justify-content: center; }
-    .bar-group i { width: 6px; border-radius: 3px 3px 0 0; background: #BFE0C8; }
+    .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 92px; }
+    .bar-group { display: flex; align-items: flex-end; gap: 4px; height: 100%; flex: 1; justify-content: center; }
+    .bar-group i { width: 7px; border-radius: 3px 3px 0 0; background: #BFE0C8; }
     .bar-group i.out { background: #EFC08A; }
     .bar-group.is-now i { background: var(--fern); }
     .bar-group.is-now i.out { background: var(--amber-bar); }
@@ -444,7 +457,6 @@
 
     @media (max-width: 400px) {
       h1 { font-size: 48px; }
-      .preview-kpis { grid-template-columns: 1fr; }
       .hero-actions { flex-direction: column; align-items: stretch; }
     }
 
@@ -541,12 +553,12 @@
                 </div>
               </div>
               <div class="bars" role="img" aria-label="Illustrative six-month income and outflow trend">
-                <div class="bar-group"><i style="height:24px"></i><i class="out" style="height:15px"></i></div>
-                <div class="bar-group"><i style="height:29px"></i><i class="out" style="height:19px"></i></div>
-                <div class="bar-group"><i style="height:33px"></i><i class="out" style="height:24px"></i></div>
-                <div class="bar-group"><i style="height:31px"></i><i class="out" style="height:29px"></i></div>
-                <div class="bar-group"><i style="height:38px"></i><i class="out" style="height:34px"></i></div>
-                <div class="bar-group is-now"><i style="height:44px"></i><i class="out" style="height:26px"></i></div>
+                <div class="bar-group"><i style="height:46px"></i><i class="out" style="height:30px"></i></div>
+                <div class="bar-group"><i style="height:54px"></i><i class="out" style="height:38px"></i></div>
+                <div class="bar-group"><i style="height:62px"></i><i class="out" style="height:46px"></i></div>
+                <div class="bar-group"><i style="height:58px"></i><i class="out" style="height:54px"></i></div>
+                <div class="bar-group"><i style="height:70px"></i><i class="out" style="height:62px"></i></div>
+                <div class="bar-group is-now"><i style="height:82px"></i><i class="out" style="height:48px"></i></div>
               </div>
               <div class="bar-labels" aria-hidden="true"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span></div>
             </div>

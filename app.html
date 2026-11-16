@@ -942,6 +942,17 @@
       gap: 16px;
     }
 
+    .filter-empty {
+      margin: 0 0 14px;
+      padding: 24px 18px;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      background: var(--card-muted);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
     .cat-box {
       background: var(--card);
       border: 1px solid var(--line);
@@ -2786,8 +2797,8 @@
       <div class="view-actions">
         <div class="search-wrap">
           <iconify-icon icon="ph:magnifying-glass-bold" width="15" height="15" aria-hidden="true"></iconify-icon>
-          <label for="searchInput" class="sr-only">Search items</label>
-          <input id="searchInput" type="text" placeholder="Search item..." aria-label="Search item or category" />
+          <label for="searchInput" class="sr-only">Search items or categories</label>
+          <input id="searchInput" type="text" placeholder="Search items or categories" aria-label="Search items or categories" />
         </div>
         <button id="budgetsBtn" class="btn" type="button" title="Set monthly category budgets"><iconify-icon icon="lucide:target" width="15" height="15" aria-hidden="true"></iconify-icon>Budgets</button>
         <button id="addExpenseBtn" class="btn" type="button" title="Add a new expense item"><iconify-icon icon="lucide:plus" width="15" height="15" aria-hidden="true"></iconify-icon>Add expense</button>
@@ -2820,6 +2831,7 @@
     </div>
 
     <!-- Category Boxes View Container -->
+    <p id="filterEmpty" class="filter-empty hidden" role="status">No items match <span id="filterEmptyQuery"></span>.</p>
     <div id="categoryBoxesContainer" class="category-grid"></div>
 
     <!-- Table View Container -->
@@ -3301,6 +3313,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const profileMenuAvatarInitial = document.getElementById("profileMenuAvatarInitial");
     const profileMenuBlobatar = document.getElementById("profileMenuBlobatar");
     const searchInput = document.getElementById("searchInput");
+    const filterEmpty = document.getElementById("filterEmpty");
+    const filterEmptyQuery = document.getElementById("filterEmptyQuery");
     const viewBoxesBtn = document.getElementById("viewBoxesBtn");
     const viewTableBtn = document.getElementById("viewTableBtn");
     const collapseAllBtn = document.getElementById("collapseAllBtn");
@@ -3675,7 +3689,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           closeRecoveryManage();
           if (Array.isArray(res?.recoveryCodes) && res.recoveryCodes.length) {
             showRecoveryCodes(res.recoveryCodes);
-            showToast("New recovery codes generated. The old ones no longer work.");
+            showToast("New recovery codes generated. The old set no longer works.");
           }
         } catch (err) {
           recoveryManageError.textContent = err?.message || "Could not generate codes.";
@@ -4069,7 +4083,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       if (mode === "register") {
         authTitle.textContent = "Create account";
-        authSubtitle.textContent = "Use 3-32 chars for username and at least 6 chars for password.";
+        authSubtitle.textContent = "Pick a username of 3-32 characters. Passwords need at least 6.";
         authUsernameWrap.classList.remove("hidden");
         authUsernameLabel.textContent = "Username";
         authUsername.required = true;
@@ -4201,7 +4215,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!pendingRecoveryCodes.length) return;
       try {
         await navigator.clipboard.writeText(recoveryCodesPlainText(pendingRecoveryCodes));
-        showToast("Codes copied to the clipboard");
+        showToast("Recovery codes copied");
       } catch {
         recoveryCodesError.textContent = "Could not copy. Select the codes and copy them by hand.";
       }
@@ -4341,7 +4355,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!authBlobatar || !authHead) return;
       const visible = authMode === "login" || authMode === "register";
       const typed = (authUsername?.value || "").trim();
-      const seed = visible ? (typed || "mashmind") : "";
+      const seed = visible ? (typed || "bucksy") : "";
       const markup = seed ? blobatarMarkup(seed) : "";
       authHead.classList.toggle("has-blobatar", !!markup);
       // Retry while markup is unavailable (avatar engine not ready yet), and
@@ -5127,7 +5141,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         : "Expenses + investments";
       savingsMeta.textContent = totals.invest > 0
         ? `₹${formatNumber(totals.invest)} invested this month`
-        : "No investments recorded";
+        : "No investments this month";
 
       const showOverspend = hasIncome && remaining < 0;
       budgetAlert.classList.toggle("hidden", !showOverspend);
@@ -5429,7 +5443,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted");
         ctx.font = "13px Inter, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("No outflow recorded", w / 2, h / 2);
+        ctx.fillText("No outflow this month", w / 2, h / 2);
         return;
       }
 
@@ -5624,6 +5638,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const match = !q || row.dataset.search.includes(q);
         row.style.display = match ? "" : "none";
       });
+
+      const boxes = [...document.querySelectorAll(".cat-box")];
+      const rows = [...document.querySelectorAll("#tableRows tr")];
+      const gridEmpty = boxes.length > 0 && !boxes.some(box => box.style.display !== "none");
+      const tableEmpty = rows.length > 0 && !rows.some(row => row.style.display !== "none");
+      const showingTable = tableViewContainer.style.display !== "none";
+      const noMatches = Boolean(q) && (showingTable ? tableEmpty : gridEmpty);
+      filterEmpty.classList.toggle("hidden", !noMatches);
+      if (noMatches) filterEmptyQuery.textContent = `“${searchInput.value.trim()}”`;
     }
 
     function saveCurrentMonth(options) {
@@ -5640,7 +5663,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       persistence.saveLocal(data);
       setAutosaveBadge("Saved on this device", "saved");
       setPaidDirty(false);
-      if (!silent) showToast(`Saved ledger for ${month}`);
+      if (!silent) showToast(`Ledger saved for ${month}`);
       render();
     }
 
@@ -5652,7 +5675,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       data[month].paid = data[month].paid || {};
       persistence.saveLocal(data);
       setPaidDirty(false);
-      if (!silent) showToast(`Checked items saved for ${month}`);
+      if (!silent) showToast(`Paid items saved for ${month}`);
     }
 
     function setPaidDirty(flag) {
@@ -5676,7 +5699,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const currentMonth = monthPicker.value;
       const prevMonth = getPreviousMonth(currentMonth);
       if (!prevMonth || !data[prevMonth]) {
-        showToast("No previous month to copy from", "warning");
+        showToast("There's no earlier month to copy from", "warning");
         return;
       }
 
@@ -5693,7 +5716,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       persistence.saveLocal(data);
       render();
-      showToast(`Copied figures from ${prevMonth} (Checkboxes reset)`);
+      showToast(`Copied ${prevMonth} figures. Paid ticks reset.`);
       setAutosaveBadge("Saved on this device", "saved");
     }
 
@@ -6222,7 +6245,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       a.href = URL.createObjectURL(blob);
       a.download = `finance_planner_backup_${toMonthString(new Date())}.json`;
       a.click();
-      showToast("Backup exported");
+      showToast("Backup downloaded");
     }
 
     function sanitizeBackupMonth(value) {
@@ -6358,7 +6381,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           ensureDataShape();
           persistence.saveLocal(data);
           render();
-          showToast("Backup restored successfully!");
+          showToast("Backup restored");
         } catch {
           showToast("That file isn't a valid backup", "error");
         } finally {
@@ -6645,7 +6668,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         await fetchAuthStatus();
         if (isAuthenticated()) {
           updateSecurityCard();
-          showToast("Connection issue. Showing cached data.", "warning");
+          showToast("You're offline. Showing the last saved data.", "warning");
           return;
         }
         lockApp(true);
@@ -6683,7 +6706,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           try {
             await hydrateFromCloud();
             render();
-            showToast("This tab switched to the account that is signed in.", "warning");
+            showToast("Signed in as a different account. Reloaded this tab.", "warning");
           } catch {
             await logoutUser({ quiet: true, force: true, localOnly: true });
           }
