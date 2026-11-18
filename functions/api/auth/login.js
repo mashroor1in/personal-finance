@@ -278,6 +278,7 @@ export async function onRequestPost(context) {
     const scrub = [
       env.DB.prepare("DELETE FROM months WHERE user_id = ?").bind(userID),
       env.DB.prepare("DELETE FROM recovery_codes WHERE user_id = ?").bind(userID),
+      env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(userID),
       env.DB.prepare("DELETE FROM users WHERE id = ?").bind(userID),
     ];
 

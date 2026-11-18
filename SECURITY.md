@@ -117,7 +117,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 3. **Legacy Data**: Legacy `user_id='default'` rows remain orphaned but not deleted
 4. **Turnstile**: Fails closed if only half-configured (blocks all auth if incomplete)
 5. **Existing Accounts**: Accounts created before recovery codes existed have none; they can generate a set from the account menu
-6. **Data Retention**: Deleted accounts' financial data is kept for 30 days in `deleted_months` before permanent deletion
+6. **Data Retention**: Deleted accounts' financial data is kept for 30 days in `deleted_months` before permanent deletion. Account settings (`user_settings`) are erased immediately with the account, so a later holder of the same username cannot inherit custom items or budgets
 
 ## Monitoring
 

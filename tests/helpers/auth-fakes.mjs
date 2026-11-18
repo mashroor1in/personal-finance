@@ -27,6 +27,7 @@ export function makeDB(users = new Map()) {
   const recoveryCodes = new Map();
   const months = new Map();
   const deletedMonths = new Map();
+  const settings = new Map();
   let pinLookups = 0;
 
   const monthKey = (userID, month) => `${userID}|${month}`;
@@ -48,6 +49,7 @@ export function makeDB(users = new Map()) {
     recoveryCodes,
     months,
     deletedMonths,
+    settings,
     pinLookups: () => pinLookups,
     prepare(sql) {
       return {
@@ -201,6 +203,10 @@ export function makeDB(users = new Map()) {
                 }
                 row.used_at = used_at;
                 return { success: true, meta: { changes: 1 } };
+              }
+              if (/DELETE FROM user_settings WHERE user_id = \?/i.test(sql)) {
+                const existed = settings.delete(args[0]);
+                return { success: true, meta: { changes: existed ? 1 : 0 } };
               }
               if (/DELETE FROM users WHERE id = \?/i.test(sql)) {
                 const existed = users.delete(args[0]);

@@ -72,6 +72,7 @@ test("deleting an account archives its ledger for thirty days instead of erasing
     paid: { rent: true },
   });
   addMonth(db, "dana", "2026-02", { salary: 5100 });
+  db.settings.set("dana", { json: '{"categoryBudgets":{"Food":500}}', version: 1, updated_at: 1 });
 
   const before = Date.now();
   const response = await deleteAccount(env, token);
@@ -84,6 +85,9 @@ test("deleting an account archives its ledger for thirty days instead of erasing
   assert.equal(db.users.has("dana"), false);
   assert.equal(db.recoveryCodes.size, 0);
   assert.equal(db.months.size, 0);
+  // Account settings go with it, so a future holder of the name cannot inherit
+  // custom items or budgets.
+  assert.equal(db.settings.size, 0);
 
   // The ledger is not.
   assert.equal(db.deletedMonths.size, 2);
@@ -122,15 +126,19 @@ test("re-registering the same username never resurrects trashed data", async () 
 
   const { token } = await register(env, "fiona", "secret1");
   addMonth(db, "fiona", "2026-03", { salary: 9000 });
+  db.settings.set("fiona", { json: '{"nameOverrides":{"rent":"Flat"}}', version: 2, updated_at: 1 });
   await deleteAccount(env, token);
   assert.equal(db.deletedMonths.size, 1);
+  assert.equal(db.settings.size, 0);
 
   const { token: freshToken } = await register(env, "fiona", "secret2");
 
   // The old rows exist in the recycle bin but are not part of the live ledger,
-  // so the new holder of the name sees an empty planner.
+  // so the new holder of the name sees an empty planner. The old account's
+  // settings are gone entirely, not inherited.
   assert.equal(db.months.size, 0);
   assert.equal(db.deletedMonths.size, 1);
+  assert.equal(db.settings.size, 0);
 
   const ledger = await readLedger({
     request: new Request("https://app.local/api/data", {
