@@ -17,7 +17,7 @@ Nothing here is exploratory. Every command was run against this project.
 | Project (Pages) | `personal-finance` |
 | Live URL | `https://bucksy.life` |
 | Planner URL | `https://bucksy.life/app` (`.html` 308-redirects here) |
-| Fallback URL | `https://personal-finance-8ch.pages.dev` |
+| Alias host (landing only) | `https://personal-finance-8ch.pages.dev` — `/app` and `/api/*` are blocked there by `functions/_middleware.js` |
 | Health check | `https://bucksy.life/api/auth/status` |
 | D1 database | `personal-expenses-db` |
 | D1 database id | `f99159c3-82a7-405c-bf9e-6e65b5662be5` |
@@ -48,7 +48,7 @@ cd C:\mash\Study\personal-finance
 | Symptom | Most likely cause | Go to |
 |---|---|---|
 | Everything 500s right after a deploy | Runtime exception in new code | [§1](#1-see-the-logs) then [§4](#4-put-a-bad-deploy-back) |
-| Everything `302`s to `cloudflareaccess.com` | The Access policy is on — expected while private | `DEPLOY.md` → Private mode |
+| Everything `302`s to `cloudflareaccess.com` | An Access application was added outside the repo | `DEPLOY.md` → Public posture |
 | One endpoint 500s, rest fine | Bug in that one handler | [§1](#1-see-the-logs) |
 | Login fails, site looks healthy | Turnstile half-configured, or lockout | [§3](#3-fix-a-password-by-hand) |
 | `429` on login | Rate limit / `auth_throttle` lockout | [§5](#5-unlock-a-locked-out-account) |
@@ -379,9 +379,14 @@ the session version changes with the verifier, so all sessions die.
 
 Two categories never reach your code, so they never reach the tail:
 
-**Static files.** `/`, `/app.html`, CSS, images. Cloudflare serves these
+**Static files.** `/`, CSS, images, `404.html`. Cloudflare serves these
 directly. A `404` here means the file is missing from the deploy, or a
 `functions/index.js` is shadowing `index.html`.
+
+**Wrong hostname.** `functions/_middleware.js` returns `404` for `/app` and
+`/api/*` on every host except `bucksy.life`, `www.bucksy.life`, localhost and
+preview deployments. A `404` on `personal-finance-8ch.pages.dev/app` is the
+allowlist working, not a broken deploy.
 
 **Edge blocks.** Your custom domain sits on the `bucksy.life` zone, so the
 following reject the request before your function runs:

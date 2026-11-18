@@ -39,10 +39,12 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - **Full Rotation on Reset**: A new password rotates the session version, killing every older token
 
 ### ✅ Access Control
-- **Zero Trust Gate**: Intended posture is a Cloudflare Access application on `bucksy.life` scoped to `/app*` and `/api/*`, leaving the brand page and `/assets` shareable. **As of 2026-11-17 that application is not attached**, so `/app` answers `200` unauthenticated (see `DEPLOY.md` → "Private mode")
-- **App-Level Auth**: Independent username/password + Turnstile check in front of all data
-- **Hostname Awareness**: The `pages.dev` alias cannot be covered by Access. The practical mitigation is Turnstile hostname management with only `bucksy.life` listed, which fails sign-in and registration on every other host (see `DEPLOY.md`)
-- **Registration Is Open**: `POST /api/auth/login` with `mode: register` creates an account regardless of how many exist; `hasUsers` only steers the UI. Until Access is attached, the public sign-in screen is the only thing between a stranger and an account
+- **Public by design**: There is **no Cloudflare Access application** in front of the project. `/app` and `/api/*` are publicly reachable; the app's own sign-in is the boundary for data, not the door
+- **App-Level Auth**: Independent username/password + Turnstile check in front of all ledger routes
+- **Host allowlist**: `functions/_middleware.js` returns `404` for `/app` and `/api/*` on any host that is not `bucksy.life`, `www.bucksy.life`, local development or a preview deployment. The production alias `personal-finance-8ch.pages.dev` is explicitly denied
+- **Route scope**: `_routes.json` limits the Functions runtime to `/api/*` and `/app`, so static files cannot accidentally depend on middleware behaviour
+- **Registration Is Open**: `POST /api/auth/login` with `mode: register` creates an account regardless of how many exist; `hasUsers` only steers the UI. Turnstile and the per-IP throttle are the only limits on sign-up
+- **Turnstile Hostnames**: the widget should list `bucksy.life` only, so every other host fails the bot check even if the allowlist is removed by mistake (see `DEPLOY.md`)
 
 ## Security Features
 
@@ -102,7 +104,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - No offline mode (cloud-dependent architecture)
 - No email-based recovery (deliberately avoided: recovery codes need no mail service)
 - No restore UI for deleted accounts (manual intervention via `RUNBOOK.md` §6)
-- The `*.pages.dev` hostname cannot be covered by Access; see `DEPLOY.md`
+- The production alias `personal-finance-8ch.pages.dev` is blocked by `functions/_middleware.js`; preview hosts are allowed on purpose, see `DEPLOY.md`
 
 ## Deployment Notes
 

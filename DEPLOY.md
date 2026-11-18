@@ -15,42 +15,51 @@ Do **not** add a `wrangler.toml` with `main = ...` and do **not** run
 `wrangler deploy` against this repository. That creates a separate Worker which
 serves none of the static files. Bindings live in the Pages dashboard.
 
-## Private mode: Cloudflare Access
+## Public posture
 
-`bucksy.life` is protected by Zero Trust **Access** (team domain `uncle-mash.cloudflareaccess.com`). Anything without an Access session gets `302` to the SSO page before the request reaches Pages. The Access policy is scoped to `/app.html` and `/api/*` — the landing page and assets remain public.
+`bucksy.life` is served publicly. There is **no Cloudflare Access application**
+in front of Pages, and nothing in this repo assumes one. The app's own sign-in
+protects the ledger; the door itself is open. Registration is open to anyone
+(`POST /api/auth/login` with `mode: register`).
+
+The public surface is kept small by four files:
+
+| Control | Where |
+|---|---|
+| `/app` and `/api/*` only answer on the canonical host | `functions/_middleware.js` |
+| Only `/api/*` and `/app` invoke Functions | `_routes.json` |
+| Unknown paths return a real `404` | `404.html` |
+| Bot checks on sign-in and registration | Turnstile bindings |
 
 Three consequences worth knowing before you debug something:
 
 | Effect | Detail |
 |---|---|
-| `/api/auth/status` returns `302` | Not broken. The Access policy answers first. |
-| Uptime monitors need a way in | Use an Access **service token**, or point the monitor at the `pages.dev` preview hostname instead. |
-| `personal-finance-8ch.pages.dev` is open | Access apps cannot target `pages.dev` because it is not a zone you control. It remains an unprotected back door; Turnstile hostname management blocks sign-in/registration from there. |
+| `personal-finance-8ch.pages.dev` returns `404` on `/app` and `/api/*` | Deliberate. The production alias is not a second front door. The landing page still loads there. |
+| Preview deployments still work | Any `<hash>.personal-finance.pages.dev` host is allowed. |
+| A `302` to `cloudflareaccess.com` means Access was re-added outside this repo | Check Dashboard → **Zero Trust** → **Access** → **Applications**. |
 
-If sign-in through the custom domain ever starts failing while the site itself
-loads, check the Access policy before the app: Dashboard → **Zero Trust** →
-**Access** → **Applications**.
+### Verifying the surface after a deploy
 
-## Going public
+```powershell
+curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/api/auth/status                    # 200
+curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/app                                # 200
+curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/no-such-page                       # 404
+curl.exe -s -o NUL -w "%{http_code}\n" https://personal-finance-8ch.pages.dev/api/auth/status # 404
+```
 
-If you ever want to remove Access entirely (not recommended for a private finance app):
+### Turnstile hostnames
 
+Dashboard → Turnstile → your widget → **Hostnames**. List `bucksy.life` only.
+`personal-finance-8ch.pages.dev` must **not** be listed, so the alias cannot
+reach a sign-in even if the host allowlist is ever removed by mistake.
 
-2. **Delete the Access application** for `bucksy.life`:
-   Zero Trust → Access → Applications → the app → delete it.
-3. **Check the public surface:**
-   ```powershell
-   curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/api/auth/status
-   curl.exe -s -o NUL -w "%{http_code}\n" https://bucksy.life/app
-   ```
-   Both must be `200`. A `302` means an Access policy is still in front.
-4. **Turnstile hostnames.** Dashboard → Turnstile → your widget → **Hostnames**.
-   `bucksy.life` must be listed, and `personal-finance-8ch.pages.dev`
-   must **not** be, otherwise the back door accepts sign-ups.
-4. **Start the uptime monitor** described in `OPERATIONS.md` §4.
-5. **Create your own recovery codes** if you have not already: menu →
+### First launch checks
+
+1. **Start the uptime monitor** described in `OPERATIONS.md` §4.
+2. **Create your own recovery codes** if you have not already: menu →
    **Recovery codes**. Accounts made before migration 0003 have none.
-6. **Tail the first real sign-up** so you see a `200` on `/api/auth/login`, not
+3. **Tail the first real sign-up** so you see a `200` on `/api/auth/login`, not
    just a page load.
 
 
@@ -66,6 +75,7 @@ There is no entry point file. Pages maps files under `functions/` to URLs:
 | `functions/api/auth/status.js` | `GET /api/auth/status` |
 | `functions/api/data/index.js` | `/api/data` |
 | `functions/api/data/month/[month].js` | `/api/data/month/:month` |
+| `functions/_middleware.js` | wrapper for `/api/*` and `/app` (see `_routes.json`) |
 
 Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
 
@@ -149,6 +159,7 @@ node --test tests/totals.test.js
 node --test tests/overlays.test.js
 node --test tests/recovery.test.mjs
 node --test tests/deletion.test.mjs
+node --test tests/middleware.test.mjs
 ```
 
 `node --test tests/` does not work; pass the files.

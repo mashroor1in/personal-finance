@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Page not found — Bucksy</title>
+  <link rel="icon" href="/assets/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#F9F6EE">
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 28px; background: #F9F6EE; color: #102F27;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { width: 100%; max-width: 34rem; text-align: center; }
+    img { display: block; width: 52px; height: auto; margin: 0 auto 20px; }
+    .eyebrow {
+      margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .16em;
+      text-transform: uppercase; color: #18815A;
+    }
+    h1 {
+      margin: 0 0 12px; font-size: clamp(28px, 6vw, 40px);
+      line-height: 1.1; letter-spacing: -.02em;
+    }
+    p { margin: 0 auto 26px; max-width: 30rem; color: #566F62; line-height: 1.65; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    a {
+      display: inline-block; padding: 12px 22px; border-radius: 999px;
+      font-weight: 600; text-decoration: none; transition: background .18s ease, color .18s ease;
+    }
+    .primary { background: #0B3D2E; color: #F9F6EE; }
+    .primary:hover { background: #18815A; }
+    .secondary { border: 1px solid #E6E1D7; color: #102F27; background: #FFFDF8; }
+    .secondary:hover { border-color: #A8D5B2; }
+    footer { margin-top: 34px; font-size: 13px; color: #566F62; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/assets/mark.svg" alt="" width="52" height="58">
+    <p class="eyebrow">404</p>
+    <h1>This page is not here.</h1>
+    <p>The address may be mistyped or the page may have moved. Your ledger is safe — it is only ever shown after you sign in.</p>
+    <div class="actions">
+      <a class="primary" href="/">Go to Bucksy</a>
+      <a class="secondary" href="/app">Open the planner</a>
+    </div>
+    <footer>Bucksy — Expenses made simple</footer>
+  </main>
+</body>
+</html>

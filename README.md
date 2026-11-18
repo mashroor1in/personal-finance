@@ -4,8 +4,8 @@ A monthly expense planner: salary in, itemised expenses out, totals and
 remaining balance computed live, with a bank-allocation section and a monthly
 trend view.
 
-Live at **https://bucksy.life**. `expenses.mashmind.in` is the previous address
-and is being retired — see [Private mode](#private-mode).
+Live at **https://bucksy.life**. It is the only entry point; the previous
+`expenses.mashmind.in` address has been removed.
 
 ## Stack
 
@@ -27,20 +27,23 @@ Pages redeploys.
 ```
 index.html            landing page
 app.html              the planner (single page, inline styles + script)
+404.html              branded not-found page
 persistence.js        local storage, cloud sync, backup/restore
 totals.js             calculation layer
 overlays.js           chart/overlay rendering
+_routes.json          which paths invoke Pages Functions
+functions/_middleware.js  host allowlist for /app and /api/*
 functions/api/auth/   login, logout, me, status, recovery-codes
 functions/api/data/   ledger read/write
 functions/_lib/       shared auth, crypto, throttling, recovery, retention
 migrations/           D1 schema, applied by hand (0001–0004)
-tests/                node:test suites, 157 tests
+tests/                node:test suites
 ```
 
 ## Tests
 
 ```powershell
-node --test tests/auth-session.test.mjs tests/data-sanitize.test.mjs tests/overlays.test.js tests/persistence.test.js tests/recovery.test.mjs tests/totals.test.js tests/deletion.test.mjs
+node --test tests/auth-session.test.mjs tests/data-sanitize.test.mjs tests/middleware.test.mjs tests/overlays.test.js tests/persistence.test.js tests/recovery.test.mjs tests/totals.test.js tests/deletion.test.mjs
 ```
 
 `node --test tests/` does not work — pass the files explicitly. CI runs the same
@@ -59,30 +62,35 @@ git push origin main
 Migrations are **not** applied by Pages. See `DEPLOY.md` for the schema steps,
 and run them before pushing code that needs them.
 
-## Private mode
+## Public posture
 
-The planner is meant to be private and the brand site meant to be shareable, so
-the gate belongs on `/app*` and `/api/*` via a Cloudflare **Zero Trust Access**
-application on `bucksy.life`, not on the whole hostname.
+There is **no Cloudflare Access gate** in front of this project. `bucksy.life`
+and its API are publicly reachable. The app's own sign-in protects the ledger,
+not the door, so the public surface is deliberate:
 
-As of 2026-11-17 that application does not exist yet: `/app` answers `200` to an
-unauthenticated request. The app's own login still protects the data, but the
-sign-in screen is public and registration is not closed server-side. `DEPLOY.md`
-→ "Private mode" has the paths to add and the current status.
+- **Registration is open.** `POST /api/auth/login` with `mode: register` creates
+  an account regardless of how many already exist. `hasUsers` only chooses the
+  default tab in the UI.
+- **One hostname serves the app.** `functions/_middleware.js` returns `404` for
+  `/app` and `/api/*` on any host that is not `bucksy.life`, `www.bucksy.life`,
+  local development (`localhost`, `127.0.0.1`, `[::1]`) or a preview deployment
+  (`*.<project>.pages.dev`). The production alias
+  `personal-finance-8ch.pages.dev` is explicitly denied.
+- **Functions run only where they are needed.** `_routes.json` limits the
+  runtime to `/api/*` and `/app`; every other path is served as a static asset.
+- **Uptime monitors see `200`.** `/api/auth/status` is public JSON with no gate
+  in front of it.
+- **Unknown paths return a real `404`.** `404.html` is served with status `404`
+  instead of the old soft-404 landing page.
 
-- The `*.pages.dev` hostname **cannot** be covered by Access. What limits it is
-  Turnstile hostname management: list `bucksy.life` only, so the back door fails
-  the bot check on sign-in and registration.
-- An uptime monitor pointed at a gate-protected `/api/auth/status` will see
-  `302`, not `200`.
-- `DEPLOY.md` has the checklist for switching to public, and for retiring
-  `expenses.mashmind.in`.
+If a gate is ever added, change it here and in `DEPLOY.md` in the same commit —
+the copy on the landing page must match what the edge actually does.
 
 ## Docs
 
 | File | What it answers |
 |---|---|
-| `DEPLOY.md` | How a deploy ships, bindings, migrations, going public |
+| `DEPLOY.md` | How a deploy ships, bindings, migrations, public posture |
 | `OPERATIONS.md` | Watching live logs, reading errors, alerting |
 | `RUNBOOK.md` | "It broke" — logs, password reset, restore, rollback |
 | `SECURITY.md` | What is hardened, what remains |

@@ -8,7 +8,7 @@
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <meta name="theme-color" content="#F9F6EE">
   <link rel="canonical" href="https://bucksy.life/">
-  <meta name="description" content="Bucksy is a private, single-account finance planner. Track monthly expenses, set category budgets and see where your money goes.">
+  <meta name="description" content="Bucksy is a personal finance planner. Track monthly expenses, set category budgets and see where your money goes.">
   <meta property="og:title" content="Bucksy — Expenses made simple">
   <meta property="og:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
   <meta property="og:type" content="website">
@@ -481,7 +481,7 @@
         <nav class="nav-links" aria-label="Main navigation">
           <a href="#features">Features</a>
           <a href="#security">Privacy</a>
-          <a href="/app.html" class="btn nav-cta">Open Bucksy
+          <a href="/app" class="btn nav-cta">Open Bucksy
             <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
           </a>
         </nav>
@@ -511,7 +511,7 @@
           </ul>
 
           <div class="hero-actions">
-            <a href="/app.html" class="btn">Open your planner
+            <a href="/app" class="btn">Open your planner
               <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
             </a>
             <a href="#features" class="btn btn-ghost">See what's inside</a>
@@ -519,7 +519,7 @@
 
           <p class="fineprint">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
-            One private account, bot checks and server-side lockouts.
+            A private ledger, bot checks and server-side lockouts.
           </p>
         </div>
 
@@ -676,17 +676,25 @@
         <div class="security-panel">
           <div>
             <span class="overline">Private by design</span>
-            <h2>One account. Closed door.</h2>
-            <p>Bucksy is a personal tool, not a public sign-up product. Every request passes bot checks, rate limits and server-side login lockouts before it reaches your data.</p>
+            <h2>Your ledger stays yours.</h2>
+            <p>Bucksy is a public sign-up service with a private ledger. Nothing is readable until you sign in, and every sign-in passes bot checks, rate limits and server-side lockouts before it reaches your data.</p>
           </div>
           <div class="security-list">
             <div class="security-item">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Turnstile</strong><span>Bot checks on every sign-in</span></div>
+              <div><strong>Turnstile</strong><span>Bot checks on sign-in and registration</span></div>
             </div>
             <div class="security-item">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Rate limits and lockouts</strong><span>WAF rules plus server-side attempt tracking</span></div>
+              <div><strong>Password hashing</strong><span>PBKDF2-SHA256 with a per-account salt</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Server-side lockouts</strong><span>Repeated failures trigger a timed lockout</span></div>
+            </div>
+            <div class="security-item">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              <div><strong>Revocable sessions</strong><span>HttpOnly cookies, invalidated on password change</span></div>
             </div>
             <div class="security-item">
               <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
@@ -713,7 +721,7 @@
             <p>Set your income, fill in the fixed lines, and let the plan follow from there. Bucksy is a planning tool, not financial advice.</p>
           </div>
           <div class="closing-cta">
-            <a href="/app.html" class="btn">Open Bucksy
+            <a href="/app" class="btn">Open Bucksy
               <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
             </a>
             <span class="note">Sign in with your existing account.</span>

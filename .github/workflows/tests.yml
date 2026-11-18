@@ -19,6 +19,7 @@ jobs:
           node --test \
             tests/auth-session.test.mjs \
             tests/data-sanitize.test.mjs \
+            tests/middleware.test.mjs \
             tests/overlays.test.js \
             tests/persistence.test.js \
             tests/recovery.test.mjs \

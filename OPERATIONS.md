@@ -77,16 +77,18 @@ whole categories:
 
 | Missing from the tail | Why | Where to look instead |
 |---|---|---|
-| `/`, `/app.html`, CSS, images, `_headers` | Served directly by Cloudflare, never enter a function | Nowhere — they are static files |
+| `/`, CSS, images, `404.html`, `_headers` | Served directly by Cloudflare, never enter a function | Nowhere — they are static files |
 | WAF / rate-limit / Bot Fight blocks on `bucksy.life` | Rejected at the edge, before your code runs | Dashboard → `bucksy.life` zone → Security → Events |
 
-So only `/api/*` traffic appears. Page loads show up indirectly, through the
-`/api/auth/status` and `/api/auth/me` calls the page makes.
+`_routes.json` sends only `/api/*` and `/app` through the Functions runtime, so
+those are the paths that appear in a tail. Page loads show up indirectly,
+through the `/api/auth/status` and `/api/auth/me` calls the page makes.
 
 The tail is scoped to a **deployment**, not a hostname: requests from
-`bucksy.life`, the old `expenses.mashmind.in` and
-`personal-finance-8ch.pages.dev` all appear, and the `host` field tells you
-which one a request came through.
+`bucksy.life` and from preview `*.pages.dev` hosts all appear, and the `host`
+field tells you which one a request came through. Requests to
+`personal-finance-8ch.pages.dev/app` or `/api/*` stop at the middleware with a
+`404` and never reach a route handler.
 
 ### Order matters
 
@@ -155,12 +157,10 @@ https://bucksy.life/api/auth/status
 
 Check every minute. Alert when the status is not `200`.
 
-> **If an Access application covers `/api/*`**, that URL answers `302` to the SSO
-> page before Pages runs. A `302` is indistinguishable from a normal redirect, so
-> either give the monitor an Access service token, or point it at
-> `https://personal-finance-8ch.pages.dev/api/auth/status`. As of 2026-11-17
-> `bucksy.life` has no Access app, so the monitor works directly. See `DEPLOY.md`
-> → "Private mode".
+> There is no Access gate on `/api/*`, so the monitor gets a direct `200`. A
+> `302` to `cloudflareaccess.com` means an Access application was added outside
+> this repo, and the monitor is no longer hitting the app. See `DEPLOY.md` →
+> "Public posture".
 
 Expected healthy response:
 
@@ -216,7 +216,7 @@ setup, paid. Not worth it at this size.
 | One endpoint 500s | Bug in that handler |
 | Login refused, site looks fine | Turnstile half-configured, or auth throttling |
 | `429` | Rate limit / lockout (`auth_throttle` table) |
-| Everything `302`s to `cloudflareaccess.com` | Access policy is on; expected while private |
+| Everything `302`s to `cloudflareaccess.com` | An Access application was added outside the repo; see `DEPLOY.md` |
 | Forgotten password | User redeems a recovery code; see `RUNBOOK.md` §3 |
 | Site 404s at `/` | A `functions/index.js` was added and is shadowing `index.html` |
 | `D1_ERROR` / no such table | A migration was not applied; see `DEPLOY.md` |
