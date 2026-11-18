@@ -77,6 +77,7 @@ There is no entry point file. Pages maps files under `functions/` to URLs:
 | `functions/api/auth/status.js` | `GET /api/auth/status` |
 | `functions/api/data/index.js` | `/api/data` |
 | `functions/api/data/month/[month].js` | `/api/data/month/:month` |
+| `functions/api/settings/index.js` | `/api/settings` |
 | `functions/_middleware.js` | wrapper for `/api/*` and `/app` (see `_routes.json`) |
 
 Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
@@ -85,7 +86,7 @@ Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
 
 | Binding | Kind | Purpose |
 |---|---|---|
-| `DB` | D1 database | users, months, auth_throttle, recovery_codes, deleted_months |
+| `DB` | D1 database | users, months, user_settings, auth_throttle, recovery_codes, deleted_months |
 | `SESSIONS` | KV namespace | `sess:<token>` session records |
 | `TURNSTILE_SITE_KEY` | variable | client widget key |
 | `TURNSTILE_SECRET` | secret | server-side verification |
@@ -114,10 +115,15 @@ them goes live:
 wrangler d1 execute personal-expenses-db --file migrations/0002_auth_throttle.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0003_recovery_codes.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0004_deleted_months.sql --remote
+wrangler d1 execute personal-expenses-db --file migrations/0005_ledger_durability.sql --remote
 ```
 
-Both are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`),
-so re-running them is safe.
+`0002`–`0004` are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT
+EXISTS`), so re-running them is safe.
+
+`0005` is different: it adds `months.version` with `ALTER TABLE`, which fails if
+the column already exists. Run it once. It also creates `user_settings`. Apply it
+before pushing any code that sends `baseVersion` or reads `version`.
 
 > `0003_recovery_codes.sql` must be applied before pushing the recovery-code
 > feature. Registration degrades gracefully without it (the account is created,
@@ -126,6 +132,10 @@ so re-running them is safe.
 > > `0004_deleted_months.sql` enables the 30-day retention window for deleted
 > > accounts. Apply it before pushing the retention feature. If not applied,
 > > deletion falls back to immediate erasure but still completes.
+> >
+> > > `0005_ledger_durability.sql` makes month writes conditional and moves
+> > > `__meta` into `user_settings`. Apply it before the matching deploy: the
+> > > data and settings routes select `version`, and return 500s without it.
 
 Database id: `f99159c3-82a7-405c-bf9e-6e65b5662be5`.
 

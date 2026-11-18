@@ -1,7 +1,20 @@
 import { json, readJson, sanitizeLedgerPayload, guardJsonMutation } from "../../../_lib/common.js";
-import { requireSession } from "../../../_lib/auth.js";
+import { requireSession, ledgerOwnerMismatch } from "../../../_lib/auth.js";
 
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+function readBaseVersion(body) {
+  const raw = body?.baseVersion;
+  return Number.isInteger(raw) && raw >= 0 ? raw : null;
+}
+
+function toRecord(row) {
+  return {
+    salary: row.salary ?? "",
+    items: safeParse(row.items_json, {}),
+    paid: safeParse(row.paid_json, {}),
+  };
+}
 
 export async function onRequestPut(context) {
   const rejected = guardJsonMutation(context.request);
@@ -10,7 +23,7 @@ export async function onRequestPut(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
-  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  const ownerMismatch = ledgerOwnerMismatch(context.request, session);
   if (ownerMismatch) return ownerMismatch;
 
   const month = context.params.month;
@@ -21,27 +34,89 @@ export async function onRequestPut(context) {
   const body = await readJson(context.request);
   const userID = session.userID;
   const clean = sanitizeLedgerPayload(body);
+  const baseVersion = readBaseVersion(body);
+  const now = Date.now();
 
-  await context.env.DB.prepare(
-    `INSERT INTO months (user_id, month, salary, items_json, paid_json, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?)
+  // No `baseVersion` is the old client contract: overwrite. New clients always
+  // send one, so this branch exists only for a cached page during rollout.
+  if (baseVersion === null) {
+    await context.env.DB.prepare(
+      `INSERT INTO months (user_id, month, salary, items_json, paid_json, version, updated_at)
+       VALUES (?, ?, ?, ?, ?, 1, ?)
+       ON CONFLICT(user_id, month) DO UPDATE SET
+         salary = excluded.salary,
+         items_json = excluded.items_json,
+         paid_json = excluded.paid_json,
+         version = months.version + 1,
+         updated_at = excluded.updated_at`
+    )
+      .bind(userID, month, clean.salary, JSON.stringify(clean.items), JSON.stringify(clean.paid), now)
+      .run();
+
+    const row = await context.env.DB.prepare(
+      "SELECT version FROM months WHERE user_id = ? AND month = ?"
+    )
+      .bind(userID, month)
+      .first();
+    return json({ ok: true, month, version: row?.version ?? 1 });
+  }
+
+  const result = await context.env.DB.prepare(
+    `INSERT INTO months (user_id, month, salary, items_json, paid_json, version, updated_at)
+     VALUES (?, ?, ?, ?, ?, 1, ?)
      ON CONFLICT(user_id, month) DO UPDATE SET
        salary = excluded.salary,
        items_json = excluded.items_json,
        paid_json = excluded.paid_json,
-       updated_at = excluded.updated_at`
+       version = months.version + 1,
+       updated_at = excluded.updated_at
+     WHERE months.version = ?`
   )
-    .bind(userID, month, clean.salary, JSON.stringify(clean.items), JSON.stringify(clean.paid), Date.now())
+    .bind(
+      userID,
+      month,
+      clean.salary,
+      JSON.stringify(clean.items),
+      JSON.stringify(clean.paid),
+      now,
+      baseVersion
+    )
     .run();
 
-  return json({ ok: true, month });
+  if (!result?.meta?.changes) {
+    const current = await context.env.DB.prepare(
+      "SELECT salary, items_json, paid_json, version FROM months WHERE user_id = ? AND month = ?"
+    )
+      .bind(userID, month)
+      .first();
+
+    return json(
+      {
+        ok: false,
+        code: "version_conflict",
+        error: "This month changed on another device.",
+        month,
+        version: current?.version ?? 0,
+        current: current ? toRecord(current) : null,
+      },
+      { status: 409 }
+    );
+  }
+
+  const row = await context.env.DB.prepare(
+    "SELECT version FROM months WHERE user_id = ? AND month = ?"
+  )
+    .bind(userID, month)
+    .first();
+
+  return json({ ok: true, month, version: row?.version ?? baseVersion + 1 });
 }
 
 export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
 
-  const ownerMismatch = rejectLedgerOwner(context.request, session);
+  const ownerMismatch = ledgerOwnerMismatch(context.request, session);
   if (ownerMismatch) return ownerMismatch;
 
   const month = context.params.month;
@@ -50,21 +125,18 @@ export async function onRequestGet(context) {
   }
 
   const row = await context.env.DB.prepare(
-    "SELECT salary, items_json, paid_json FROM months WHERE user_id = ? AND month = ?"
+    "SELECT salary, items_json, paid_json, version FROM months WHERE user_id = ? AND month = ?"
   )
     .bind(session.userID, month)
     .first();
 
-  if (!row) return json({ ok: true, month, data: null });
+  if (!row) return json({ ok: true, month, data: null, version: 0 });
 
   return json({
     ok: true,
     month,
-    data: {
-      salary: row.salary ?? "",
-      items: safeParse(row.items_json, {}),
-      paid: safeParse(row.paid_json, {}),
-    },
+    data: toRecord(row),
+    version: row.version ?? 1,
   });
 }
 
@@ -74,16 +146,4 @@ function safeParse(raw, fallback) {
   } catch {
     return fallback;
   }
-}
-
-/** See the matching check in data/index.js. */
-function rejectLedgerOwner(request, session) {
-  const owner = request.headers.get("x-ledger-owner");
-  if (owner && owner !== session.userID) {
-    return json(
-      { ok: false, error: "This ledger belongs to a different account. Reload before saving." },
-      { status: 409 }
-    );
-  }
-  return null;
 }

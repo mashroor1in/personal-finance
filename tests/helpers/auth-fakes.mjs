@@ -98,7 +98,7 @@ export function makeDB(users = new Map()) {
                 }
                 return { results };
               }
-              if (/SELECT month, salary, items_json, paid_json FROM months WHERE user_id = \?/i.test(sql)) {
+              if (/SELECT month, salary, items_json, paid_json, version FROM months WHERE user_id = \?/i.test(sql)) {
                 const results = [];
                 for (const row of months.values()) {
                   if (row.user_id !== args[0]) continue;
@@ -107,6 +107,7 @@ export function makeDB(users = new Map()) {
                     salary: row.salary,
                     items_json: row.items_json,
                     paid_json: row.paid_json,
+                    version: row.version ?? 1,
                   });
                 }
                 results.sort((a, b) => a.month.localeCompare(b.month));
@@ -292,6 +293,7 @@ export function addMonth(db, userID, month, { salary = 0, items = {}, paid = {} 
     salary,
     items_json: JSON.stringify(items),
     paid_json: JSON.stringify(paid),
+    version: 1,
     updated_at: 1,
     created_at: 1,
   });

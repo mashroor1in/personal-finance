@@ -180,18 +180,70 @@ test("syncMonth PUTs only that month when signed in", async () => {
   const { persistence, storage, request } = makePersistence();
   const result = await persistence.syncMonth(ledger, "2026-10");
 
-  assert.deepEqual(result, { synced: true });
+  assert.deepEqual(result, { synced: true, version: 0 });
   assert.equal(request.calls.length, 1);
   assert.equal(request.calls[0].path, "/api/data/month/2026-10");
   assert.equal(request.calls[0].options.method, "PUT");
-  assert.deepEqual(JSON.parse(request.calls[0].options.body), ledger["2026-10"]);
+  assert.deepEqual(JSON.parse(request.calls[0].options.body), {
+    ...ledger["2026-10"],
+    baseVersion: 0,
+  });
   assert.deepEqual(JSON.parse(storage.get(Persistence.STORAGE_KEY)), ledger);
 });
 
 test("syncMonth sends a blank record for a month the ledger lacks", async () => {
   const { persistence, request } = makePersistence();
   await persistence.syncMonth({}, "2025-01");
-  assert.deepEqual(JSON.parse(request.calls[0].options.body), { salary: "", items: {}, paid: {} });
+  assert.deepEqual(JSON.parse(request.calls[0].options.body), {
+    salary: "",
+    items: {},
+    paid: {},
+    baseVersion: 0,
+  });
+});
+
+test("syncMonth adopts and reuses the version the server reports", async () => {
+  const seen = [];
+  const { persistence } = makePersistence({
+    handler: async (path, options) => {
+      seen.push(JSON.parse(options.body).baseVersion);
+      return { ok: true, month: "2026-10", version: 4 };
+    },
+  });
+
+  const first = await persistence.syncMonth(ledger, "2026-10");
+  assert.deepEqual(first, { synced: true, version: 4 });
+  assert.equal(persistence.versionOf("2026-10"), 4);
+
+  await persistence.syncMonth(ledger, "2026-10");
+  assert.deepEqual(seen, [0, 4]);
+});
+
+test("setVersions replaces the map and ignores junk", () => {
+  const { persistence } = makePersistence();
+
+  persistence.setVersions({ "2026-10": 2, "2026-11": 5, nope: 9, "2026-12": -1 });
+  assert.equal(persistence.versionOf("2026-10"), 2);
+  assert.equal(persistence.versionOf("2026-11"), 5);
+
+  persistence.setVersions({ "2026-10": 7 });
+  assert.equal(persistence.versionOf("2026-10"), 7);
+  // A month absent from the new map is unknown again.
+  assert.equal(persistence.versionOf("2026-11"), 0);
+});
+
+test("noteVersion only records real months with a usable version", () => {
+  const { persistence } = makePersistence();
+
+  persistence.noteVersion("2026-10", 3);
+  persistence.noteVersion("2026-1", 4);
+  persistence.noteVersion("2026-11", "4");
+  persistence.noteVersion("2026-12", -2);
+
+  assert.equal(persistence.versionOf("2026-10"), 3);
+  assert.equal(persistence.versionOf("2026-1"), 0);
+  assert.equal(persistence.versionOf("2026-11"), 0);
+  assert.equal(persistence.versionOf("2026-12"), 0);
 });
 
 test("syncAll POSTs month keys only, never meta", async () => {
@@ -255,6 +307,118 @@ test("syncAllBestEffort swallows request failures after the local write", async 
 test("syncAllBestEffort reports a successful sync", async () => {
   const { persistence } = makePersistence();
   assert.deepEqual(await persistence.syncAllBestEffort(ledger), { synced: true });
+});
+
+test("syncAll adopts the versions the bulk route reports", async () => {
+  const { persistence, request } = makePersistence({
+    handler: async () => ({ ok: true, migrated: 2, versions: { "2026-10": 6, "2026-11": 3 } }),
+  });
+
+  await persistence.syncAll(ledger);
+
+  assert.equal(request.calls[0].path, "/api/data");
+  assert.equal(persistence.versionOf("2026-10"), 6);
+  assert.equal(persistence.versionOf("2026-11"), 3);
+});
+
+test("loadSettings is a local no-op when signed out", async () => {
+  const { persistence, request } = makePersistence({ authenticated: false });
+  assert.deepEqual(await persistence.loadSettings(), { settings: null, version: 0, reason: "local" });
+  assert.equal(request.calls.length, 0);
+});
+
+test("loadSettings reads the account copy and remembers its version", async () => {
+  const { persistence, request } = makePersistence({
+    handler: async () => ({
+      ok: true,
+      settings: { categoryBudgets: { Food: 500 } },
+      version: 3,
+    }),
+  });
+
+  const result = await persistence.loadSettings();
+
+  assert.equal(request.calls[0].path, "/api/settings");
+  assert.equal(request.calls[0].options.method, "GET");
+  assert.deepEqual(result, { settings: { categoryBudgets: { Food: 500 } }, version: 3 });
+});
+
+test("syncSettings PUTs the meta block with the version it last saw", async () => {
+  const { persistence, request } = makePersistence({
+    handler: async (path, options) => {
+      const body = JSON.parse(options.body);
+      assert.deepEqual(body, { settings: ledger.__meta, baseVersion: 0 });
+      return { ok: true, version: 1 };
+    },
+  });
+
+  const result = await persistence.syncSettings(ledger.__meta);
+
+  assert.equal(request.calls[0].path, "/api/settings");
+  assert.equal(request.calls[0].options.method, "PUT");
+  assert.deepEqual(result, { synced: true, version: 1 });
+});
+
+test("syncSettings then sends the version the server returned", async () => {
+  const { persistence, request } = makePersistence({
+    handler: async () => ({ ok: true, version: 8 }),
+  });
+
+  await persistence.syncSettings(ledger.__meta);
+  await persistence.syncSettings(ledger.__meta);
+
+  assert.equal(JSON.parse(request.calls[1].options.body).baseVersion, 8);
+});
+
+test("syncSettings is local-only when signed out", async () => {
+  const { persistence, request } = makePersistence({ authenticated: false });
+  assert.deepEqual(await persistence.syncSettings(ledger.__meta), { synced: false, reason: "local" });
+  assert.equal(request.calls.length, 0);
+});
+
+test("syncSettingsBestEffort surfaces a conflict without throwing", async () => {
+  const conflict = Object.assign(new Error("Settings changed on another device."), {
+    status: 409,
+    code: "version_conflict",
+  });
+  const { persistence } = makePersistence({
+    handler: async () => { throw conflict; },
+  });
+
+  const result = await persistence.syncSettingsBestEffort(ledger.__meta);
+
+  assert.equal(result.synced, false);
+  assert.equal(result.reason, "error");
+  assert.equal(result.error.status, 409);
+});
+
+test("switching accounts forgets the previous versions and settings version", async () => {
+  const { persistence, request } = makePersistence({
+    handler: async () => ({ ok: true, version: 5 }),
+  });
+
+  persistence.setOwner("alice");
+  persistence.setVersions({ "2026-10": 5 });
+  await persistence.syncSettings(ledger.__meta); // settingsVersion becomes 5
+  persistence.noteVersion("2026-11", 2);
+
+  persistence.setOwner("bob");
+
+  assert.equal(persistence.versionOf("2026-10"), 0);
+  assert.equal(persistence.versionOf("2026-11"), 0);
+
+  await persistence.syncSettings(ledger.__meta);
+  assert.equal(JSON.parse(request.calls[1].options.body).baseVersion, 0);
+});
+
+test("clearOwner also forgets versions", () => {
+  const { persistence } = makePersistence();
+  persistence.setOwner("alice");
+  persistence.setVersions({ "2026-10": 5 });
+
+  persistence.clearOwner();
+
+  assert.equal(persistence.versionOf("2026-10"), 0);
 });
 
 test("clearData drops the ledger and any pending save", (t) => {

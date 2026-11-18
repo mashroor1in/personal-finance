@@ -3240,6 +3240,17 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       return data.__meta;
     }
 
+    /** True when `__meta` carries a real customisation worth uploading. */
+    function metaHasContent(meta) {
+      if (!meta || typeof meta !== "object") return false;
+      return (
+        (Array.isArray(meta.customItems) && meta.customItems.length > 0) ||
+        (Array.isArray(meta.hiddenItems) && meta.hiddenItems.length > 0) ||
+        Object.keys(meta.nameOverrides || {}).length > 0 ||
+        Object.keys(meta.categoryBudgets || {}).length > 0
+      );
+    }
+
     function getAllItems() {
       const meta = getMeta();
       const overrides = meta.nameOverrides || {};
@@ -6085,7 +6096,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       getMeta().categoryBudgets = budgets;
       persistence.saveLocal(data);
-      syncAllInBackground();
+      syncSettingsInBackground();
       overlays.close("budget");
       render();
       setAutosaveBadge("Saved on this device", "saved");
@@ -6158,7 +6169,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           }
           setAutosaveBadge("Saving…", "saving");
           try {
-            await persistence.syncAll(data);
+            // Only this month gained an amount; the rest is account settings.
+            await persistence.syncMonth(data, month);
+            await persistence.syncSettings(getMeta());
             setAutosaveBadge("Saved to cloud", "saved");
             return { synced: true };
           } catch (err) {
@@ -6193,7 +6206,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         else meta.nameOverrides[key] = nextName;
 
         persistence.saveLocal(data);
-        syncAllInBackground();
+        syncSettingsInBackground();
         render();
         showToast("Expense renamed");
         setAutosaveBadge("Saved on this device", "saved");
@@ -6233,6 +6246,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
 
       persistence.saveLocal(data);
+      // Deleting an item also removes it from every month, so this is the one
+      // action that still needs the bulk write; the meta change rides along.
+      syncSettingsInBackground();
       syncAllInBackground();
       render();
       sileo.success({ title: "Expense deleted", description: `"${item.name}" was removed from all months.` });
@@ -6427,6 +6443,51 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
     }
 
+    function syncSettingsInBackground() {
+      persistence.syncSettingsBestEffort(getMeta()).then(async (result) => {
+        if (result.synced) {
+          setAutosaveBadge("Saved to cloud", "saved");
+          return;
+        }
+        if (result.reason !== "error") return;
+        if (result.error?.status === 409) {
+          await reconcileSettingsConflict();
+          return;
+        }
+        setAutosaveBadge("Save failed", "error");
+      });
+    }
+
+    // The other device won: load its copy rather than retrying over the top.
+    async function reconcileSettingsConflict() {
+      try {
+        const remote = await persistence.loadSettings();
+        if (remote?.settings && typeof remote.settings === "object") {
+          data.__meta = Persistence.normalizeMeta({ __meta: remote.settings }).__meta;
+          persistence.saveLocal(data);
+          render();
+        }
+        showToast("Category settings changed on another device. Loaded the saved copy.", "warning");
+      } catch {
+        setAutosaveBadge("Save failed", "error");
+      }
+    }
+
+    // Same rule for one month: adopt the stored copy, never overwrite blind.
+    async function reconcileMonthConflict(month) {
+      try {
+        const res = await api(`/api/data/month/${month}`);
+        if (res?.data) {
+          data[month] = res.data;
+          persistence.noteVersion(month, res.version);
+          persistence.saveLocal(data);
+          render();
+        }
+      } catch {
+        setAutosaveBadge("Save failed", "error");
+      }
+    }
+
     function setAutosaveBadge(text, state = "", autoHide = false) {
       if (!autosaveBadge) return;
       autosaveBadge.textContent = text;
@@ -6482,6 +6543,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const msg = payload?.error || `Request failed (${res.status})`;
         const err = new Error(msg);
         err.status = res.status;
+        // Conflict responses carry the server's current copy so the caller can
+        // reconcile instead of guessing what changed.
+        err.code = payload?.code;
+        err.current = payload?.current;
+        err.version = payload?.version;
         const retryAfter = Number(res.headers.get("Retry-After") || "0");
         if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfterSec = retryAfter;
         throw err;
@@ -6588,11 +6654,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     async function hydrateFromCloud() {
-      // Month rows are stored in D1, but the `__meta` block (custom expenses,
-      // renames, category budgets, hidden items) is local-only. Keep this
-      // browser's copy instead of wiping it when the cloud payload replaces
-      // `data`. If a different account is signing in, start with clean meta so
-      // one account's customisations never leak into another.
+      // Months and `__meta` are both account state now. Months come from the
+      // ledger route; custom expenses, renames, hidden items and budgets come
+      // from the settings route. If a different account is signing in, start
+      // with its copy so one account's customisations never leak into another.
       const localMeta = data && typeof data === "object" ? data.__meta : null;
       const owner = String(cloudProfile?.userID || "");
       const previousOwner = persistence.getOwner();
@@ -6601,11 +6666,32 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const res = await api("/api/data");
       if (res?.data && typeof res.data === "object") {
         data = res.data;
-        if (sameAccount && localMeta) data.__meta = localMeta;
         persistence.setOwner(owner);
+        if (sameAccount && localMeta) data.__meta = localMeta;
         ensureDataShape();
-        persistence.saveLocal(data);
+        persistence.setVersions(res.versions);
       }
+
+      if (!sameAccount) return;
+
+      // The account copy wins once it exists. Before it exists, this browser's
+      // local meta is the upgrade path: upload it once so budgets and custom
+      // items stop dying whenever the user opens a second device.
+      let remote = null;
+      try {
+        remote = await persistence.loadSettings();
+      } catch {
+        remote = null;
+      }
+
+      if (metaHasContent(remote?.settings)) {
+        data.__meta = Persistence.normalizeMeta({ __meta: remote.settings }).__meta;
+      } else if (metaHasContent(localMeta)) {
+        data.__meta = Persistence.normalizeMeta({ __meta: localMeta }).__meta;
+        await persistence.syncSettingsBestEffort(data.__meta);
+      }
+
+      persistence.saveLocal(data);
     }
 
     async function migrateLocalStorageToCloudOnce() {
@@ -6861,6 +6947,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           setAutosaveBadge("Saved to cloud", "saved");
           return { synced: true };
         } catch (err) {
+          if (err?.status === 409 && err?.code === "version_conflict") {
+            // Another device saved this month after this tab loaded it. Load the
+            // stored copy and say so, rather than retrying the stale write over
+            // the top of newer data.
+            setAutosaveBadge("Changed elsewhere", "error");
+            await reconcileMonthConflict(month);
+            throw new Error(`${label} changed on another device. Loaded the saved copy.`);
+          }
           setAutosaveBadge("Save failed", "error");
           throw err;
         }

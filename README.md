@@ -35,8 +35,9 @@ _routes.json          which paths invoke Pages Functions
 functions/_middleware.js  host allowlist for /app and /api/*
 functions/api/auth/   login, logout, me, status, recovery-codes
 functions/api/data/   ledger read/write
+functions/api/settings/  account settings (custom items, renames, budgets)
 functions/_lib/       shared auth, crypto, throttling, recovery, retention
-migrations/           D1 schema, applied by hand (0001–0004)
+migrations/           D1 schema, applied by hand (0001–0005)
 tests/                node:test suites
 ```
 
@@ -61,6 +62,24 @@ git push origin main
 
 Migrations are **not** applied by Pages. See `DEPLOY.md` for the schema steps,
 and run them before pushing code that needs them.
+
+## Data durability
+
+Months and account settings both live in D1 per account. Every write carries
+the version the tab last saw:
+
+- `PUT /api/data/month/:month` updates one month. If another device wrote
+  first, the server returns `409 version_conflict` with the stored copy, and
+  the client loads that copy instead of overwriting it.
+- `PUT /api/settings` stores `__meta` — custom expenses, renames, hidden items
+  and category budgets — under the same conditional-version rule. A browser
+  that only ever used `localStorage` uploads its copy on its next sign-in.
+- `POST /api/data` stays an unconditional bulk write for the one-time local
+  ledger import. It bumps versions and returns them, so the client switches to
+  conditional writes afterwards.
+
+`__meta` used to be local-only. It is now account state, so custom items and
+budgets survive on a second device.
 
 ## Public posture
 

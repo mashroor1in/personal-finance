@@ -1,4 +1,4 @@
-import { parseCookies, sha256Hex } from "./common.js";
+import { json, parseCookies, sha256Hex } from "./common.js";
 
 /**
  * Resolve the presented session cookie to a live account.
@@ -38,4 +38,24 @@ export async function requireSession(context) {
 /** The credential version stored in a session record for one password hash. */
 export async function sessionVersion(pinHash) {
   return sha256Hex(`session:${pinHash}`);
+}
+
+/**
+ * A tab can keep an old in-memory ledger after another tab signs in as a
+ * different account. The client stamps every read and write with the account
+ * that hydrated it; refuse a mismatch instead of copying the previous
+ * account's rows under the current session.
+ *
+ * This is a consistency check, not an authorization boundary: the session
+ * still decides whose rows are touched.
+ */
+export function ledgerOwnerMismatch(request, session) {
+  const owner = request.headers.get("x-ledger-owner");
+  if (owner && owner !== session.userID) {
+    return json(
+      { ok: false, error: "This ledger belongs to a different account. Reload before saving." },
+      { status: 409 }
+    );
+  }
+  return null;
 }

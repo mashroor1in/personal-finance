@@ -9,9 +9,11 @@
  *   storage — localStorage in the browser, a Map in tests
  *   request — the app's `api()` in the browser, a recorder in tests
  *
- * `data.__meta` is local-only by contract. The server drops every key that is
- * not `YYYY-MM`, so cloud writes deliberately filter month keys out and leave
- * meta behind on the device.
+ * `data.__meta` is account-level state, not a month: custom items, renames,
+ * hidden items and category budgets travel over `/api/settings`, while months
+ * travel over `/api/data/month/:month`. Both carry the version the client last
+ * saw so a stale tab gets a conflict instead of silently overwriting a newer
+ * copy written by another device.
  */
 (function (root, factory) {
   "use strict";
@@ -61,6 +63,42 @@
     }
 
     let timer = null;
+    const versions = new Map();
+    let settingsVersion = 0;
+
+    /** Forget per-account versions when the browser switches accounts. */
+    function resetCloudState() {
+      versions.clear();
+      settingsVersion = 0;
+    }
+
+    /** Replace the whole version map after a bulk read or write. */
+    function setVersions(map) {
+      versions.clear();
+      if (!map || typeof map !== "object") return;
+      for (const [month, version] of Object.entries(map)) {
+        if (MONTH_RE.test(month) && Number.isInteger(version) && version >= 0) {
+          versions.set(month, version);
+        }
+      }
+    }
+
+    function noteVersion(month, version) {
+      if (MONTH_RE.test(month) && Number.isInteger(version) && version >= 0) {
+        versions.set(month, version);
+      }
+    }
+
+    /**
+     * The version to send as `baseVersion`.
+     *
+     * `0` means "this month must not exist yet": the server rejects the write
+     * if another device created it in the meantime, which is exactly the case
+     * a client that has never seen the month cannot know about.
+     */
+    function versionOf(month) {
+      return versions.has(month) ? versions.get(month) : 0;
+    }
 
     function load() {
       try {
@@ -106,24 +144,35 @@
     async function syncMonth(data, month) {
       saveLocal(data);
       if (!session.isAuthenticated()) return { synced: false, reason: "local" };
-      const record = (data && data[month]) || DEFAULT_MONTH();
-      await request(`/api/data/month/${month}`, {
+
+      const source = (data && data[month]) || DEFAULT_MONTH();
+      const body = {
+        salary: source.salary ?? "",
+        items: source.items || {},
+        paid: source.paid || {},
+        baseVersion: versionOf(month),
+      };
+      const result = await request(`/api/data/month/${month}`, {
         method: "PUT",
         headers: ownerHeaders(),
-        body: JSON.stringify(record),
+        body: JSON.stringify(body),
       });
-      return { synced: true };
+      noteVersion(month, result?.version);
+      return { synced: true, version: versionOf(month) };
     }
 
     /** Local write, then the whole ledger over the bulk route when signed in. */
     async function syncAll(data) {
       saveLocal(data);
       if (!session.isAuthenticated()) return { synced: false, reason: "local" };
-      await request("/api/data", {
+      const result = await request("/api/data", {
         method: "POST",
         headers: ownerHeaders(),
         body: JSON.stringify({ data: monthKeys(data) }),
       });
+      // The bulk route bumps every touched version, so adopt what it reports
+      // rather than keeping a map that is now stale.
+      setVersions(result?.versions);
       return { synced: true };
     }
 
@@ -131,6 +180,39 @@
     async function syncAllBestEffort(data) {
       try {
         return await syncAll(data);
+      } catch (error) {
+        return { synced: false, reason: "error", error };
+      }
+    }
+
+    /** Pull the account's `__meta` block. Signed out means "no cloud copy". */
+    async function loadSettings() {
+      if (!session.isAuthenticated()) {
+        return { settings: null, version: 0, reason: "local" };
+      }
+      const result = await request("/api/settings", {
+        method: "GET",
+        headers: ownerHeaders(),
+      });
+      settingsVersion = Number.isInteger(result?.version) ? result.version : 0;
+      return { settings: result?.settings ?? null, version: settingsVersion };
+    }
+
+    /** Write the account's `__meta` block, conditional on its version. */
+    async function syncSettings(meta) {
+      if (!session.isAuthenticated()) return { synced: false, reason: "local" };
+      const result = await request("/api/settings", {
+        method: "PUT",
+        headers: ownerHeaders(),
+        body: JSON.stringify({ settings: meta || {}, baseVersion: settingsVersion }),
+      });
+      if (Number.isInteger(result?.version)) settingsVersion = result.version;
+      return { synced: true, version: settingsVersion };
+    }
+
+    async function syncSettingsBestEffort(meta) {
+      try {
+        return await syncSettings(meta);
       } catch (error) {
         return { synced: false, reason: "error", error };
       }
@@ -146,10 +228,15 @@
     }
 
     function setOwner(userID) {
-      if (userID) storage.set(ACCOUNT_OWNER_KEY, String(userID));
+      const next = String(userID || "");
+      if (!next) return;
+      const previous = getOwner();
+      if (previous && previous !== next) resetCloudState();
+      storage.set(ACCOUNT_OWNER_KEY, next);
     }
 
     function clearOwner() {
+      resetCloudState();
       storage.remove(ACCOUNT_OWNER_KEY);
     }
 
@@ -180,6 +267,13 @@
       syncMonth,
       syncAll,
       syncAllBestEffort,
+      loadSettings,
+      syncSettings,
+      syncSettingsBestEffort,
+      setVersions,
+      noteVersion,
+      versionOf,
+      resetCloudState,
       clearData,
       getOwner,
       setOwner,

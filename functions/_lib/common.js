@@ -252,6 +252,9 @@ export function sessionCookie(token = "", maxAge = 60 * 60 * 24 * 7) {
 
 const ITEM_KEY_RE = /^[a-z0-9._-]{1,64}$/i;
 const MAX_ITEMS_PER_MONTH = 500;
+const MAX_CUSTOM_ITEMS = 200;
+const MAX_NAME_LENGTH = 80;
+const MAX_BUDGET = 1_000_000_000_000;
 
 /** Keep stored keys as inert data, never inherited-object machinery. */
 function isSafeItemKey(key) {
@@ -309,4 +312,88 @@ export function sanitizeLedgerPayload(value) {
   }
 
   return { salary, items, paid };
+}
+
+/** A display label: no control characters, trimmed, bounded. */
+function cleanLabel(value) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, MAX_NAME_LENGTH);
+}
+
+/**
+ * Reduce a client-supplied `__meta` block to the shape the app understands.
+ *
+ * These values are labels and keys, never markup, and the same key rules as
+ * the ledger apply. Category names are user-visible text, so they are trimmed
+ * and length-capped but otherwise free-form: the seven categories are a client
+ * concept, not a server enum.
+ */
+export function sanitizeSettingsPayload(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+
+  const customItems = [];
+  if (Array.isArray(source.customItems)) {
+    for (const raw of source.customItems) {
+      if (customItems.length >= MAX_CUSTOM_ITEMS) break;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const key = String(raw.key ?? "");
+      if (!isSafeItemKey(key)) continue;
+      const name = cleanLabel(raw.name);
+      if (!name) continue;
+
+      const category = cleanLabel(raw.category);
+      const amountRaw = raw.defaultAmount;
+      const amount = amountRaw == null || amountRaw === "" ? null : Number(amountRaw);
+      const item = {
+        key,
+        name,
+        kind: "expense",
+        fixed: raw.fixed === true,
+        defaultAmount: amountRaw == null || amountRaw === "" || !Number.isFinite(amount) ? null : amount,
+      };
+      if (category) item.category = category;
+      customItems.push(item);
+    }
+  }
+
+  const hiddenItems = [];
+  if (Array.isArray(source.hiddenItems)) {
+    for (const raw of source.hiddenItems) {
+      if (hiddenItems.length >= MAX_CUSTOM_ITEMS) break;
+      const key = String(raw ?? "");
+      if (isSafeItemKey(key) && !hiddenItems.includes(key)) hiddenItems.push(key);
+    }
+  }
+
+  const nameOverrides = {};
+  if (source.nameOverrides && typeof source.nameOverrides === "object" && !Array.isArray(source.nameOverrides)) {
+    let count = 0;
+    for (const [key, raw] of Object.entries(source.nameOverrides)) {
+      if (count >= MAX_CUSTOM_ITEMS) break;
+      if (!isSafeItemKey(key)) continue;
+      const name = cleanLabel(raw);
+      if (!name) continue;
+      nameOverrides[key] = name;
+      count += 1;
+    }
+  }
+
+  const categoryBudgets = {};
+  if (source.categoryBudgets && typeof source.categoryBudgets === "object" && !Array.isArray(source.categoryBudgets)) {
+    let count = 0;
+    for (const [rawCategory, rawValue] of Object.entries(source.categoryBudgets)) {
+      if (count >= MAX_CUSTOM_ITEMS) break;
+      const category = cleanLabel(rawCategory);
+      const lowered = category.toLowerCase();
+      if (!category || lowered === "__proto__" || lowered === "constructor" || lowered === "prototype") continue;
+      const budget = Number(rawValue);
+      if (!Number.isFinite(budget) || budget < 0 || budget > MAX_BUDGET) continue;
+      categoryBudgets[category] = Math.round(budget);
+      count += 1;
+    }
+  }
+
+  return { customItems, hiddenItems, nameOverrides, categoryBudgets };
 }

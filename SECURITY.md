@@ -28,6 +28,8 @@ All confirmed vulnerabilities from the security audit have been addressed:
 ### ✅ Data Isolation
 - **Owner Binding**: Each ledger write is bound to the account that loaded it
 - **Stale Tab Prevention**: Prevents writes from old browser tabs to different accounts
+- **Versioned Writes**: `PUT /api/data/month/:month` and `PUT /api/settings` carry the version the tab last saw. A stale write gets `409 version_conflict` with the stored copy instead of overwriting a newer change from another device
+- **Settings Are Account State**: `__meta` (custom expenses, renames, hidden items, category budgets) moved from `localStorage` to `user_settings`, so a second device no longer silently loses it
 - **Legacy Cleanup**: Removed automatic transfer of legacy `default` user data
 
 ### ✅ Password Recovery
@@ -76,18 +78,20 @@ All confirmed vulnerabilities from the security audit have been addressed:
 
 ### Data Protection
 - **Input Sanitization**: All user input is validated and sanitized
+- **Settings Sanitization**: `sanitizeSettingsPayload` bounds custom-item and category-name lengths, rejects unsafe keys, caps each collection at 200 entries, and keeps budgets finite and within range
 - **Output Encoding**: All rendered data is properly escaped
 - **Backup Validation**: Imported files are verified before processing
 - **CSRF Protection**: All mutations require proper headers
 
 ## Test Coverage
 
-- **157 tests** covering all security-critical paths
+- **202 tests** covering all security-critical paths
 - **Auth/Session Tests**: 38 tests covering authentication, session management, and rate limiting
+- **Middleware Tests**: 17 tests covering the host allowlist and its 404 responses
 - **Recovery Tests**: 17 tests covering code generation, hashing, redemption, rotation and re-registration
 - **Deletion Tests**: 7 tests covering archival, purge, re-registration, and failure modes
-- **Data Sanitization Tests**: 13 tests covering input/output validation
-- **Persistence Tests**: 29 tests covering data isolation and sync security
+- **Data Sanitization Tests**: 29 tests covering ledger payloads, settings payloads, version conflicts and owner checks
+- **Persistence Tests**: 41 tests covering data isolation, versions and sync security
 - **UI Tests**: 34 tests covering overlay and interaction security
 - **Totals Tests**: 19 tests covering the calculation layer
 
@@ -108,7 +112,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 
 ## Deployment Notes
 
-1. **Migrations Required**: Apply `migrations/0002_auth_throttle.sql`, `migrations/0003_recovery_codes.sql`, and `migrations/0004_deleted_months.sql` before deployment
+1. **Migrations Required**: Apply `migrations/0002_auth_throttle.sql`, `migrations/0003_recovery_codes.sql`, `migrations/0004_deleted_months.sql`, and `migrations/0005_ledger_durability.sql` before deployment
 2. **Sessions Invalidated**: All users will need to re-login after first deployment
 3. **Legacy Data**: Legacy `user_id='default'` rows remain orphaned but not deleted
 4. **Turnstile**: Fails closed if only half-configured (blocks all auth if incomplete)
