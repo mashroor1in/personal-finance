@@ -6676,17 +6676,20 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       // The account copy wins once it exists. Before it exists, this browser's
       // local meta is the upgrade path: upload it once so budgets and custom
-      // items stop dying whenever the user opens a second device.
+      // items stop dying whenever the user opens a second device. If the read
+      // failed, skip the upload: without the server's version that write would
+      // be a blind guess and can only collide.
       let remote = null;
+      let settingsReadFailed = false;
       try {
         remote = await persistence.loadSettings();
       } catch {
-        remote = null;
+        settingsReadFailed = true;
       }
 
       if (metaHasContent(remote?.settings)) {
         data.__meta = Persistence.normalizeMeta({ __meta: remote.settings }).__meta;
-      } else if (metaHasContent(localMeta)) {
+      } else if (!settingsReadFailed && metaHasContent(localMeta)) {
         data.__meta = Persistence.normalizeMeta({ __meta: localMeta }).__meta;
         await persistence.syncSettingsBestEffort(data.__meta);
       }
