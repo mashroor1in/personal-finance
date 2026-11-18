@@ -12,6 +12,12 @@ Last updated: 19 Nov 2026
   Deployed in `ec0d8f1`, `5a29994`, `45264e9`.
 - [x] Account deletion removes `user_settings` as well as account and ledger
   rows (`45264e9`).
+- [x] Unauthenticated production checks after Phase 2: `/app` returns 200 with
+  `Cache-Control: no-cache` and the new build, `/api/settings` and
+  `/api/data/month/:month` return 401, the production alias returns 404, and
+  unknown paths return 404.
+- [x] Project continuity docs added: `AGENTS.md`, `PROJECT_CONTEXT.md`,
+  `TASKS.md`, `DECISIONS.md` (`d3b659a`).
 
 ## Pending
 
