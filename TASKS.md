@@ -1,0 +1,39 @@
+# Tasks
+
+Last updated: 19 Nov 2026
+
+## Done
+
+- [x] Phase 0 — product and platform decisions (see `DECISIONS.md`).
+- [x] Phase 1 — honest public posture: host allowlist middleware, `_routes.json`,
+  branded 404, copy and docs aligned, 17 middleware tests.
+- [x] Phase 2 — ledger durability: `months.version`, `user_settings`, versioned
+  month and settings writes, 409 conflict handling, migration `0005` applied.
+  Deployed in `ec0d8f1`, `5a29994`, `45264e9`.
+- [x] Account deletion removes `user_settings` as well as account and ledger
+  rows (`45264e9`).
+
+## Pending
+
+- [ ] **Manual two-device check** (blocked on a human, not code):
+  1. Change a category budget on device A; reload device B and confirm it
+     appears.
+  2. Open two tabs, edit and save the same month in both; the stale tab must
+     show "Changed elsewhere" and the saved copy, not overwrite it.
+  3. Delete a throwaway account, re-register the same username; planner and
+     settings must both start empty.
+- [ ] Phase 3 — generic ledger and onboarding.
+- [ ] Phase 4 — identity.
+- [ ] Phase 5 — waitlist and launch.
+- [ ] Phase 6 — billing (last, by design).
+- [ ] Phase 7 — hardening.
+- [ ] Phase 8 — operate and comply.
+
+## Known issues / notes
+
+- Turnstile is enabled and its widget lists only `bucksy.life`. A scripted
+  authenticated live test is not possible without a token; use the browser.
+- Pages keeps no runtime logs. Use
+  `wrangler pages deployment tail --project-name personal-finance`, which only
+  sees `/api/*` and `/app`.
+- `node --test tests/` does not work. Pass the file list from `README.md`.
