@@ -44,7 +44,7 @@ All confirmed vulnerabilities from the security audit have been addressed:
 - **Host allowlist**: `functions/_middleware.js` returns `404` for `/app` and `/api/*` on any host that is not `bucksy.life`, `www.bucksy.life`, local development or a preview deployment. The production alias `personal-finance-8ch.pages.dev` is explicitly denied
 - **Route scope**: `_routes.json` limits the Functions runtime to `/api/*` and `/app`, so static files cannot accidentally depend on middleware behaviour
 - **Registration Is Open**: `POST /api/auth/login` with `mode: register` creates an account regardless of how many exist; `hasUsers` only steers the UI. Turnstile and the per-IP throttle are the only limits on sign-up
-- **Turnstile Hostnames**: the widget should list `bucksy.life` only, so every other host fails the bot check even if the allowlist is removed by mistake (see `DEPLOY.md`)
+- **Turnstile Hostnames**: the widget lists `bucksy.life` only (verified 19 Nov 2026), so every other host fails the bot check even if the allowlist is removed by mistake (see `DEPLOY.md`)
 
 ## Security Features
 

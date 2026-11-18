@@ -50,9 +50,11 @@ curl.exe -s -o NUL -w "%{http_code}\n" https://personal-finance-8ch.pages.dev/ap
 
 ### Turnstile hostnames
 
-Dashboard → Turnstile → your widget → **Hostnames**. List `bucksy.life` only.
-`personal-finance-8ch.pages.dev` must **not** be listed, so the alias cannot
-reach a sign-in even if the host allowlist is ever removed by mistake.
+Dashboard → Turnstile → your widget → **Hostnames**. As of 19 Nov 2026 it lists
+`bucksy.life` only, which is the intended state. Do **not** add
+`personal-finance-8ch.pages.dev`: with the host allowlist in
+`functions/_middleware.js`, the alias already 404s, and the hostname list stops
+it reaching a sign-in even if that allowlist is ever removed by mistake.
 
 ### First launch checks
 
