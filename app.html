@@ -4823,10 +4823,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       categoryBoxesContainer.innerHTML = "";
       const categories = Object.keys(getCategoryMap());
       const allItems = getAllItems();
+      const meta = getMeta();
 
-      // A brand-new account has categories but no lines yet. Showing seven
-      // empty boxes reads like a bug, so say plainly what to do next.
-      if (!allItems.length) {
+      // Check if this is a truly empty account (no items defined)
+      const hasItems = Array.isArray(meta.items) && meta.items.length > 0;
+      
+      // If we have items defined but no amounts for the current month, still show the boxes
+      // but with empty amounts. Only show the "empty" message if there are no items at all.
+      if (!hasItems) {
         categoryBoxesContainer.innerHTML = `
           <div class="ledger-empty">
             <h3>Your ledger is empty</h3>
@@ -6317,6 +6321,11 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const month = monthPicker.value;
       data[month] = data[month] || { salary: "", items: {}, paid: {} };
       if (income !== null) data[month].salary = income;
+      
+      // Add selected items to the current month with a default value of 0
+      for (const pick of picked) {
+        data[month].items[pick.key] = 0;
+      }
 
       persistence.saveLocal(data);
       overlays.close("onboarding");
