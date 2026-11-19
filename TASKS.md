@@ -29,8 +29,8 @@ Last updated: 19 Nov 2026
   3. Delete a throwaway account, re-register the same username; planner and
      settings must both start empty.
 - [x] Phase 3 — generic ledger and onboarding.
-  - [x] All development complete; pending commit and deploy.
-  - [ ] Manual two-device check (documented above).
+  - [x] All development complete; deployed in `63fd1bd`
+  - [ ] Manual two-device check (documented above)
 - [ ] Phase 4 — identity.
 - [ ] Phase 5 — waitlist and launch.
 - [ ] Phase 6 — billing (last, by design).

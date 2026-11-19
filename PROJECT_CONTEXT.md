@@ -44,13 +44,13 @@ Migrations `0001`–`0005` are applied to production. `0005` adds
 
 ## Current state
 
-- Phase 3 (generic ledger/onboarding) is complete and ready to ship:
+- Phase 3 (generic ledger/onboarding) is deployed (`63fd1bd`):
   - `ledger.js` holds the ledger definitions and formatting rules
   - Every account owns its category list and line items (not hardcoded)
   - New accounts get a guided setup: currency, income, optional starter items
   - Category management UI is available from the budget modal
   - Removed bank/allocation section and rupee-specific formatting
-- 217 tests pass (including 11 for `ledger.js`)
+- 219 tests pass (including 11 for `ledger.js`)
 - Manual two-device verification is **pending**. Turnstile was left enabled,
   so a scripted authenticated live test was not run.
 
