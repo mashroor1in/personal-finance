@@ -161,6 +161,24 @@
       background: var(--accent-soft);
     }
 
+    .turnstile-container {
+      margin-bottom: 20px;
+    }
+
+    .turnstile-widget {
+      min-height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .turnstile-error {
+      color: var(--red);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+
     /* Forms */
     .form-group {
       margin-bottom: 20px;
@@ -533,6 +551,10 @@
             <div class="error-message" id="email-error" role="alert"></div>
           </div>
           
+          <div class="turnstile-container" style="margin-bottom: 20px;">
+            <div id="turnstile-widget-1" class="turnstile-widget" data-sitekey="0x4AAAAAAFrpNVLHluekM9BE"></div>
+          </div>
+          
           <button type="submit" class="btn btn-primary" id="submit-btn">
             Join the Waitlist
           </button>
@@ -780,6 +802,10 @@
             <div class="error-message" id="email-error-bottom" role="alert"></div>
           </div>
           
+          <div class="turnstile-container" style="margin-bottom: 20px;">
+            <div id="turnstile-widget-2" class="turnstile-widget" data-sitekey="0x4AAAAAAFrpNVLHluekM9BE"></div>
+          </div>
+          
           <button type="submit" class="btn btn-primary" id="submit-btn-bottom">
             Join the Waitlist
           </button>
@@ -845,6 +871,7 @@
     </div>
   </footer>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
   <script>
     // FAQ functionality
@@ -870,14 +897,36 @@
       });
     });
 
-    // Form submission
-    function handleFormSubmit(formId, emailId, errorId, loadingId, successId) {
+    // Form submission with enhanced security
+    function handleFormSubmit(formId, emailId, errorId, loadingId, successId, turnstileId) {
       const form = document.getElementById(formId);
       const emailInput = document.getElementById(emailId);
       const errorEl = document.getElementById(errorId);
       const loadingEl = document.getElementById(loadingId);
       const successEl = document.getElementById(successId);
       const submitBtn = form.querySelector('button[type="submit"]');
+      const turnstileContainer = form.querySelector('.turnstile-container');
+      const turnstileError = turnstileContainer.querySelector('.turnstile-error');
+
+      // Initialize Turnstile
+      if (typeof turnstile !== 'undefined') {
+        turnstile.render(turnstileId, {
+          sitekey: '0x4AAAAAAFrpNVLHluekM9BE',
+          callback: function(token) {
+            form.dataset.turnstileToken = token;
+          },
+          'expired-callback': function() {
+            form.dataset.turnstileToken = '';
+            turnstileError.textContent = 'Please complete the security verification.';
+            turnstileError.style.display = 'block';
+          },
+          'error-callback': function() {
+            form.dataset.turnstileToken = '';
+            turnstileError.textContent = 'Security verification failed. Please try again.';
+            turnstileError.style.display = 'block';
+          }
+        });
+      }
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -887,6 +936,7 @@
         successEl.style.display = 'none';
         loadingEl.style.display = 'block';
         submitBtn.disabled = true;
+        turnstileError.style.display = 'none';
 
         // Validate email
         const email = emailInput.value.trim();
@@ -902,14 +952,44 @@
           return;
         }
 
+        // Check Turnstile token
+        if (!form.dataset.turnstileToken) {
+          showError('Please complete the security verification.');
+          loadingEl.style.display = 'none';
+          submitBtn.disabled = false;
+          return;
+        }
+
+        // Rate limiting check
+        if (isRateLimited()) {
+          showError('Too many attempts. Please wait a few minutes and try again.');
+          loadingEl.style.display = 'none';
+          submitBtn.disabled = false;
+          return;
+        }
+
+        // Additional security checks
+        if (isSuspiciousActivity(email)) {
+          showError('Invalid email format. Please check and try again.');
+          loadingEl.style.display = 'none';
+          submitBtn.disabled = false;
+          return;
+        }
+
         try {
-          // Call real API endpoint
+          // Call real API endpoint with Turnstile token
           const response = await fetch('/early-access/api/waitlist', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ 
+              email,
+              turnstileToken: form.dataset.turnstileToken,
+              timestamp: Date.now(),
+              userAgent: navigator.userAgent,
+              ip: await getClientIP() // In production, this would come from server
+            }),
           });
 
           const data = await response.json();
@@ -920,8 +1000,17 @@
             successEl.style.display = 'block';
             form.reset();
             
+            // Reset Turnstile
+            if (typeof turnstile !== 'undefined') {
+              turnstile.reset(turnstileId);
+            }
+            
             // Log the signup (in production, this would go to analytics)
             console.log('Waitlist signup successful:', data);
+            
+            // Track successful signup
+            trackEvent('waitlist_signup_success', { email: email });
+            
           } else {
             throw new Error(data.error || 'Something went wrong');
           }
@@ -930,6 +1019,12 @@
           console.error('Waitlist signup error:', error);
           showError(error.message || 'Something went wrong. Please try again.');
           loadingEl.style.display = 'none';
+          
+          // Track failed signup
+          trackEvent('waitlist_signup_failed', { 
+            email: email, 
+            error: error.message 
+          });
         } finally {
           // Re-enable submit button
           submitBtn.disabled = false;
@@ -944,9 +1039,82 @@
       }
     }
 
-    // Initialize both forms
-    handleFormSubmit('waitlist-form', 'email', 'email-error', 'loading', 'success-message');
-    handleFormSubmit('waitlist-form-bottom', 'email-bottom', 'email-error-bottom', 'loading-bottom', 'success-message-bottom');
+    // Rate limiting
+    function isRateLimited() {
+      const attempts = localStorage.getItem('waitlist_attempts') || '{}';
+      const attemptsData = JSON.parse(attempts);
+      const now = Date.now();
+      
+      // Clean old attempts (older than 10 minutes)
+      Object.keys(attemptsData).forEach(key => {
+        if (now - attemptsData[key] > 600000) {
+          delete attemptsData[key];
+        }
+      });
+      
+      // Check if we've exceeded the limit (5 attempts in 10 minutes)
+      if (Object.keys(attemptsData).length >= 5) {
+        return true;
+      }
+      
+      // Record this attempt
+      attemptsData[Date.now()] = now;
+      localStorage.setItem('waitlist_attempts', JSON.stringify(attemptsData));
+      
+      return false;
+    }
+
+    // Suspicious activity detection
+    function isSuspiciousActivity(email) {
+      // Check for disposable email providers
+      const disposableDomains = [
+        'tempmail.com', '10minutemail.com', 'guerrillamail.com',
+        'mailinator.com', 'throwaway.email', 'fakeinbox.com'
+      ];
+      
+      const domain = email.split('@')[1]?.toLowerCase();
+      if (disposableDomains.includes(domain)) {
+        return true;
+      }
+      
+      // Check for suspicious patterns
+      const suspiciousPatterns = [
+        /admin\b/i, /support\b/i, /help\b/i, /info\b/i,
+        /noreply\b/i, /no\-reply\b/i, /bounce\b/i,
+        /privacy\b/i, /security\b/i, /abuse\b/i
+      ];
+      
+      if (suspiciousPatterns.some(pattern => pattern.test(email))) {
+        return true;
+      }
+      
+      return false;
+    }
+
+    // Get client IP (in production, this would come from server-side)
+    async function getClientIP() {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    // Track events for analytics
+    function trackEvent(eventName, data) {
+      if (typeof gtag !== 'undefined') {
+        gtag('event', eventName, data);
+      }
+      
+      // Also log to console for debugging
+      console.log(`Event tracked: ${eventName}`, data);
+    }
+
+    // Initialize both forms with Turnstile
+    handleFormSubmit('waitlist-form', 'email', 'email-error', 'loading', 'success-message', 'turnstile-widget-1');
+    handleFormSubmit('waitlist-form-bottom', 'email-bottom', 'email-error-bottom', 'loading-bottom', 'success-message-bottom', 'turnstile-widget-2');
 
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
