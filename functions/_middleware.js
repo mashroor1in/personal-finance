@@ -125,6 +125,9 @@ export async function onRequest(context) {
 
   if (isAllowedHost(requestHost(context.request))) return context.next();
 
+  // Allow early-access page on all hosts
+  if (pathname === "/early-access") return context.next();
+
   if (pathname.startsWith("/api/")) return jsonNotFound();
 
   return new Response(NOT_FOUND_HTML, {

@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Bucksy - Your money. Your goals. Your control. Join the waitlist for early access to the modern expense planner that helps you track spending, manage budgets, and build healthier money habits." />
+  <meta name="robots" content="index,follow" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bucksy.life/early-access" />
+  <meta property="og:title" content="Bucksy - Early Access Waitlist" />
+  <meta property="og:description" content="Your money. Your goals. Your control. Join the waitlist for early access to the modern expense planner." />
+  <meta property="og:image" content="https://bucksy.life/assets/og-image.jpg" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://bucksy.life/early-access" />
+  <meta property="twitter:title" content="Bucksy - Early Access Waitlist" />
+  <meta property="twitter:description" content="Your money. Your goals. Your control. Join the waitlist for early access to the modern expense planner." />
+  <meta property="twitter:image" content="https://bucksy.life/assets/og-image.jpg" />
+  
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#F9F6EE" />
+  <title>Bucksy Early Access — Join the Waitlist</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #F9F6EE;
+      --card: #FFFDF8;
+      --card-muted: #F2EDE2;
+      --text: #102F27;
+      --muted: #566F62;
+      --line: #D9DDD4;
+      --accent: #0B3D2E;
+      --accent-soft: #EDF4EC;
+      --green: #18815A;
+      --green-soft: #E7F3E9;
+      --amber: #9C5B08;
+      --amber-soft: #FDF1DF;
+      --red: #B5453C;
+      --red-soft: #FBEAE8;
+      --purple: #5E7F72;
+      --purple-soft: #EDF4EC;
+      --radius: 14px;
+      --shadow: 0 4px 16px -2px rgba(11, 61, 46, 0.06), 0 2px 6px -1px rgba(11, 61, 46, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Typography */
+    h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+    }
+
+    h2 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin: 0 0 20px;
+    }
+
+    h3 {
+      font-size: clamp(20px, 3vw, 28px);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      margin: 0 0 16px;
+    }
+
+    h4 {
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0 0 12px;
+    }
+
+    p {
+      font-size: clamp(16px, 1.2vw, 18px);
+      line-height: 1.6;
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+
+    .eyebrow {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin: 0 0 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 16px 32px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background: var(--green);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 2px solid var(--accent);
+    }
+
+    .btn-secondary:hover {
+      background: var(--accent-soft);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input[type="email"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--line);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+      background: var(--card);
+    }
+
+    input[type="email"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+
+    .error-message {
+      color: var(--red);
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .success-message {
+      background: var(--green-soft);
+      color: var(--green);
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-top: 20px;
+      display: none;
+    }
+
+    /* Sections */
+    section {
+      padding: 80px 0;
+    }
+
+    .section-content {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 120px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-logo {
+      width: 80px;
+      height: auto;
+      margin: 0 auto 32px;
+      filter: drop-shadow(0 2px 0 rgba(11, 61, 46, 0.1));
+    }
+
+    .hero-description {
+      font-size: 20px;
+      max-width: 600px;
+      margin: 0 auto 40px;
+      color: var(--muted);
+    }
+
+    .email-form {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Features Section */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      padding: 40px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: left;
+      transition: transform 0.2s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-soft);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+
+    .feature-icon iconify-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Product Showcase */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .showcase-item {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .showcase-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      background: var(--card-muted);
+    }
+
+    .showcase-content {
+      padding: 30px;
+    }
+
+    /* Benefits Section */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .benefit-item {
+      text-align: center;
+      padding: 30px;
+      background: var(--accent-soft);
+      border-radius: var(--radius);
+    }
+
+    .benefit-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: var(--bg);
+    }
+
+    .benefit-icon iconify-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    /* FAQ Section */
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .faq-item {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .faq-question {
+      padding: 24px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+
+    .faq-question:hover {
+      background: var(--accent-soft);
+    }
+
+    .faq-answer {
+      padding: 0 24px;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      color: var(--muted);
+    }
+
+    .faq-answer.active {
+      padding: 0 24px 24px;
+      max-height: 500px;
+    }
+
+    .faq-toggle {
+      transition: transform 0.3s ease;
+    }
+
+    .faq-toggle.active {
+      transform: rotate(180deg);
+    }
+
+    /* CTA Section */
+    .cta {
+      background: var(--accent);
+      color: var(--bg);
+      text-align: center;
+      border-radius: var(--radius);
+      padding: 80px 40px;
+    }
+
+    .cta h2 {
+      color: var(--bg);
+      margin-bottom: 24px;
+    }
+
+    .cta p {
+      color: rgba(249, 246, 238, 0.9);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    /* Loading state */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      section {
+        padding: 60px 0;
+      }
+
+      .hero {
+        padding: 80px 0 60px;
+      }
+
+      .features-grid,
+      .showcase-grid,
+      .benefits-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .cta {
+        padding: 60px 30px;
+      }
+    }
+
+    /* Accessibility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      white-space: nowrap;
+    }
+
+    /* Skip to content link */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 8px;
+      text-decoration: none;
+      border-radius: 0 0 4px 0;
+      z-index: 100;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <img src="assets/bucksy-mark-large.png" alt="Bucksy logo" class="hero-logo">
+        <h1>Your money. Your goals. Your control.</h1>
+        <p class="hero-description">
+          Bucksy is a modern expense planner that helps you track spending, manage budgets, and build healthier money habits. Join our early access program and get priority access to launch.
+        </p>
+        
+        <form class="email-form" id="waitlist-form" aria-label="Join the waitlist">
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="Enter your email" 
+              required 
+              aria-required="true"
+              autocomplete="email"
+            >
+            <div class="error-message" id="email-error" role="alert"></div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="submit-btn">
+            Join the Waitlist
+          </button>
+          
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span style="margin-left: 10px;">Joining waitlist...</span>
+          </div>
+          
+          <div class="success-message" id="success-message">
+            🎉 Thanks for joining the waitlist! We'll email you when early access begins.
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Product Showcase -->
+    <section>
+      <div class="container">
+        <div class="section-content">
+          <h2 class="eyebrow">Product</h2>
+          <h2>Experience Bucksy</h2>
+          <p>Bucksy helps you take control of your finances with an intuitive interface and powerful features.</p>
+        </div>
+        
+        <div class="showcase-grid">
+          <div class="showcase-item">
+            <img src="https://picsum.photos/seed/bucksy-dashboard/400/300.jpg" alt="Bucksy dashboard showing expense tracking" class="showcase-image">
+            <div class="showcase-content">
+              <h3>Smart Dashboard</h3>
+              <p>Get a clear overview of your finances with real-time tracking of income, expenses, and savings goals.</p>
+            </div>
+          </div>
+          
+          <div class="showcase-item">
+            <img src="https://picsum.photos/seed/bucksy-transactions/400/300.jpg" alt="Bucksy transaction management" class="showcase-image">
+            <div class="showcase-content">
+              <h3>Transaction Management</h3>
+              <p>Easily categorize and track your expenses with our intuitive transaction interface.</p>
+            </div>
+          </div>
+          
+          <div class="showcase-item">
+            <img src="https://picsum.photos/seed/bucksy-analytics/400/300.jpg" alt="Bucksy spending analytics" class="showcase-image">
+            <div class="showcase-content">
+              <h3>Spending Analytics</h3>
+              <p>Gain insights into your spending patterns with detailed analytics and visual reports.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section style="background: var(--accent-soft);">
+      <div class="container">
+        <div class="section-content">
+          <h2 class="eyebrow">Features</h2>
+          <h2>Everything you need to manage your money</h2>
+          <p>Bucksy provides comprehensive tools to help you track, plan, and grow your finances.</p>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:wallet"></iconify-icon>
+            </div>
+            <h3>Expense Tracking</h3>
+            <p>Track every expense with customizable categories and real-time updates. Never lose sight of where your money goes.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:trending-up"></iconify-icon>
+            </div>
+            <h3>Income Management</h3>
+            <p>Set and track your income sources. See exactly how much money is coming in and plan accordingly.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:pie-chart"></iconify-icon>
+            </div>
+            <h3>Budget Planning</h3>
+            <p>Create realistic budgets for different categories and get alerts when you're approaching your limits.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:bar-chart-3"></iconify-icon>
+            </div>
+            <h3>Spending Analytics</h3>
+            <p>Understand your spending patterns with detailed reports and visual insights to help you make better financial decisions.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:layout-dashboard"></iconify-icon>
+            </div>
+            <h3>Financial Organization</h3>
+            <p>Keep all your financial information organized in one place with customizable categories and tags.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <iconify-icon icon="lucide:target"></iconify-icon>
+            </div>
+            <h3>Savings Goals</h3>
+            <p>Set and track savings goals with progress tracking and motivational insights to help you reach your targets.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section>
+      <div class="container">
+        <div class="section-content">
+          <h2 class="eyebrow">Early Access Benefits</h2>
+          <h2>Join our founding member program</h2>
+          <p>As an early access member, you'll help shape the future of Bucksy while enjoying exclusive benefits.</p>
+        </div>
+        
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <iconify-icon icon="lucide:rocket"></iconify-icon>
+            </div>
+            <h3>Priority Access</h3>
+            <p>Be among the first to use Bucksy when we launch to the public.</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <iconify-icon icon="lucide:star"></iconify-icon>
+            </div>
+            <h3>Founding Pricing</h3>
+            <p>Lock in exclusive founding member pricing that won't be available later.</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <iconify-icon icon="lucide:message-square"></iconify-icon>
+            </div>
+            <h3>Shape the Product</h3>
+            <p>Directly influence our development roadmap with your feedback and suggestions.</p>
+          </div>
+          
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <iconify-icon icon="lucide:sparkles"></iconify-icon>
+            </div>
+            <h3>Early Features</h3>
+            <p>Get access to new features and improvements before they're released to the public.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section style="background: var(--accent-soft);">
+      <div class="container">
+        <div class="section-content">
+          <h2 class="eyebrow">Questions</h2>
+          <h2>Frequently Asked Questions</h2>
+          <p>Everything you need to know about Bucksy and our early access program.</p>
+        </div>
+        
+        <div class="faq-list">
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              <span>What is Bucksy?</span>
+              <iconify-icon icon="lucide:chevron-down" class="faq-toggle"></iconify-icon>
+            </button>
+            <div class="faq-answer">
+              <p>Bucksy is a modern expense planner that helps you track your spending, manage budgets, and build healthier money habits. It provides a clean, intuitive interface for organizing your finances and gaining insights into your spending patterns.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              <span>Is Bucksy free?</span>
+              <iconify-icon icon="lucide:chevron-down" class="faq-toggle"></iconify-icon>
+            </button>
+            <div class="faq-answer">
+              <p>Bucksy will offer a freemium model. The core expense tracking and budget planning features will be available for free, with additional premium features available for paying customers. Early access members will receive exclusive founding member pricing.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              <span>When will early access open?</span>
+              <iconify-icon icon="lucide:chevron-down" class="faq-toggle"></iconify-icon>
+            </button>
+            <div class="faq-answer">
+              <p>Early access will begin in phases, starting with those who join our waitlist first. We'll begin inviting users from the waitlist in early 2025, with priority given to founding members. You'll receive an email invitation when it's your turn to join.</p>
+            </div>
+          </div>
+          
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              <span>How will my financial data be protected?</span>
+              <iconify-icon icon="lucide:chevron-down" class="faq-toggle"></iconify-icon>
+            </button>
+            <div class="faq-answer">
+              <p>Your data security is our top priority. Bucksy uses bank-level encryption to protect your information, both in transit and at rest. We never share your financial data with third parties, and you maintain full control over your information at all times.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="cta">
+      <div class="container">
+        <h2>Ready to take control of your finances?</h2>
+        <p>Join thousands of others who are getting early access to Bucksy and building better money habits.</p>
+        <form class="email-form" id="waitlist-form-bottom" aria-label="Join the waitlist from bottom">
+          <div class="form-group">
+            <label for="email-bottom">Email address</label>
+            <input 
+              type="email" 
+              id="email-bottom" 
+              name="email" 
+              placeholder="Enter your email" 
+              required 
+              aria-required="true"
+              autocomplete="email"
+            >
+            <div class="error-message" id="email-error-bottom" role="alert"></div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="submit-btn-bottom">
+            Join the Waitlist
+          </button>
+          
+          <div class="loading" id="loading-bottom">
+            <div class="spinner"></div>
+            <span style="margin-left: 10px;">Joining waitlist...</span>
+          </div>
+          
+          <div class="success-message" id="success-message-bottom">
+            🎉 Thanks for joining the waitlist! We'll email you when early access begins.
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script>
+    // FAQ functionality
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', () => {
+        const answer = button.nextElementSibling;
+        const toggle = button.querySelector('.faq-toggle');
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        
+        // Close all other FAQs
+        document.querySelectorAll('.faq-question').forEach(otherButton => {
+          if (otherButton !== button) {
+            otherButton.setAttribute('aria-expanded', 'false');
+            otherButton.nextElementSibling.classList.remove('active');
+            otherButton.querySelector('.faq-toggle').classList.remove('active');
+          }
+        });
+        
+        // Toggle current FAQ
+        button.setAttribute('aria-expanded', !isExpanded);
+        answer.classList.toggle('active');
+        toggle.classList.toggle('active');
+      });
+    });
+
+    // Form submission
+    function handleFormSubmit(formId, emailId, errorId, loadingId, successId) {
+      const form = document.getElementById(formId);
+      const emailInput = document.getElementById(emailId);
+      const errorEl = document.getElementById(errorId);
+      const loadingEl = document.getElementById(loadingId);
+      const successEl = document.getElementById(successId);
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Reset previous states
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+        loadingEl.style.display = 'block';
+        submitBtn.disabled = true;
+
+        // Validate email
+        const email = emailInput.value.trim();
+        if (!email) {
+          showError('Please enter your email address');
+          return;
+        }
+
+        // Simple email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showError('Please enter a valid email address');
+          return;
+        }
+
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          // Show success message
+          loadingEl.style.display = 'none';
+          successEl.style.display = 'block';
+          form.reset();
+          
+          // Re-enable submit button after a delay
+          setTimeout(() => {
+            submitBtn.disabled = false;
+          }, 1000);
+          
+        } catch (error) {
+          showError('Something went wrong. Please try again.');
+          loadingEl.style.display = 'none';
+          submitBtn.disabled = false;
+        }
+      });
+
+      function showError(message) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+        loadingEl.style.display = 'none';
+        submitBtn.disabled = false;
+      }
+    }
+
+    // Initialize both forms
+    handleFormSubmit('waitlist-form', 'email', 'email-error', 'loading', 'success-message');
+    handleFormSubmit('waitlist-form-bottom', 'email-bottom', 'email-error-bottom', 'loading-bottom', 'success-message-bottom');
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add keyboard navigation for FAQ items
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          button.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

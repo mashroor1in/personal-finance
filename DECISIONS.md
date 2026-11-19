@@ -98,3 +98,24 @@ missing while the UI still demanded a challenge.
 
 Reason: the old compiled ledger worked for one user but not for a global SaaS.
 Making the ledger account-owned enables customisation and removes Indian bias.
+
+## 20 Nov 2026 — Fixed onboarding items persistence
+
+- Set items directly in `data.__meta` to bypass legacy migration in `ensureLedgerShape()`
+- Preserve existing items in `ensureLedgerShape()` to prevent overwriting
+- Use `data.__meta` directly in `getAllItems()` for consistency
+
+Reason: The `LEDGER.migrateMeta()` function was overwriting manually set items during
+onboarding with legacy migration logic, causing selected items to disappear.
+
+## 21 Nov 2026 — Early access landing page
+
+- Created `/early-access` landing page with premium fintech aesthetic
+- Follows existing Bucksy brand identity and color palette
+- Fully responsive design with accessible forms
+- SEO-optimized with Open Graph tags
+- Static HTML implementation with no framework dependencies
+
+Reason: Dedicated landing page needed to collect early-access registrations and
+attract global audience before public launch. Maintains consistency with existing
+brand while providing focused conversion experience.

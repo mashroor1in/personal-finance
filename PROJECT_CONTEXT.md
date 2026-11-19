@@ -25,6 +25,9 @@ There is no framework, bundler, or `package.json`.
 
 | Path | Handler |
 |---|---|
+| `/` | landing page |
+| `/early-access` | early access landing page |
+| `/app` | main application |
 | `/api/auth/*` | login, logout, me, status, recovery-codes |
 | `/api/data` | bulk ledger read; unconditional import write |
 | `/api/data/month/:month` | one month, versioned GET/PUT |

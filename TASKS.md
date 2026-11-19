@@ -1,6 +1,6 @@
 # Tasks
 
-Last updated: 19 Nov 2026
+Last updated: 21 Nov 2026
 
 ## Done
 
@@ -18,6 +18,8 @@ Last updated: 19 Nov 2026
   unknown paths return 404.
 - [x] Project continuity docs added: `AGENTS.md`, `PROJECT_CONTEXT.md`,
   `TASKS.md`, `DECISIONS.md` (`d3b659a`).
+- [x] Fixed onboarding items not appearing in ledger (issue with `ensureLedgerShape()` overwriting items)
+- [x] Created early access landing page at `/early-access` with premium fintech aesthetic
 
 ## Pending
 
@@ -30,6 +32,7 @@ Last updated: 19 Nov 2026
      settings must both start empty.
 - [x] Phase 3 — generic ledger and onboarding.
   - [x] All development complete; deployed in `63fd1bd`
+  - [x] Fixed onboarding items persistence issue (77c7274)
   - [ ] Manual two-device check (documented above)
 - [ ] Phase 4 — identity.
 - [ ] Phase 5 — waitlist and launch.
