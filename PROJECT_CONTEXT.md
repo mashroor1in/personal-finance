@@ -27,7 +27,10 @@ There is no framework, bundler, or `package.json`.
 |---|---|
 | `/` | landing page |
 | `/early-access` | early access landing page |
-| `/early-access/api/waitlist` | waitlist signup API with comprehensive security |
+| `/early-access/api/waitlist` | waitlist registration with validation and security |
+| `/early-access/api/verify` | email verification with token validation |
+| `/early-access/api/referral` | referral tracking and information |
+| `/early-access/api/analytics` | waitlist analytics and statistics |
 | `/early-access/api/rate-limit` | rate limit status monitoring |
 | `/early-access/api/monitoring` | system health and security monitoring |
 | `/early-access/api/security-log` | security event logging |
