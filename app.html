@@ -4825,6 +4825,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const allItems = getAllItems();
       const meta = getMeta();
 
+      // Debug: Log the state
+      console.log("renderBoxes called with:", {
+        meta: meta,
+        allItems: allItems,
+        categories: categories,
+        currentMonth: monthPicker.value,
+        currentData: data[monthPicker.value]
+      });
+
       // Check if this is a truly empty account (no items defined)
       const hasItems = Array.isArray(meta.items) && meta.items.length > 0;
       
@@ -6329,6 +6338,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       persistence.saveLocal(data);
       overlays.close("onboarding");
+      
+      // Debug: Let's see what we're saving
+      console.log("Onboarding complete - saving data:", {
+        meta: getMeta(),
+        month: data[month],
+        items: data[month].items
+      });
+      
       render();
       showToast("Planner ready");
       setAutosaveBadge("Saved on this device", "saved");
