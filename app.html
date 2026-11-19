@@ -3208,6 +3208,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         hasMonths: hasAnyMonth(),
         defaultCurrency: LEDGER.detectCurrency(navigator.language || "")
       });
+      
+      // If we already have items in the data, preserve them
+      if (data.__meta && Array.isArray(data.__meta.items)) {
+        nextShape.items = data.__meta.items;
+      }
+      
       const changed =
         !before ||
         !Array.isArray(before.items) ||
@@ -3219,7 +3225,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function getAllItems() {
-      const meta = getMeta();
+      const meta = data.__meta || getMeta();
       return Array.isArray(meta.items) ? meta.items.map((item) => ({ ...item })) : [];
     }
 
@@ -6307,16 +6313,22 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       meta.currency = LEDGER.currencyFor(onboardingCurrency.value).code;
       meta.onboarded = true;
-      meta.items = [];
+      
+      // Create items array directly without using the legacy migration
+      const newItems = [];
       for (const pick of picked) {
-        meta.items.push({
-          key: LEDGER.itemKey(pick.name, meta.items.map((item) => item.key)),
+        newItems.push({
+          key: LEDGER.itemKey(pick.name, newItems.map((item) => item.key)),
           name: pick.name,
           category: pick.category,
           kind: "expense",
           fixed: false,
         });
       }
+      
+      // Set items directly to avoid legacy migration interference
+      data.__meta = data.__meta || {};
+      data.__meta.items = newItems;
       
       // Save the meta changes
       persistence.saveLocal(data);
