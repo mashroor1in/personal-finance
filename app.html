@@ -4825,16 +4825,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const allItems = getAllItems();
       const meta = getMeta();
 
-      // Debug: Log the state
-      console.log("renderBoxes called with:", {
-        meta: meta,
-        allItems: allItems,
-        categories: categories,
-        currentMonth: monthPicker.value,
-        currentData: data[monthPicker.value]
-      });
-
-      // Check if this is a truly empty account (no items defined)
+      // Always show categories if we have items defined, even if they're empty
       const hasItems = Array.isArray(meta.items) && meta.items.length > 0;
       
       // If we have items defined but no amounts for the current month, still show the boxes
@@ -6326,8 +6317,15 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           fixed: false,
         });
       }
+      
+      // Save the meta changes
+      persistence.saveLocal(data);
 
-      const month = monthPicker.value;
+      // Make sure we're using the current month
+      const currentMonth = toMonthString(new Date());
+      const month = monthPicker.value || currentMonth;
+      
+      // Ensure the month exists in our data
       data[month] = data[month] || { salary: "", items: {}, paid: {} };
       if (income !== null) data[month].salary = income;
       
@@ -6336,16 +6334,14 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         data[month].items[pick.key] = 0;
       }
 
+      // Mark as onboarded
+      meta.onboarded = true;
+      
+      // Save again to make sure the onboarded flag is persisted
       persistence.saveLocal(data);
+      
+      // Close the modal and re-render
       overlays.close("onboarding");
-      
-      // Debug: Let's see what we're saving
-      console.log("Onboarding complete - saving data:", {
-        meta: getMeta(),
-        month: data[month],
-        items: data[month].items
-      });
-      
       render();
       showToast("Planner ready");
       setAutosaveBadge("Saved on this device", "saved");
