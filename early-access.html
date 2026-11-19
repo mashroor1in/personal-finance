@@ -11,14 +11,23 @@
   <meta property="og:url" content="https://bucksy.life/early-access" />
   <meta property="og:title" content="Bucksy - Early Access Waitlist" />
   <meta property="og:description" content="Your money. Your goals. Your control. Join the waitlist for early access to the modern expense planner." />
-  <meta property="og:image" content="https://bucksy.life/assets/og-image.jpg" />
+  <meta property="og:image" content="https://bucksy.life/assets/og-1200x630.png" />
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
   <meta property="twitter:url" content="https://bucksy.life/early-access" />
   <meta property="twitter:title" content="Bucksy - Early Access Waitlist" />
   <meta property="twitter:description" content="Your money. Your goals. Your control. Join the waitlist for early access to the modern expense planner." />
-  <meta property="twitter:image" content="https://bucksy.life/assets/og-image.jpg" />
+  <meta property="twitter:image" content="https://bucksy.life/assets/og-1200x630.png" />
+  
+  <!-- Analytics - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
   
   <link rel="icon" href="assets/favicon.ico" sizes="any">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -294,6 +303,27 @@
       height: 300px;
       object-fit: cover;
       background: var(--card-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .showcase-placeholder {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+    }
+
+    .showcase-placeholder iconify-icon {
+      margin-bottom: 12px;
+    }
+
+    .showcase-placeholder span {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
     }
 
     .showcase-content {
@@ -482,7 +512,7 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <img src="assets/bucksy-mark-large.png" alt="Bucksy logo" class="hero-logo">
+        <img src="brand/assets/bucksy-mark-large.png" alt="Bucksy logo" class="hero-logo">
         <h1>Your money. Your goals. Your control.</h1>
         <p class="hero-description">
           Bucksy is a modern expense planner that helps you track spending, manage budgets, and build healthier money habits. Join our early access program and get priority access to launch.
@@ -530,7 +560,12 @@
         
         <div class="showcase-grid">
           <div class="showcase-item">
-            <img src="https://picsum.photos/seed/bucksy-dashboard/400/300.jpg" alt="Bucksy dashboard showing expense tracking" class="showcase-image">
+            <div class="showcase-image">
+              <div class="showcase-placeholder">
+                <iconify-icon icon="lucide:layout-dashboard" style="font-size: 48px; color: var(--green);"></iconify-icon>
+                <span>Dashboard Preview</span>
+              </div>
+            </div>
             <div class="showcase-content">
               <h3>Smart Dashboard</h3>
               <p>Get a clear overview of your finances with real-time tracking of income, expenses, and savings goals.</p>
@@ -538,7 +573,12 @@
           </div>
           
           <div class="showcase-item">
-            <img src="https://picsum.photos/seed/bucksy-transactions/400/300.jpg" alt="Bucksy transaction management" class="showcase-image">
+            <div class="showcase-image">
+              <div class="showcase-placeholder">
+                <iconify-icon icon="lucide:wallet" style="font-size: 48px; color: var(--green);"></iconify-icon>
+                <span>Transactions</span>
+              </div>
+            </div>
             <div class="showcase-content">
               <h3>Transaction Management</h3>
               <p>Easily categorize and track your expenses with our intuitive transaction interface.</p>
@@ -546,7 +586,12 @@
           </div>
           
           <div class="showcase-item">
-            <img src="https://picsum.photos/seed/bucksy-analytics/400/300.jpg" alt="Bucksy spending analytics" class="showcase-image">
+            <div class="showcase-image">
+              <div class="showcase-placeholder">
+                <iconify-icon icon="lucide:pie-chart" style="font-size: 48px; color: var(--green);"></iconify-icon>
+                <span>Analytics</span>
+              </div>
+            </div>
             <div class="showcase-content">
               <h3>Spending Analytics</h3>
               <p>Gain insights into your spending patterns with detailed analytics and visual reports.</p>
@@ -752,6 +797,54 @@
     </section>
   </main>
 
+  <footer style="background: var(--accent-soft); padding: 60px 0 40px; margin-top: 80px;">
+    <div class="container">
+      <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+        <div style="margin-bottom: 40px;">
+          <img src="brand/assets/bucksy-mark-large.png" alt="Bucksy logo" style="width: 48px; height: auto; margin-bottom: 16px;">
+          <p style="color: var(--muted); font-size: 14px; margin: 0;">
+            © 2026 Bucksy. All rights reserved.
+          </p>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 40px;">
+          <div>
+            <h4 style="font-size: 16px; margin: 0 0 16px; color: var(--text);">Product</h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="margin-bottom: 8px;"><a href="/" style="color: var(--muted); text-decoration: none;">Home</a></li>
+              <li style="margin-bottom: 8px;"><a href="/early-access" style="color: var(--muted); text-decoration: none;">Early Access</a></li>
+              <li><a href="/app" style="color: var(--muted); text-decoration: none;">App</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="font-size: 16px; margin: 0 0 16px; color: var(--text);">Company</h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="margin-bottom: 8px;"><a href="#" style="color: var(--muted); text-decoration: none;">About</a></li>
+              <li style="margin-bottom: 8px;"><a href="#" style="color: var(--muted); text-decoration: none;">Blog</a></li>
+              <li><a href="#" style="color: var(--muted); text-decoration: none;">Contact</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 style="font-size: 16px; margin: 0 0 16px; color: var(--text);">Legal</h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+              <li style="margin-bottom: 8px;"><a href="#" style="color: var(--muted); text-decoration: none;">Privacy Policy</a></li>
+              <li style="margin-bottom: 8px;"><a href="#" style="color: var(--muted); text-decoration: none;">Terms of Service</a></li>
+              <li><a href="#" style="color: var(--muted); text-decoration: none;">Security</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--line); padding-top: 40px;">
+          <p style="color: var(--muted); font-size: 14px; margin: 0; text-align: center;">
+            No financial advice. Bucksy is a planning tool, not a replacement for professional financial guidance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
   <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
   <script>
     // FAQ functionality
@@ -810,22 +903,35 @@
         }
 
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Show success message
-          loadingEl.style.display = 'none';
-          successEl.style.display = 'block';
-          form.reset();
-          
-          // Re-enable submit button after a delay
-          setTimeout(() => {
-            submitBtn.disabled = false;
-          }, 1000);
+          // Call real API endpoint
+          const response = await fetch('/early-access/api/waitlist', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Show success message
+            loadingEl.style.display = 'none';
+            successEl.style.display = 'block';
+            form.reset();
+            
+            // Log the signup (in production, this would go to analytics)
+            console.log('Waitlist signup successful:', data);
+          } else {
+            throw new Error(data.error || 'Something went wrong');
+          }
           
         } catch (error) {
-          showError('Something went wrong. Please try again.');
+          console.error('Waitlist signup error:', error);
+          showError(error.message || 'Something went wrong. Please try again.');
           loadingEl.style.display = 'none';
+        } finally {
+          // Re-enable submit button
           submitBtn.disabled = false;
         }
       });
@@ -863,6 +969,34 @@
           e.preventDefault();
           button.click();
         }
+      });
+    });
+
+    // Track page view
+    gtag('event', 'page_view', {
+      page_title: 'Early Access Waitlist',
+      page_location: window.location.href,
+      page_path: '/early-access'
+    });
+
+    // Track form submissions
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function() {
+        gtag('event', 'form_submit', {
+          form_name: 'waitlist_signup',
+          page_location: window.location.href
+        });
+      });
+    });
+
+    // Track FAQ interactions
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', function() {
+        const question = this.querySelector('span').textContent;
+        gtag('event', 'faq_interaction', {
+          question: question,
+          page_location: window.location.href
+        });
       });
     });
   </script>

@@ -27,6 +27,7 @@ There is no framework, bundler, or `package.json`.
 |---|---|
 | `/` | landing page |
 | `/early-access` | early access landing page |
+| `/early-access/api/waitlist` | waitlist signup API |
 | `/app` | main application |
 | `/api/auth/*` | login, logout, me, status, recovery-codes |
 | `/api/data` | bulk ledger read; unconditional import write |
