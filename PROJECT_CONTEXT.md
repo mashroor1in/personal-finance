@@ -1,6 +1,6 @@
 # Project Context
 
-Last updated: 19 Nov 2026
+Last updated: 21 Nov 2026
 
 ## What it is
 
@@ -63,6 +63,27 @@ Migrations `0001`–`0005` are applied to production. `0005` adds
 - 219 tests pass (including 11 for `ledger.js`)
 - Manual two-device verification is **pending**. Turnstile was left enabled,
   so a scripted authenticated live test was not run.
+
+## Early Access System (NEW - 21 Nov 2026)
+
+Complete waitlist system with comprehensive security and analytics:
+- **Frontend**: Premium landing page at `/early-access` with Turnstile integration
+- **Backend**: Full API suite with registration, verification, referral, and analytics endpoints
+- **Database**: D1 schema with waitlist and events tables (`migrations/0006_waitlist.sql`)
+- **Security**: Enterprise-grade protection with rate limiting, email validation, and bot detection
+- **Analytics**: Real-time statistics and monitoring capabilities
+- **Testing**: Comprehensive test suite covering all functionality
+- **Documentation**: Complete deployment and operational guides
+
+## Infrastructure
+
+- **Hosting**: Cloudflare Pages, no build step
+- **Frontend**: `early-access.html` (inline CSS + JS), standalone landing page
+- **Backend**: Pages Functions, file-routed under `functions/early-access/`
+- **Database**: Cloudflare D1 (`personal-expenses-db`) with waitlist tables
+- **Sessions**: Cloudflare KV (`SESSIONS`) for rate limiting
+- **Security**: Cloudflare Turnstile, rate limiting, input validation
+- **Analytics**: Custom analytics endpoint with comprehensive metrics
 
 ## Invariants
 

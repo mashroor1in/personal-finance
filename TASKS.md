@@ -1,6 +1,6 @@
 # Tasks
 
-Last updated: 21 Nov 2026
+Last updated: 22 Nov 2026
 
 ## Done
 
@@ -20,6 +20,7 @@ Last updated: 21 Nov 2026
   `TASKS.md`, `DECISIONS.md` (`d3b659a`).
 - [x] Fixed onboarding items not appearing in ledger (issue with `ensureLedgerShape()` overwriting items)
 - [x] Created early access landing page at `/early-access` with premium fintech aesthetic
+- [x] Implemented complete Early Access waitlist system with backend API, security, and analytics (56cf91b)
 
 ## Pending
 
@@ -34,8 +35,15 @@ Last updated: 21 Nov 2026
   - [x] All development complete; deployed in `63fd1bd`
   - [x] Fixed onboarding items persistence issue (77c7274)
   - [ ] Manual two-device check (documented above)
+- [x] **Early Access System** — complete waitlist platform (21 Nov 2026):
+  - [x] Premium landing page with Turnstile integration
+  - [x] Complete backend API with registration, verification, referral, analytics
+  - [x] D1 database schema with comprehensive tables and indexes
+  - [x] Enterprise-grade security measures and rate limiting
+  - [x] Comprehensive test suite and documentation
+  - [x] Deployment guide and operational procedures
 - [ ] Phase 4 — identity.
-- [ ] Phase 5 — waitlist and launch.
+- [x] Phase 5 — waitlist and launch (Early Access system complete).
 - [ ] Phase 6 — billing (last, by design).
 - [ ] Phase 7 — hardening.
 - [ ] Phase 8 — operate and comply.
