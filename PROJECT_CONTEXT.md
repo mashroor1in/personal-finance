@@ -37,19 +37,22 @@ Migrations `0001`–`0005` are applied to production. `0005` adds
 ## Data model
 
 - `months`: one JSON record per account per `YYYY-MM`, plus `version`.
-- `user_settings`: `__meta` (custom items, name overrides, hidden items,
-  category budgets), plus `version`.
+- `user_settings`: `__meta` (currency, categories, items, budgets, onboarded),
+  plus `version`.
 - `deleted_months`: 30-day archive of a deleted account's months.
 - `users`, `recovery_codes`, `auth_throttle`: auth state.
 
 ## Current state
 
-- Phase 2 (ledger durability) is deployed: `ec0d8f1`, `5a29994`, `45264e9`.
-- 202 tests pass (`README.md` has the exact command).
+- Phase 3 (generic ledger/onboarding) is complete and ready to ship:
+  - `ledger.js` holds the ledger definitions and formatting rules
+  - Every account owns its category list and line items (not hardcoded)
+  - New accounts get a guided setup: currency, income, optional starter items
+  - Category management UI is available from the budget modal
+  - Removed bank/allocation section and rupee-specific formatting
+- 217 tests pass (including 11 for `ledger.js`)
 - Manual two-device verification is **pending**. Turnstile was left enabled,
   so a scripted authenticated live test was not run.
-- Roadmap phases 3–8 are not started: generic ledger/onboarding, identity,
-  waitlist, billing, hardening, operate/comply.
 
 ## Invariants
 
@@ -70,7 +73,8 @@ Migrations `0001`–`0005` are applied to production. `0005` adds
 |---|---|
 | `README.md` | layout, tests, public posture |
 | `DEPLOY.md` | routing, bindings, migrations, deploy |
+| `PROJECT_CONTEXT.md` | stack, routes, data model, invariants |
+| `TASKS.md` | phase checklist, current status, next steps |
+| `DECISIONS.md` | architecture and product decisions |
 | `SECURITY.md` | controls, test coverage, retention |
 | `RUNBOOK.md` | operator procedures |
-| `TASKS.md` | current work and pending items |
-| `DECISIONS.md` | architecture and product decisions |

@@ -53,6 +53,15 @@ item tables.
 Reason: the client model is a nested month record. Normalising it would force
 a rewrite of read/write paths for no user-visible benefit at this stage.
 
+## 19 Nov 2026 — Account-owned ledger
+
+Categories and items are now account state in `__meta`, not compiled into the
+page. The server validates that every item points at a category the account
+defines.
+
+Reason: the old hardcoded categories and items worked for one user but not for
+a global SaaS. Every account now owns its own ledger shape.
+
 ## 19 Nov 2026 — Ship order by risk, billing last
 
 Order: decisions → public posture → ledger durability → generic ledger and
@@ -61,9 +70,12 @@ onboarding → identity → waitlist → billing → hardening → operate.
 The waitlist was originally next after Phase 1; Phase 2 moved ahead of it
 because data durability is a prerequisite for inviting strangers.
 
-Reason: charging money before data survives a second device would create
-refunds and support load. Billing depends on identity and onboarding being
-stable.
+Phase 3 (generic ledger) completed before Phase 5 (waitlist) because a global
+audience needs custom categories and currencies from day one.
+
+Reason: charging money before data survives a second device or supports user
+customisation would create refunds and support load. Billing depends on
+identity and onboarding being stable.
 
 ## 19 Nov 2026 — Turnstile is all-or-nothing
 
@@ -73,3 +85,16 @@ so previews fail the bot check even if the host allowlist changes by mistake.
 
 Reason: the earlier check let requests through when only the secret was
 missing while the UI still demanded a challenge.
+
+## 19 Nov 2026 — Phase 3 implementation
+
+- `ledger.js` holds ledger definitions, legacy migration, currency formatting
+- No hardcoded categories, items, or currency symbols in the page
+- Every account owns its category list and line items via `__meta`
+- New accounts see onboarding: currency, income, optional quick-pick items
+- Category management UI added to budget modal
+- Bank/allocation section removed entirely
+- Server validates items against supplied category list
+
+Reason: the old compiled ledger worked for one user but not for a global SaaS.
+Making the ledger account-owned enables customisation and removes Indian bias.

@@ -36,6 +36,29 @@ async function currentRow(env, userID) {
     .first();
 }
 
+/**
+ * Account-shape fields added in Phase 3.
+ *
+ * An older cached tab sends the `__meta` it loaded and knows nothing about
+ * these keys. Treating "absent" as "delete" would wipe an account's currency,
+ * categories and item list the first time such a tab saved a budget. Omitted
+ * keys therefore keep the stored value; an explicit empty list still clears.
+ */
+const PRESERVED_KEYS = ["currency", "categories", "items", "onboarded"];
+
+function preserveStoredFields(stored, incoming) {
+  if (!stored || typeof stored !== "object") return incoming;
+  for (const key of PRESERVED_KEYS) {
+    if (
+      !Object.prototype.hasOwnProperty.call(incoming, key) &&
+      Object.prototype.hasOwnProperty.call(stored, key)
+    ) {
+      incoming[key] = stored[key];
+    }
+  }
+  return incoming;
+}
+
 export async function onRequestGet(context) {
   const session = await requireSession(context);
   if (!session) return json({ ok: false, error: "Unauthorized" }, { status: 401 });
@@ -67,11 +90,16 @@ export async function onRequestPut(context) {
   if (ownerMismatch) return ownerMismatch;
 
   const body = await readJson(context.request);
-  const settings = sanitizeSettingsPayload(body?.settings ?? body);
-  const serialized = JSON.stringify(settings);
   const baseVersion = readBaseVersion(body);
   const now = Date.now();
   const userID = session.userID;
+
+  const existing = await currentRow(context.env, userID);
+  const settings = preserveStoredFields(
+    existing ? safeParse(existing.json, {}) : null,
+    sanitizeSettingsPayload(body?.settings ?? body)
+  );
+  const serialized = JSON.stringify(settings);
 
   if (baseVersion === null) {
     await context.env.DB.prepare(

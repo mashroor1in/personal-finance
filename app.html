@@ -1245,136 +1245,6 @@
       transition: background-color 0.14s ease;
     }
 
-    /* Redesigned Bank Accounts Routing Section */
-    .bank-accounts-section {
-      margin-top: 26px;
-    }
-
-    .bank-section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .bank-section-header h2 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .bank-section-header p {
-      margin: 2px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .bank-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .bank-routing-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-
-    .bank-routing-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .bank-head {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .bank-icon-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
-      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.25);
-      flex-shrink: 0;
-    }
-
-    .bank-head-text h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .bank-head-text span {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .bank-items-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: 8px;
-    }
-
-    .bank-items-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      padding: 6px 8px;
-      background: var(--card-muted);
-      border-radius: 6px;
-      color: var(--text);
-    }
-
-    .bank-items-list li span.item-title {
-      font-weight: 500;
-    }
-
-    .bank-items-list li span.item-amt {
-      font-weight: 700;
-    }
-
-    .bank-footer {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .bank-footer .label {
-      font-size: 11px;
-      text-transform: uppercase;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-
-    .bank-footer .total {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
     /* Sileo toasts (top center) ------------------------------------------- */
     :root {
       --sileo-spring: linear(
@@ -2467,6 +2337,52 @@
     }
     .budget-field input { width: 100%; }
 
+    .budget-manage-row { display: flex; justify-content: flex-end; }
+    .label-like { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+    .onboarding-items {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 16px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 4px 2px;
+    }
+    .onboarding-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .onboarding-item input { width: auto; }
+    .category-rows { display: grid; gap: 8px; max-height: 280px; overflow: auto; padding-right: 2px; }
+    .category-row { display: grid; grid-template-columns: 1fr 140px 34px; gap: 8px; align-items: center; }
+    .category-row input, .category-row select { width: 100%; }
+    .category-add { display: grid; grid-template-columns: 1fr 140px auto; gap: 8px; align-items: center; }
+    .category-remove { color: var(--red); }
+    .ledger-empty {
+      grid-column: 1 / -1;
+      background: var(--card);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .ledger-empty h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+    .ledger-empty p {
+      margin: 0 auto 16px;
+      max-width: 46ch;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
     .cat-budget { padding: 0 12px 9px; }
     .cat-budget-top {
       display: flex; justify-content: space-between; align-items: center; gap: 8px;
@@ -2692,7 +2608,7 @@
     <section class="stats-grid">
       <div id="balanceCard" class="stat-card stat-hero">
         <div class="card-head"><span>Net Balance</span><span class="stat-icon" aria-hidden="true">◔</span></div>
-        <div id="statRemaining" class="value hideable-val tnum">₹0</div>
+        <div id="statRemaining" class="value hideable-val tnum">0</div>
         <div id="remainingMeta" class="meta">Set income to calculate</div>
         <div class="mini-meter" aria-hidden="true"><span id="balanceMeter"></span></div>
       </div>
@@ -2700,7 +2616,7 @@
       <div class="stat-card">
         <div class="card-head"><span>Salary / Inflow</span><span class="edit-hint">editable</span></div>
         <label class="kpi-edit" for="salaryInput">
-          <span class="currency" aria-hidden="true">₹</span>
+          <span id="currencyPrefix" class="currency" aria-hidden="true"></span>
           <input id="salaryInput" class="tnum hideable-val" type="number" min="0" step="500" placeholder="0" aria-label="Set monthly salary" />
         </label>
         <div id="statSalaryMeta" class="meta">Tap the amount to set income</div>
@@ -2708,7 +2624,7 @@
 
       <div class="stat-card">
         <div class="card-head"><span>Total Outflow</span><span class="stat-icon" aria-hidden="true">↗</span></div>
-        <div id="statExpense" class="value hideable-val tnum" style="color:var(--red);">₹0</div>
+        <div id="statExpense" class="value hideable-val tnum" style="color:var(--red);">0</div>
         <div id="expenseMeta" class="meta">Expenses + investments</div>
       </div>
 
@@ -2779,7 +2695,7 @@
     <div class="settlement-card">
       <div>
         <strong id="settleLabel">Paid 0 of 22 items</strong>
-        <span id="settleAmt" class="hideable-val tnum" style="color:var(--muted); margin-left:8px;">(₹0 of ₹0 cleared)</span>
+        <span id="settleAmt" class="hideable-val tnum" style="color:var(--muted); margin-left:8px;">(0 of 0 cleared)</span>
       </div>
       <div class="settlement-bar-wrap">
         <div id="settleFill" class="settlement-fill" style="width:0%;"></div>
@@ -2843,7 +2759,7 @@
             <th>Category</th>
             <th>Item</th>
             <th>Type</th>
-            <th style="text-align:right;">Amount (₹)</th>
+            <th id="amountHeader" style="text-align:right;">Amount</th>
             <th style="text-align:center;">Action</th>
           </tr>
         </thead>
@@ -2851,16 +2767,6 @@
       </table>
     </div>
 
-    <!-- Redesigned Bank Account Allocation & Routing -->
-    <section class="bank-accounts-section">
-      <div class="bank-section-header">
-        <div>
-          <h2>Account Liquidity & Routing</h2>
-          <p>Required transfer balances and debit destinations</p>
-        </div>
-      </div>
-      <div id="bankCardsGrid" class="bank-cards-grid"></div>
-    </section>
   </div>
 
   <div id="authOverlay" class="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -3005,7 +2911,7 @@
         <div id="expenseAmountWrap">
           <label for="expenseDefaultAmountInput">Default amount <span class="label-optional">(optional)</span></label>
           <div class="input-affix">
-            <span class="input-affix-prefix" aria-hidden="true">₹</span>
+            <span id="amountPrefix" class="input-affix-prefix" aria-hidden="true"></span>
             <input id="expenseDefaultAmountInput" class="tnum" type="number" min="0" step="1" inputmode="decimal" placeholder="0" />
           </div>
           <p class="field-hint">Prefills this month's figure. You can change it any time.</p>
@@ -3027,11 +2933,72 @@
       </div>
       <p class="modal-hint">Set a monthly cap for each category. Leave blank for no budget.</p>
       <form id="budgetModalForm" class="expense-modal-form">
+        <div class="budget-manage-row">
+          <button id="manageCategoriesBtn" class="btn" type="button">Manage categories</button>
+        </div>
         <div id="budgetFields" class="budget-fields"></div>
         <p id="budgetModalError" class="expense-modal-error" aria-live="polite"></p>
         <div class="expense-modal-actions">
           <button id="budgetModalCancelBtn" class="btn" type="button">Cancel</button>
           <button class="btn btn-primary" type="submit">Save budgets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="onboardingModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+    <div class="expense-modal-card modal-wide">
+      <div class="expense-modal-head">
+        <h3 id="onboardingTitle">Set up your planner</h3>
+      </div>
+      <p class="modal-hint">Pick a currency, add your monthly income, and tick the lines you want to start with. You can change all of it later.</p>
+      <form id="onboardingForm" class="expense-modal-form">
+        <div>
+          <label for="onboardingCurrency">Currency</label>
+          <select id="onboardingCurrency"></select>
+        </div>
+        <div>
+          <label for="onboardingIncome">Monthly income <span class="label-optional">(optional)</span></label>
+          <div class="input-affix">
+            <span id="onboardingCurrencyPrefix" class="input-affix-prefix" aria-hidden="true"></span>
+            <input id="onboardingIncome" class="tnum" type="number" min="0" step="1" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
+        <div>
+          <span class="label-like">Start with these lines</span>
+          <div id="onboardingItems" class="onboarding-items"></div>
+        </div>
+        <p id="onboardingError" class="expense-modal-error" aria-live="polite"></p>
+        <div class="expense-modal-actions">
+          <button id="onboardingSkipBtn" class="btn" type="button">Skip for now</button>
+          <button class="btn btn-primary" type="submit">Start planning</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="categoryModal" class="expense-modal hidden" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+    <div class="expense-modal-card modal-wide">
+      <div class="expense-modal-head">
+        <h3 id="categoryModalTitle">Categories</h3>
+        <button id="categoryModalCloseBtn" class="btn" type="button" aria-label="Close"><iconify-icon icon="lucide:x" width="16" height="16" aria-hidden="true"></iconify-icon></button>
+      </div>
+      <p class="modal-hint">Rename a category or change its bucket. A category that still has items cannot be removed.</p>
+      <form id="categoryModalForm" class="expense-modal-form">
+        <div id="categoryRows" class="category-rows"></div>
+        <div class="category-add">
+          <input id="categoryNewName" type="text" maxlength="60" autocomplete="off" placeholder="New category" aria-label="New category name" />
+          <select id="categoryNewBucket" aria-label="New category bucket">
+            <option value="needs">Needs</option>
+            <option value="wants">Wants</option>
+            <option value="savings">Savings</option>
+          </select>
+          <button id="categoryAddBtn" class="btn" type="button">Add</button>
+        </div>
+        <p id="categoryModalError" class="expense-modal-error" aria-live="polite"></p>
+        <div class="expense-modal-actions">
+          <button id="categoryModalCancelBtn" class="btn" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save categories</button>
         </div>
       </form>
     </div>
@@ -3132,6 +3099,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     })();
   </script>
 
+  <script src="/ledger.js"></script>
   <script src="/persistence.js"></script>
   <script src="/totals.js"></script>
   <script src="/overlays.js"></script>
@@ -3151,92 +3119,60 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     const CHART_COLORS = ["#0B3D2E", "#18815A", "#C97A0C", "#8CBF9B", "#C9A227", "#5E7F72", "#566F62"];
 
-    const CATEGORY_MAP = {
-      "Home / Living": { icon: "ph:house-line-bold", bucket: "needs", color: "#0B3D2E" },
-      "Food / Household": { icon: "ph:shopping-cart-bold", bucket: "needs", color: "#18815A" },
-      "Utilities / Communication": { icon: "ph:lightning-bold", bucket: "needs", color: "#5E7F72" },
-      "Education": { icon: "ph:graduation-cap-bold", bucket: "needs", color: "#C97A0C" },
-      "Family / Personal": { icon: "ph:user-bold", bucket: "wants", color: "#C9A227" },
-      "Repayments": { icon: "ph:credit-card-bold", bucket: "needs", color: "#B5453C" },
-      "Investment / Savings": { icon: "ph:chart-line-up-bold", bucket: "savings", color: "#8CBF9B" }
-    };
+    // The ledger's categories and items are account state, not code. These
+    // helpers read the live definitions so rendering, totals and backups all
+    // see the same list the user owns.
+    const LEDGER = window.Ledger;
+    const QUICK_PICK_ITEMS = [
+      { name: "Rent or mortgage", category: "Home / Living" },
+      { name: "Home maintenance", category: "Home / Living" },
+      { name: "Groceries", category: "Food / Household" },
+      { name: "Household help", category: "Food / Household" },
+      { name: "Electricity", category: "Utilities / Communication" },
+      { name: "Internet", category: "Utilities / Communication" },
+      { name: "Phone", category: "Utilities / Communication" },
+      { name: "Transport", category: "Utilities / Communication" },
+      { name: "School or tuition", category: "Education" },
+      { name: "Personal spending", category: "Family / Personal" },
+      { name: "Loan or card payment", category: "Repayments" },
+      { name: "Savings or investments", category: "Investment / Savings" }
+    ];
+
+    function getCategoryMap() {
+      return LEDGER.categoryMap(getMeta().categories);
+    }
+
+    function getCurrencyCode() {
+      return getMeta().currency || "USD";
+    }
+
+    function money(amount) {
+      return LEDGER.formatCurrency(amount, getCurrencyCode());
+    }
+
+    function currencySymbol() {
+      return LEDGER.currencySymbol(getCurrencyCode());
+    }
+
+    /** Refresh every place the symbol is shown outside a rendered amount. */
+    function applyCurrencyLabels() {
+      const symbol = currencySymbol();
+      const prefix = document.getElementById("currencyPrefix");
+      if (prefix) prefix.textContent = symbol;
+      const header = document.getElementById("amountHeader");
+      if (header) header.textContent = `Amount (${symbol})`;
+      const amountPrefix = document.getElementById("amountPrefix");
+      if (amountPrefix) amountPrefix.textContent = symbol;
+      const onboardingPrefix = document.getElementById("onboardingCurrencyPrefix");
+      if (onboardingPrefix) onboardingPrefix.textContent = symbol;
+    }
 
     // Index of the keyboard-highlighted option in the expense category picker.
-    // Declared with the other module state so init() (called further up) can
-    // reach it without a temporal-dead-zone error.
     let expenseCategoryActiveIndex = 0;
-
-    const BANK_ACCOUNTS = [
-      {
-        id: "sbi",
-        name: "SBI Account",
-        purpose: "Education & Fees",
-        icon: "ph:bank-bold",
-        accent: "#0B3D2E",
-        itemKeys: ["school_fee", "tuition_fee", "college_fee"]
-      },
-      {
-        id: "bandhan",
-        name: "Bandhan Bank",
-        purpose: "Savings, RD & Cash",
-        icon: "ph:wallet-bold",
-        accent: "#C97A0C",
-        itemKeys: ["mash", "lic", "rd", "rd_college"]
-      },
-      {
-        id: "icici",
-        name: "ICICI / Groww",
-        purpose: "SIPs & Wealth",
-        icon: "ph:chart-line-up-bold",
-        accent: "#18815A",
-        itemKeys: ["personal_sip", "baby_sip"]
-      },
-      {
-        id: "cards",
-        name: "Credit Cards",
-        purpose: "Axis, ICICI & Amazon",
-        icon: "ph:link-bold",
-        accent: "#B5453C",
-        itemKeys: ["cc_axis", "cc_icici", "cc_amazon"]
-      }
-    ];
-
-    const ITEMS = [
-      { category: "Home / Living", name: "Rent", key: "rent", kind: "expense", fixed: true, defaultAmount: 15000 },
-      { category: "Home / Living", name: "Flat maintenance", key: "flat_maintenance", kind: "expense", fixed: true, defaultAmount: 900 },
-      { category: "Food / Household", name: "Groceries", key: "groceries", kind: "expense", fixed: true, defaultAmount: 15000 },
-      { category: "Food / Household", name: "Maid", key: "maid", kind: "expense", fixed: true, defaultAmount: 2000 },
-      { category: "Food / Household", name: "Cash expenses", key: "cash_expenses", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Food / Household", name: "LPG gas", key: "lpg_gas", kind: "expense", fixed: true, defaultAmount: 500 },
-      { category: "Utilities / Communication", name: "Electricity bill", key: "electricity_bill", kind: "expense", fixed: false, defaultAmount: null },
-      { category: "Utilities / Communication", name: "WiFi", key: "wifi", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Utilities / Communication", name: "Phone recharge", key: "phone_recharge", kind: "expense", fixed: false, defaultAmount: null },
-      { category: "Education", name: "School fee", key: "school_fee", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Education", name: "Tuition fee", key: "tuition_fee", kind: "expense", fixed: true, defaultAmount: 1500 },
-      { category: "Education", name: "College fee", key: "college_fee", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Family / Personal", name: "Ayesha pocket money", key: "ayesha_pocket", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Family / Personal", name: "Mash", key: "mash", kind: "expense", fixed: true, defaultAmount: 5000 },
-      { category: "Repayments", name: "Credit card (Axis)", key: "cc_axis", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Repayments", name: "Credit card (ICICI)", key: "cc_icici", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Repayments", name: "Credit card (Amazon)", key: "cc_amazon", kind: "expense", fixed: true, defaultAmount: null },
-      { category: "Investment / Savings", name: "Personal SIP", key: "personal_sip", kind: "investment", fixed: true, defaultAmount: 2000 },
-      { category: "Investment / Savings", name: "Baby SIP", key: "baby_sip", kind: "investment", fixed: true, defaultAmount: 5000 },
-      { category: "Investment / Savings", name: "LIC", key: "lic", kind: "investment", fixed: true, defaultAmount: 3683 },
-      { category: "Investment / Savings", name: "RD", key: "rd", kind: "investment", fixed: true, defaultAmount: 40000 },
-      { category: "Investment / Savings", name: "RD (college)", key: "rd_college", kind: "investment", fixed: true, defaultAmount: 10834 }
-    ];
 
     function getMeta() {
       if (!data || typeof data !== "object") data = {};
-      if (!data.__meta || typeof data.__meta !== "object") {
-        data.__meta = { customItems: [], nameOverrides: {} };
-      }
-      if (!Array.isArray(data.__meta.customItems)) data.__meta.customItems = [];
-      if (!Array.isArray(data.__meta.hiddenItems)) data.__meta.hiddenItems = [];
-      if (!data.__meta.nameOverrides || typeof data.__meta.nameOverrides !== "object") data.__meta.nameOverrides = {};
-      if (!data.__meta.categoryBudgets || typeof data.__meta.categoryBudgets !== "object" || Array.isArray(data.__meta.categoryBudgets)) {
-        data.__meta.categoryBudgets = {};
-      }
+      data.__meta = LEDGER.normalizeMeta(data.__meta);
       return data.__meta;
     }
 
@@ -3244,6 +3180,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function metaHasContent(meta) {
       if (!meta || typeof meta !== "object") return false;
       return (
+        !!meta.currency ||
+        meta.onboarded === true ||
+        (Array.isArray(meta.categories) && meta.categories.length > 0) ||
+        (Array.isArray(meta.items) && meta.items.length > 0) ||
         (Array.isArray(meta.customItems) && meta.customItems.length > 0) ||
         (Array.isArray(meta.hiddenItems) && meta.hiddenItems.length > 0) ||
         Object.keys(meta.nameOverrides || {}).length > 0 ||
@@ -3251,22 +3191,44 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       );
     }
 
+    function hasAnyMonth() {
+      return Object.keys(data || {}).some((key) => /^\d{4}-\d{2}$/.test(key));
+    }
+
+    /**
+     * Bring an account up to the current ledger shape.
+     *
+     * `hasMonths` is what separates a real ledger from a brand-new account:
+     * an account with data inherits the compiled line items and never sees
+     * onboarding; a new account starts empty and is asked to set itself up.
+     */
+    function ensureLedgerShape() {
+      const before = data && typeof data === "object" ? data.__meta : null;
+      const nextShape = LEDGER.migrateMeta(before, {
+        hasMonths: hasAnyMonth(),
+        defaultCurrency: LEDGER.detectCurrency(navigator.language || "")
+      });
+      const changed =
+        !before ||
+        !Array.isArray(before.items) ||
+        !Array.isArray(before.categories) ||
+        !before.currency;
+      data.__meta = nextShape;
+      if (changed) ledgerNeedsSync = true;
+      return changed;
+    }
+
     function getAllItems() {
       const meta = getMeta();
-      const overrides = meta.nameOverrides || {};
-      const hidden = new Set(meta.hiddenItems || []);
-      const base = ITEMS
-        .filter(item => !hidden.has(item.key))
-        .map(item => ({ ...item, name: overrides[item.key] || item.name }));
-      const custom = (meta.customItems || []).map(item => ({ ...item, name: overrides[item.key] || item.name, isCustom: true }));
-      return [...base, ...custom];
+      return Array.isArray(meta.items) ? meta.items.map((item) => ({ ...item })) : [];
     }
 
     function ensureDataShape() {
-      getMeta();
+      ensureLedgerShape();
     }
 
     let data = persistence.load();
+    let ledgerNeedsSync = false;
     ensureDataShape();
     let editState = {};
     let collapsedState = {};
@@ -3340,7 +3302,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const expenseChart = document.getElementById("expenseChart");
     const trendChart = document.getElementById("trendChart");
     const breakdownLegend = document.getElementById("breakdownLegend");
-    const bankCardsGrid = document.getElementById("bankCardsGrid");
     const authOverlay = document.getElementById("authOverlay");
     const authForm = document.getElementById("authForm");
     const authCard = document.querySelector(".auth-card");
@@ -3428,6 +3389,23 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     const budgetModalCancelBtn = document.getElementById("budgetModalCancelBtn");
     const budgetFields = document.getElementById("budgetFields");
     const budgetModalError = document.getElementById("budgetModalError");
+    const manageCategoriesBtn = document.getElementById("manageCategoriesBtn");
+    const categoryModal = document.getElementById("categoryModal");
+    const categoryModalForm = document.getElementById("categoryModalForm");
+    const categoryModalCloseBtn = document.getElementById("categoryModalCloseBtn");
+    const categoryModalCancelBtn = document.getElementById("categoryModalCancelBtn");
+    const categoryRows = document.getElementById("categoryRows");
+    const categoryNewName = document.getElementById("categoryNewName");
+    const categoryNewBucket = document.getElementById("categoryNewBucket");
+    const categoryAddBtn = document.getElementById("categoryAddBtn");
+    const categoryModalError = document.getElementById("categoryModalError");
+    const onboardingModal = document.getElementById("onboardingModal");
+    const onboardingForm = document.getElementById("onboardingForm");
+    const onboardingCurrency = document.getElementById("onboardingCurrency");
+    const onboardingIncome = document.getElementById("onboardingIncome");
+    const onboardingItems = document.getElementById("onboardingItems");
+    const onboardingSkipBtn = document.getElementById("onboardingSkipBtn");
+    const onboardingError = document.getElementById("onboardingError");
     const insightsGrid = document.getElementById("insightsGrid");
     const insightsSubtitle = document.getElementById("insightsSubtitle");
 
@@ -3742,6 +3720,25 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       budgetModalCloseBtn.addEventListener("click", () => overlays.close("budget"));
       budgetModalCancelBtn.addEventListener("click", () => overlays.close("budget"));
       budgetModalForm.addEventListener("submit", saveBudgetModal);
+      manageCategoriesBtn.addEventListener("click", () => {
+        overlays.close("budget");
+        overlays.open("categories");
+      });
+      categoryModalCloseBtn.addEventListener("click", () => overlays.close("categories"));
+      categoryModalCancelBtn.addEventListener("click", () => overlays.close("categories"));
+      categoryRows.addEventListener("click", (event) => {
+        const remove = event.target.closest("[data-remove-category]");
+        if (!remove) return;
+        removeCategoryRow(remove.getAttribute("data-remove-category"));
+      });
+      categoryAddBtn.addEventListener("click", addCategoryRow);
+      categoryModalForm.addEventListener("submit", saveCategoryModal);
+      onboardingForm.addEventListener("submit", submitOnboarding);
+      onboardingSkipBtn.addEventListener("click", skipOnboarding);
+      onboardingCurrency.addEventListener("change", () => {
+        onboardingIncome.placeholder = "0";
+        applyCurrencyLabels();
+      });
 
       searchInput.addEventListener("input", applyFilters);
       viewBoxesBtn.addEventListener("click", () => switchView("boxes"));
@@ -3791,7 +3788,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           tableViewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
           return;
         }
-        const box = document.querySelector(`.cat-box[data-category="${targetCat}"]`);
+        const box = [...categoryBoxesContainer.children].find(
+          (candidate) => candidate.dataset.category === targetCat
+        );
         if (!box) return;
         box.scrollIntoView({ behavior: "smooth", block: "center" });
         box.classList.add("highlight");
@@ -4213,6 +4212,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function closeRecoveryCodes() {
       recoveryCodesModal.classList.add("hidden");
       pendingRecoveryCodes = [];
+      maybeShowOnboarding();
     }
 
     function dismissRecoveryCodes() {
@@ -4643,7 +4643,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function toggleCollapseAll() {
-      const cats = Object.keys(CATEGORY_MAP);
+      const cats = Object.keys(getCategoryMap());
       const allCollapsed = cats.every(c => collapsedState[c]);
       cats.forEach(c => collapsedState[c] = !allCollapsed);
       render();
@@ -4658,9 +4658,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       salaryInput.value = current.salary !== "" && current.salary != null ? current.salary : "";
 
+      applyCurrencyLabels();
       renderBoxes(current, prev);
       renderTable(current, prev);
-      renderBankAccounts(current, prev);
       updateSecurityCard();
       setPaidDirty(false);
       applyFilters();
@@ -4821,15 +4821,36 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function renderBoxes(current, prev) {
       categoryBoxesContainer.innerHTML = "";
-      const categories = Object.keys(CATEGORY_MAP);
+      const categories = Object.keys(getCategoryMap());
       const allItems = getAllItems();
 
-      categories.forEach(cat => {
+      // A brand-new account has categories but no lines yet. Showing seven
+      // empty boxes reads like a bug, so say plainly what to do next.
+      if (!allItems.length) {
+        categoryBoxesContainer.innerHTML = `
+          <div class="ledger-empty">
+            <h3>Your ledger is empty</h3>
+            <p>Add the first line you want to track — rent, groceries, a loan repayment — and it shows up here.</p>
+            <button id="emptyAddExpenseBtn" class="btn btn-primary" type="button">
+              <iconify-icon icon="lucide:plus" width="15" height="15" aria-hidden="true"></iconify-icon>
+              Add your first item
+            </button>
+          </div>`;
+        const emptyBtn = document.getElementById("emptyAddExpenseBtn");
+        if (emptyBtn) emptyBtn.addEventListener("click", () => overlays.open("expense", { trigger: emptyBtn }));
+        return;
+      }
+
+      categories.forEach((cat, index) => {
         const catItems = allItems.filter(i => i.category === cat);
         const box = document.createElement("div");
         box.className = "cat-box";
         box.dataset.category = cat;
-        const catColor = CATEGORY_MAP[cat]?.color || "#566F62";
+        const catColor = getCategoryMap()[cat]?.color || "#566F62";
+        // Category names are user-owned, so every place they land in markup is
+        // escaped; ids use the index because a name may collide when slugified.
+        const catName = escapeHtml(cat);
+        const catId = `cat_items_${index}`;
         box.style.borderLeftColor = catColor;
 
         const isCollapsed = !!collapsedState[cat];
@@ -4845,9 +4866,9 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
         const budgetRow = budget > 0
           ? `
-            <div class="cat-budget" data-budget-for="${cat}">
+            <div class="cat-budget" data-budget-for="${catName}">
               <div class="cat-budget-top">
-                <span class="cat-budget-label tnum">₹0 of ₹${formatNumber(budget)}</span>
+                <span class="cat-budget-label tnum">${money(0)} of ${money(budget)}</span>
                 <span class="cat-budget-pct tnum">0%</span>
               </div>
               <div class="cat-budget-track"><span class="cat-budget-fill"></span></div>
@@ -4856,16 +4877,16 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           : "";
 
         box.innerHTML = `
-          <div class="cat-box-header" data-toggle="${cat}" tabindex="0" role="button" aria-expanded="${!isCollapsed}" aria-controls="cat_items_${slugify(cat)}">
+          <div class="cat-box-header" data-toggle="${catName}" tabindex="0" role="button" aria-expanded="${!isCollapsed}" aria-controls="${catId}">
             <div class="cat-title">
-              <span class="cat-icon-badge" style="background:${catColor};">${iconNode(CATEGORY_MAP[cat].icon, 14)}</span>
-              <span>${cat}</span>
+              <span class="cat-icon-badge" style="background:${catColor};">${iconNode(getCategoryMap()[cat].icon, 14)}</span>
+              <span>${catName}</span>
               <span class="cat-badge">${paidCount}/${catItems.length} paid</span>
             </div>
-            <div class="cat-total tnum hideable-val" data-total-for="${cat}">₹${formatNumber(catSum)}</div>
+            <div class="cat-total tnum hideable-val" data-total-for="${catName}">${money(catSum)}</div>
           </div>
           ${budgetRow}
-          <div id="cat_items_${slugify(cat)}" class="cat-items-list ${isCollapsed ? 'collapsed' : ''}"></div>
+          <div id="${catId}" class="cat-items-list ${isCollapsed ? 'collapsed' : ''}"></div>
         `;
 
         const listEl = box.querySelector(".cat-items-list");
@@ -4921,7 +4942,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       allItems.forEach((item) => {
         const val = Totals.itemValue(item, current, prev);
         const isPaid = !!(current.paid && current.paid[item.key]);
-        const catMeta = CATEGORY_MAP[item.category] || {};
+        const catMeta = getCategoryMap()[item.category] || {};
         const catColor = catMeta.color || "#566F62";
 
         const tr = document.createElement("tr");
@@ -4954,48 +4975,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       });
 
       attachInputListeners();
-    }
-
-    function renderBankAccounts(current, prev) {
-      bankCardsGrid.innerHTML = "";
-      const allItems = getAllItems();
-
-      BANK_ACCOUNTS.forEach(acc => {
-        let accSum = 0;
-        const itemsMarkup = acc.itemKeys.map(k => {
-          const itemDef = allItems.find(i => i.key === k);
-          if (!itemDef) return "";
-          const amt = Number(Totals.itemValue(itemDef, current, prev)) || 0;
-          accSum += amt;
-          return `
-            <li>
-              <span class="item-title">${escapeHtml(itemDef.name)}</span>
-              <span class="item-amt tnum hideable-val" data-bank-item="${escapeHtml(k)}">₹${formatNumber(amt)}</span>
-            </li>
-          `;
-        }).join("");
-
-        const card = document.createElement("div");
-        card.className = "bank-routing-card";
-        const iconBg = colorWithAlpha(acc.accent || "#566F62", document.body.classList.contains("dark-theme") ? 0.26 : 0.14);
-        card.innerHTML = `
-          <div>
-            <div class="bank-head">
-              <div class="bank-icon-badge" style="background:${iconBg}; color:${acc.accent || "#566F62"};">${iconNode(acc.icon, 18)}</div>
-              <div class="bank-head-text">
-                <h3>${acc.name}</h3>
-                <span>${acc.purpose}</span>
-              </div>
-            </div>
-            <ul class="bank-items-list">${itemsMarkup}</ul>
-          </div>
-          <div class="bank-footer">
-            <span class="label">Total Needed</span>
-            <span class="total tnum hideable-val" data-bank-total="${acc.id}">₹${formatNumber(accSum)}</span>
-          </div>
-        `;
-        bankCardsGrid.appendChild(card);
-      });
     }
 
     function attachInputListeners() {
@@ -5118,17 +5097,16 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       const remaining = totals.remaining;
       const savingsRate = totals.savingsRate;
 
-      // Keep category box header totals and bank routing values live while editing
+      // Keep category box header totals live while editing
       updateCategoryHeaderTotals(totals);
-      updateBankAccountFigures(totals);
 
-      document.getElementById("statExpense").textContent = `₹${formatNumber(totalOutflow)}`;
+      document.getElementById("statExpense").textContent = `${money(totalOutflow)}`;
       document.getElementById("statSavingsRate").textContent = `${savingsRate.toFixed(1)}%`;
 
       const remainingEl = document.getElementById("statRemaining");
       remainingEl.textContent = remaining < 0
-        ? `−₹${formatNumber(Math.abs(remaining))}`
-        : `₹${formatNumber(remaining)}`;
+        ? `−${money(Math.abs(remaining))}`
+        : `${money(remaining)}`;
       remainingEl.style.color = "#ffffff";
 
       const hasIncome = salary > 0;
@@ -5151,20 +5129,20 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         ? `${spentPct.toFixed(1)}% of income`
         : "Expenses + investments";
       savingsMeta.textContent = totals.invest > 0
-        ? `₹${formatNumber(totals.invest)} invested this month`
+        ? `${money(totals.invest)} invested this month`
         : "No investments this month";
 
       const showOverspend = hasIncome && remaining < 0;
       budgetAlert.classList.toggle("hidden", !showOverspend);
       if (showOverspend) {
-        budgetAlertTitle.textContent = `Spending exceeds income by ₹${formatNumber(Math.abs(remaining))}`;
+        budgetAlertTitle.textContent = `Spending exceeds income by ${money(Math.abs(remaining))}`;
         budgetAlertText.textContent = `Outflow is ${spentPct.toFixed(0)}% of income. Trim wants or add inflow to rebalance this month.`;
       }
 
       const allItems = getAllItems();
       const settlePct = allItems.length ? (totals.paidCount / allItems.length) * 100 : 0;
       document.getElementById("settleLabel").textContent = `Paid ${totals.paidCount} of ${allItems.length} items`;
-      document.getElementById("settleAmt").textContent = `(₹${formatNumber(totals.paidOutflow)} of ₹${formatNumber(totalOutflow)} cleared)`;
+      document.getElementById("settleAmt").textContent = `(${money(totals.paidOutflow)} of ${money(totalOutflow)} cleared)`;
       document.getElementById("settleFill").style.width = `${settlePct}%`;
 
 
@@ -5189,7 +5167,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         current,
         prev: previousMonthData(monthKey),
         items: getAllItems(),
-        categories: CATEGORY_MAP
+        categories: getCategoryMap()
       });
     }
 
@@ -5242,7 +5220,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       cards.push(insightCard(
         same ? "neutral" : lower ? "positive" : "negative",
         "Total outflow",
-        same ? "No change" : `${lower ? "−" : "+"}₹${formatNumber(Math.abs(delta))}`,
+        same ? "No change" : `${lower ? "−" : "+"}${money(Math.abs(delta))}`,
         same
           ? `Same spend as ${prevLabel}`
           : deltaPct === null
@@ -5251,7 +5229,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       ));
 
       // 2 & 3. Biggest category movers
-      const deltas = Object.keys(CATEGORY_MAP).map((cat) => ({
+      const deltas = Object.keys(getCategoryMap()).map((cat) => ({
         cat,
         now: totals.byCategory[cat] || 0,
         before: prev.byCategory[cat] || 0
@@ -5266,7 +5244,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cards.push(insightCard(
           "negative",
           "Biggest increase",
-          `+₹${formatNumber(top.delta)}`,
+          `+${money(top.delta)}`,
           `${top.cat}${pct === null ? " added this month" : ` up ${pct.toFixed(0)}%`} vs ${prevLabel}`
         ));
       } else {
@@ -5284,7 +5262,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         cards.push(insightCard(
           "positive",
           "Biggest decrease",
-          `−₹${formatNumber(Math.abs(top.delta))}`,
+          `−${money(Math.abs(top.delta))}`,
           `${top.cat}${pct === null ? " came down" : ` down ${pct.toFixed(0)}%`} vs ${prevLabel}`
         ));
       } else {
@@ -5345,7 +5323,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function updateCategoryHeaderTotals(totals) {
       document.querySelectorAll("[data-total-for]").forEach(el => {
         const cat = el.getAttribute("data-total-for");
-        el.textContent = `₹${formatNumber(totals.byCategory[cat] || 0)}`;
+        el.textContent = `${money(totals.byCategory[cat] || 0)}`;
       });
     }
 
@@ -5362,32 +5340,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const pctEl = el.querySelector(".cat-budget-pct");
         const fillEl = el.querySelector(".cat-budget-fill");
 
-        if (labelEl) labelEl.textContent = `₹${formatNumber(spent)} of ₹${formatNumber(budget)}`;
+        if (labelEl) labelEl.textContent = `${money(spent)} of ${money(budget)}`;
         if (pctEl) pctEl.textContent = `${Math.round(pct)}%`;
         if (fillEl) fillEl.style.width = `${Math.min(100, Math.max(0, pct))}%`;
 
         el.classList.toggle("is-over", pct > 100);
         el.classList.toggle("is-warn", pct > 85 && pct <= 100);
-      });
-    }
-
-    function updateBankAccountFigures(totals) {
-      const accountSums = {};
-      BANK_ACCOUNTS.forEach(acc => {
-        let sum = 0;
-        acc.itemKeys.forEach(key => {
-          const val = totals.values[key] || 0;
-          sum += val;
-          document.querySelectorAll(`[data-bank-item="${key}"]`).forEach(el => {
-            el.textContent = `₹${formatNumber(val)}`;
-          });
-        });
-        accountSums[acc.id] = sum;
-      });
-
-      Object.entries(accountSums).forEach(([id, sum]) => {
-        const totalEl = document.querySelector(`[data-bank-total="${id}"]`);
-        if (totalEl) totalEl.textContent = `₹${formatNumber(sum)}`;
       });
     }
 
@@ -5422,10 +5380,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       if (!/^[a-z0-9._-]{1,64}$/i.test(key)) return false;
       const lowered = key.toLowerCase();
       return lowered !== "__proto__" && lowered !== "prototype" && lowered !== "constructor";
-    }
-
-    function slugify(value) {
-      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
     }
 
     function queueChartDraw(totals) {
@@ -5465,7 +5419,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
       entries.forEach(([cat, val], idx) => {
         const sliceAngle = (val / totalOutflow) * 2 * Math.PI;
-        const color = CATEGORY_MAP[cat]?.color || CHART_COLORS[idx % CHART_COLORS.length];
+        const color = getCategoryMap()[cat]?.color || CHART_COLORS[idx % CHART_COLORS.length];
 
         ctx.beginPath();
         ctx.moveTo(cx, cy);
@@ -5484,7 +5438,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
             <span class="color-dot" style="background:${color}"></span>
             <span title="${escapeHtml(cat)}">${escapeHtml(cat)}</span>
           </div>
-          <span class="tnum hideable-val" style="font-weight:700;">₹${formatNumber(val)}</span>
+          <span class="tnum hideable-val" style="font-weight:700;">${money(val)}</span>
           <span class="tnum" style="color:var(--muted); font-size:11px;">${pct}%</span>
           <div class="breakdown-track"><span style="width:${pct}%; background:${color};"></span></div>
         `;
@@ -5501,7 +5455,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--text").trim();
       ctx.font = "bold 15px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`₹${formatNumber(totalOutflow)}`, cx, cy + 2);
+      ctx.fillText(`${money(totalOutflow)}`, cx, cy + 2);
       ctx.font = "11px Inter, sans-serif";
       ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted").trim();
       ctx.fillText("Total Outflow", cx, cy + 18);
@@ -5547,7 +5501,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           ctx.fillStyle = mutedCol;
           ctx.font = "10px JetBrains Mono, monospace";
           ctx.textAlign = "right";
-          ctx.fillText("₹0", pad.left - 6, y - 4);
+          ctx.fillText(money(0), pad.left - 6, y - 4);
         }
       }
 
@@ -5598,9 +5552,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function formatCompact(v) {
-      if (v >= 100000) return `₹${(v / 100000).toFixed(v % 100000 === 0 ? 0 : 1)}L`;
-      if (v >= 1000) return `₹${Math.round(v / 1000)}k`;
-      return `₹${Math.round(v)}`;
+      return LEDGER.formatCompact(v, getCurrencyCode());
     }
 
     function getLastMonthsSeries(limit) {
@@ -5732,37 +5684,46 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function makeCustomExpenseKey(name) {
-      const base = slugify(name) || "expense";
-      const keys = new Set(getAllItems().map(i => i.key));
-      let key = `custom_${base}`;
-      let i = 2;
-      while (keys.has(key)) {
-        key = `custom_${base}_${i++}`;
-      }
-      return key;
+      return LEDGER.itemKey(name, getAllItems().map((item) => item.key));
     }
 
-    function setupExpenseModal() {
-      const categories = Object.keys(CATEGORY_MAP);
+    function renderExpenseCategoryOptions() {
+      const map = getCategoryMap();
+      const categories = Object.keys(map);
       expenseCategorySelect.innerHTML = categories
-        .map((cat) => `<option value="${cat}">${cat}</option>`)
+        .map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`)
         .join("");
-      setupExpenseCategoryPicker();
-    }
-
-    function setupExpenseCategoryPicker() {
-      expenseCategoryList.innerHTML = Object.keys(CATEGORY_MAP)
+      expenseCategoryList.innerHTML = categories
         .map((cat) => {
-          const meta = CATEGORY_MAP[cat];
+          const meta = map[cat];
           return `
             <button class="select-option" type="button" role="option" aria-selected="false"
-              data-category="${cat}" tabindex="-1">
+              data-category="${escapeHtml(cat)}" tabindex="-1">
               <span class="select-option-icon" style="color:${meta.color};">${iconNode(meta.icon, 14)}</span>
-              <span class="select-option-label">${cat}</span>
+              <span class="select-option-label">${escapeHtml(cat)}</span>
               <iconify-icon class="select-option-check" icon="lucide:check" width="14" height="14" aria-hidden="true"></iconify-icon>
             </button>`;
         })
         .join("");
+
+      if (!categories.length) {
+        expenseCategorySelect.value = "";
+        expenseCategoryTriggerIcon.innerHTML = "";
+        expenseCategoryTriggerLabel.textContent = "No categories yet";
+        return;
+      }
+      const selected = categories.includes(expenseCategorySelect.value)
+        ? expenseCategorySelect.value
+        : categories[0];
+      setExpenseCategory(selected);
+    }
+
+    function setupExpenseModal() {
+      renderExpenseCategoryOptions();
+      setupExpenseCategoryPicker();
+    }
+
+    function setupExpenseCategoryPicker() {
 
       expenseCategoryTrigger.addEventListener("click", () => {
         if (overlays.isOpen("expenseCategory")) overlays.close("expenseCategory");
@@ -5799,7 +5760,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
       });
 
-      setExpenseCategory(Object.keys(CATEGORY_MAP)[0]);
+      setExpenseCategory(Object.keys(getCategoryMap())[0]);
     }
 
     function expenseCategoryOptions() {
@@ -5807,11 +5768,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     }
 
     function setExpenseCategory(value, { focusTrigger = false } = {}) {
-      const categories = Object.keys(CATEGORY_MAP);
+      const categories = Object.keys(getCategoryMap());
       const cat = categories.includes(value) ? value : categories[0];
+      if (!cat) return;
       expenseCategorySelect.value = cat;
 
-      const meta = CATEGORY_MAP[cat];
+      const meta = getCategoryMap()[cat];
       expenseCategoryTriggerIcon.innerHTML = iconNode(meta.icon, 15);
       expenseCategoryTriggerIcon.style.color = meta.color;
       expenseCategoryTriggerLabel.textContent = cat;
@@ -5992,6 +5954,34 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         dismissible: true,
         restoreFocus: false,
       });
+
+      overlays.register("categories", {
+        show() {
+          showCategoryModal();
+        },
+        hide() {
+          categoryModal.classList.add("hidden");
+          categoryModalError.textContent = "";
+        },
+        isOutsideClick: (target) => target === categoryModal,
+        dismissible: true,
+        restoreFocus: false,
+      });
+
+      // Onboarding is the one surface that cannot be dismissed by accident:
+      // closing it without choosing would leave the account half-configured
+      // and show it again on the next load.
+      overlays.register("onboarding", {
+        show() {
+          showOnboarding();
+        },
+        hide() {
+          onboardingModal.classList.add("hidden");
+          onboardingError.textContent = "";
+        },
+        dismissible: false,
+        restoreFocus: false,
+      });
     }
 
     function openExpenseModal({ mode = "add", key = null } = {}) {
@@ -6032,7 +6022,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function getCategoryBudgets() {
       const meta = getMeta();
       const budgets = {};
-      Object.keys(CATEGORY_MAP).forEach((cat) => {
+      Object.keys(getCategoryMap()).forEach((cat) => {
         const value = Number(meta.categoryBudgets[cat]);
         if (Number.isFinite(value) && value > 0) budgets[cat] = value;
       });
@@ -6045,8 +6035,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function openBudgetModal() {
       const budgets = getCategoryBudgets();
-      budgetFields.innerHTML = Object.keys(CATEGORY_MAP).map((cat) => {
-        const catMeta = CATEGORY_MAP[cat];
+      budgetFields.innerHTML = Object.keys(getCategoryMap()).map((cat) => {
+        const catMeta = getCategoryMap()[cat];
         const value = budgets[cat] ? String(budgets[cat]) : "";
         return `
           <label class="budget-field">
@@ -6103,6 +6093,254 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       showToast("Category budgets saved");
     }
 
+    /* Category management -------------------------------------------------- */
+
+    function categoryRowMarkup(category) {
+      const name = escapeHtml(category.name);
+      return `
+        <div class="category-row" data-category-row data-original="${name}"
+          data-icon="${escapeHtml(category.icon)}" data-color="${escapeHtml(category.color)}">
+          <input type="text" maxlength="60" value="${name}" data-category-name aria-label="Category name" />
+          <select data-category-bucket aria-label="Bucket for ${name}">
+            <option value="needs" ${category.bucket === "needs" ? "selected" : ""}>Needs</option>
+            <option value="wants" ${category.bucket === "wants" ? "selected" : ""}>Wants</option>
+            <option value="savings" ${category.bucket === "savings" ? "selected" : ""}>Savings</option>
+          </select>
+          <button class="btn category-remove" type="button" data-remove-category="${name}" aria-label="Remove ${name}">×</button>
+        </div>`;
+    }
+
+    function showCategoryModal() {
+      categoryRows.innerHTML = getMeta().categories.map(categoryRowMarkup).join("");
+      categoryNewName.value = "";
+      categoryNewBucket.value = "needs";
+      categoryModalError.textContent = "";
+      categoryModal.classList.remove("hidden");
+      categoryNewName.focus();
+    }
+
+    function addCategoryRow() {
+      categoryModalError.textContent = "";
+      const name = (categoryNewName.value || "").trim();
+      if (!name) {
+        categoryModalError.textContent = "Enter a name for the new category.";
+        categoryNewName.focus();
+        return;
+      }
+      const taken = [...categoryRows.querySelectorAll("[data-category-name]")].some(
+        (input) => input.value.trim().toLowerCase() === name.toLowerCase()
+      );
+      if (taken) {
+        categoryModalError.textContent = `"${name}" is already in the list.`;
+        categoryNewName.select();
+        return;
+      }
+
+      const category = {
+        name,
+        bucket: categoryNewBucket.value,
+        icon: "ph:tag-bold",
+        color: LEDGER.nextCategoryColor(getMeta().categories),
+      };
+      categoryRows.insertAdjacentHTML("beforeend", categoryRowMarkup(category));
+      categoryNewName.value = "";
+      categoryNewName.focus();
+    }
+
+    function removeCategoryRow(name) {
+      const row = [...categoryRows.querySelectorAll("[data-category-row]")].find(
+        (candidate) => candidate.getAttribute("data-original") === name
+      );
+      if (row) row.remove();
+    }
+
+    function saveCategoryModal(e) {
+      e.preventDefault();
+      categoryModalError.textContent = "";
+
+      const rows = [...categoryRows.querySelectorAll("[data-category-row]")].map((row) => ({
+        original: row.getAttribute("data-original"),
+        name: (row.querySelector("[data-category-name]").value || "").trim(),
+        bucket: row.querySelector("[data-category-bucket]").value,
+        icon: row.getAttribute("data-icon"),
+        color: row.getAttribute("data-color"),
+      }));
+
+      if (!rows.length) {
+        categoryModalError.textContent = "Keep at least one category.";
+        return;
+      }
+
+      const seen = new Set();
+      for (const row of rows) {
+        if (!row.name) {
+          categoryModalError.textContent = "Every category needs a name.";
+          return;
+        }
+        const key = row.name.toLowerCase();
+        if (seen.has(key)) {
+          categoryModalError.textContent = `"${row.name}" appears twice.`;
+          return;
+        }
+        seen.add(key);
+      }
+
+      const meta = getMeta();
+      const kept = new Set(rows.map((row) => row.original));
+      const renamed = new Map();
+      for (const row of rows) {
+        if (row.original !== row.name) renamed.set(row.original, row.name);
+      }
+
+      // Removing a category that still owns items would hide those lines.
+      // Renaming is allowed because it moves the items with it.
+      for (const category of meta.categories) {
+        if (kept.has(category.name)) continue;
+        const used = meta.items.filter((item) => item.category === category.name).length;
+        if (used > 0) {
+          categoryModalError.textContent = `"${category.name}" still has ${used} item${used === 1 ? "" : "s"}. Move or delete them first.`;
+          return;
+        }
+      }
+
+      meta.categories = rows.map((row) => ({
+        name: row.name,
+        bucket: row.bucket,
+        icon: row.icon,
+        color: row.color,
+      }));
+      meta.items = meta.items.map((item) => ({
+        ...item,
+        category: renamed.get(item.category) || item.category,
+      }));
+
+      const budgets = {};
+      for (const [category, amount] of Object.entries(meta.categoryBudgets || {})) {
+        const nextName = renamed.get(category) || category;
+        if (seen.has(nextName.toLowerCase())) budgets[nextName] = amount;
+      }
+      meta.categoryBudgets = budgets;
+
+      persistence.saveLocal(data);
+      syncSettingsInBackground();
+      renderExpenseCategoryOptions();
+      overlays.close("categories");
+      render();
+      showToast("Categories saved");
+      setAutosaveBadge("Saved on this device", "saved");
+    }
+
+    /* First-run onboarding ------------------------------------------------- */
+
+    function showOnboarding() {
+      const meta = getMeta();
+      onboardingCurrency.innerHTML = LEDGER.CURRENCIES
+        .map((entry) => `<option value="${entry.code}">${entry.code} — ${entry.label}</option>`)
+        .join("");
+      onboardingCurrency.value = LEDGER.currencyFor(meta.currency || LEDGER.detectCurrency(navigator.language || "")).code;
+      onboardingIncome.value = "";
+      onboardingError.textContent = "";
+
+      const categories = getCategoryMap();
+      onboardingItems.innerHTML = QUICK_PICK_ITEMS
+        .filter((item) => categories[item.category])
+        .map((item, index) => `
+          <label class="onboarding-item">
+            <input type="checkbox" value="${index}" />
+            <span>${escapeHtml(item.name)}</span>
+          </label>`)
+        .join("");
+
+      applyCurrencyLabels();
+      onboardingModal.classList.remove("hidden");
+      onboardingCurrency.focus();
+    }
+
+    function maybeShowOnboarding() {
+      if (!isAuthenticated()) return;
+      if (overlays.isOpen("onboarding")) return;
+      // Registration shows one-time recovery codes first; onboarding can wait
+      // until that modal is closed.
+      if (!recoveryCodesModal.classList.contains("hidden")) return;
+      const meta = getMeta();
+      if (meta.onboarded) return;
+
+      // Safety valve: an account with data is never new, even if an older
+      // settings row never recorded the flag.
+      if (hasAnyMonth() || (Array.isArray(meta.items) && meta.items.length > 0)) {
+        meta.onboarded = true;
+        persistence.saveLocal(data);
+        syncSettingsInBackground();
+        return;
+      }
+      overlays.open("onboarding");
+    }
+
+    function finishOnboarding({ skipped = false } = {}) {
+      const meta = getMeta();
+      if (skipped) {
+        meta.onboarded = true;
+        meta.currency = LEDGER.currencyFor(onboardingCurrency.value).code;
+        persistence.saveLocal(data);
+        syncSettingsInBackground();
+        overlays.close("onboarding");
+        render();
+        showToast("You can set up your ledger whenever you're ready");
+        return;
+      }
+
+      const incomeRaw = (onboardingIncome.value || "").trim();
+      const income = incomeRaw === "" ? null : Number(incomeRaw);
+      if (income !== null && (!Number.isFinite(income) || income < 0)) {
+        onboardingError.textContent = "Enter a valid income, or leave it blank.";
+        return;
+      }
+
+      const categories = getCategoryMap();
+      const picked = [...onboardingItems.querySelectorAll("input:checked")]
+        .map((input) => QUICK_PICK_ITEMS[Number(input.value)])
+        .filter((item) => item && categories[item.category]);
+
+      meta.currency = LEDGER.currencyFor(onboardingCurrency.value).code;
+      meta.onboarded = true;
+      meta.items = [];
+      for (const pick of picked) {
+        meta.items.push({
+          key: LEDGER.itemKey(pick.name, meta.items.map((item) => item.key)),
+          name: pick.name,
+          category: pick.category,
+          kind: "expense",
+          fixed: false,
+        });
+      }
+
+      const month = monthPicker.value;
+      data[month] = data[month] || { salary: "", items: {}, paid: {} };
+      if (income !== null) data[month].salary = income;
+
+      persistence.saveLocal(data);
+      overlays.close("onboarding");
+      render();
+      showToast("Planner ready");
+      setAutosaveBadge("Saved on this device", "saved");
+
+      if (isAuthenticated()) {
+        persistence.syncSettingsBestEffort(getMeta());
+        persistence.syncMonth(data, month).catch(() => {});
+      }
+    }
+
+    function submitOnboarding(e) {
+      e.preventDefault();
+      onboardingError.textContent = "";
+      finishOnboarding();
+    }
+
+    function skipOnboarding() {
+      onboardingError.textContent = "";
+      finishOnboarding({ skipped: true });
+    }
+
     function validateExpenseModal() {
       const name = (expenseNameInput.value || "").trim();
       if (!name) return "Expense name is required.";
@@ -6146,13 +6384,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const amountNum = amountRaw === "" ? null : Number(amountRaw);
         const meta = getMeta();
         const key = makeCustomExpenseKey(name);
-        meta.customItems.push({
+        meta.items.push({
           category,
           name,
           key,
           kind: "expense",
           fixed: false,
-          defaultAmount: Number.isFinite(amountNum) ? amountNum : null,
         });
 
         const month = monthPicker.value;
@@ -6201,9 +6438,8 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           return;
         }
         const meta = getMeta();
-        const custom = meta.customItems.find((i) => i.key === key);
-        if (custom) custom.name = nextName;
-        else meta.nameOverrides[key] = nextName;
+        const target = meta.items.find((i) => i.key === key);
+        if (target) target.name = nextName;
 
         persistence.saveLocal(data);
         syncSettingsInBackground();
@@ -6225,18 +6461,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
 
     function performDeleteExpense(key) {
       const meta = getMeta();
-      const custom = meta.customItems.find((i) => i.key === key);
-      const builtIn = ITEMS.find((i) => i.key === key);
-      const item = custom || builtIn;
+      const item = meta.items.find((i) => i.key === key);
       if (!item) return;
 
-      if (custom) {
-        meta.customItems = meta.customItems.filter((i) => i.key !== key);
-      } else if (builtIn) {
-        meta.hiddenItems = meta.hiddenItems || [];
-        if (!meta.hiddenItems.includes(key)) meta.hiddenItems.push(key);
-      }
-      delete meta.nameOverrides[key];
+      meta.items = meta.items.filter((i) => i.key !== key);
       Object.keys(data).forEach((monthKey) => {
         if (monthKey === "__meta") return;
         const monthData = data[monthKey];
@@ -6305,56 +6533,28 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
       return { salary, items, paid };
     }
 
-    function sanitizeBackupMeta(meta) {
-      const clean = { customItems: [], nameOverrides: {}, hiddenItems: [], categoryBudgets: {} };
-      const categories = new Set(Object.keys(CATEGORY_MAP));
-      const knownKeys = new Set(getAllItems().filter((item) => !item.isCustom).map((item) => item.key));
-      const raw = meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
+    function sanitizeBackupMeta(meta, hasMonths) {
+      const next = LEDGER.migrateMeta(meta, {
+        hasMonths,
+        defaultCurrency: getMeta().currency || LEDGER.detectCurrency(navigator.language || "")
+      });
 
-      const customs = Array.isArray(raw.customItems) ? raw.customItems.slice(0, 100) : [];
-      for (const item of customs) {
-        if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-        const key = String(item.key || "");
-        const name = String(item.name || "").trim().slice(0, 120);
-        const category = String(item.category || "");
-        if (!isSafeItemKey(key) || !name || !categories.has(category) || knownKeys.has(key)) continue;
-        knownKeys.add(key);
-        const amount = item.defaultAmount === "" || item.defaultAmount == null
-          ? null
-          : Number(item.defaultAmount);
-        clean.customItems.push({
-          key,
-          name,
-          category,
-          kind: item.kind === "investment" ? "investment" : "expense",
-          fixed: !!item.fixed,
-          defaultAmount: Number.isFinite(amount) ? amount : null,
-        });
+      // A backup may carry the old shape or a hand-edited file. Keep only
+      // items that point at a category the same file defines, and only budgets
+      // for those categories, so every line stays visible.
+      const categories = new Set(next.categories.map((category) => category.name));
+      next.items = next.items.filter((item) => categories.has(item.category));
+
+      const budgets = {};
+      for (const [cat, amount] of Object.entries(next.categoryBudgets || {})) {
+        const value = Number(amount);
+        if (categories.has(cat) && Number.isFinite(value) && value >= 0) budgets[cat] = Math.round(value);
       }
-
-      if (raw.nameOverrides && typeof raw.nameOverrides === "object" && !Array.isArray(raw.nameOverrides)) {
-        for (const [key, name] of Object.entries(raw.nameOverrides)) {
-          if (!knownKeys.has(key) || typeof name !== "string") continue;
-          const trimmed = name.trim().slice(0, 120);
-          if (trimmed) clean.nameOverrides[key] = trimmed;
-        }
-      }
-
-      if (Array.isArray(raw.hiddenItems)) {
-        clean.hiddenItems = raw.hiddenItems
-          .filter((key) => typeof key === "string" && knownKeys.has(key))
-          .slice(0, 500);
-      }
-
-      if (raw.categoryBudgets && typeof raw.categoryBudgets === "object" && !Array.isArray(raw.categoryBudgets)) {
-        for (const [cat, amount] of Object.entries(raw.categoryBudgets)) {
-          if (!categories.has(cat)) continue;
-          const num = Number(amount);
-          if (Number.isFinite(num) && num >= 0) clean.categoryBudgets[cat] = num;
-        }
-      }
-
-      return clean;
+      next.categoryBudgets = budgets;
+      next.customItems = [];
+      next.hiddenItems = [];
+      next.nameOverrides = {};
+      return next;
     }
 
     /**
@@ -6365,13 +6565,12 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
     function sanitizeBackup(raw) {
       if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
 
-      const clean = { __meta: sanitizeBackupMeta(raw.__meta) };
+      const monthKeys = Object.keys(raw).filter((key) => /^\d{4}-(0[1-9]|1[0-2])$/.test(key));
+      const clean = { __meta: sanitizeBackupMeta(raw.__meta, monthKeys.length > 0) };
       let months = 0;
-      for (const [key, value] of Object.entries(raw)) {
-        if (key === "__meta") continue;
-        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)) continue;
+      for (const key of monthKeys) {
         if (months >= 600) break;
-        const month = sanitizeBackupMonth(value);
+        const month = sanitizeBackupMonth(raw[key]);
         if (month) {
           clean[key] = month;
           months += 1;
@@ -6397,6 +6596,10 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           ensureDataShape();
           persistence.saveLocal(data);
           render();
+          if (isAuthenticated()) {
+            syncSettingsInBackground();
+            syncAllInBackground();
+          }
           showToast("Backup restored");
         } catch {
           showToast("That file isn't a valid backup", "error");
@@ -6464,6 +6667,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         const remote = await persistence.loadSettings();
         if (remote?.settings && typeof remote.settings === "object") {
           data.__meta = Persistence.normalizeMeta({ __meta: remote.settings }).__meta;
+          ensureLedgerShape();
           persistence.saveLocal(data);
           render();
         }
@@ -6501,10 +6705,6 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
           autosaveBadge.classList.remove("show", "saving", "saved", "error");
         }, 1800);
       }
-    }
-
-    function formatNumber(n) {
-      return new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(n || 0);
     }
 
     function toMonthString(d) {
@@ -6691,10 +6891,23 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         data.__meta = Persistence.normalizeMeta({ __meta: remote.settings }).__meta;
       } else if (!settingsReadFailed && metaHasContent(localMeta)) {
         data.__meta = Persistence.normalizeMeta({ __meta: localMeta }).__meta;
+        ensureLedgerShape();
+        persistence.saveLocal(data);
         await persistence.syncSettingsBestEffort(data.__meta);
+        ledgerNeedsSync = false;
+        return;
       }
 
+      // The stored settings may predate account-owned categories and items.
+      // Convert them here, after the account copy has won, so the conversion
+      // is what gets uploaded rather than the old local shape.
+      ensureLedgerShape();
       persistence.saveLocal(data);
+      if (ledgerNeedsSync && !settingsReadFailed) {
+        ledgerNeedsSync = false;
+        await persistence.syncSettingsBestEffort(data.__meta);
+      }
+      ledgerNeedsSync = false;
     }
 
     async function migrateLocalStorageToCloudOnce() {
@@ -6770,6 +6983,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         unlockApp();
         await hydrateFromCloud();
         render();
+        maybeShowOnboarding();
         return;
       }
 
@@ -6879,6 +7093,7 @@ var q=(t,e)=>`mo-root${t==="always"?" mo-always":""}${e?" mo-expr":""}`;function
         }
         await hydrateFromCloud();
         render();
+        maybeShowOnboarding();
         if (submitMode === "login") void refreshRecoveryStatus({ nudge: true });
         showToast(
           submitMode === "changepassword"

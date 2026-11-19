@@ -24,4 +24,5 @@ jobs:
             tests/persistence.test.js \
             tests/recovery.test.mjs \
             tests/totals.test.js \
-            tests/deletion.test.mjs
+            tests/deletion.test.mjs \
+            tests/ledger.test.js

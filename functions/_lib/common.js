@@ -253,8 +253,14 @@ export function sessionCookie(token = "", maxAge = 60 * 60 * 24 * 7) {
 const ITEM_KEY_RE = /^[a-z0-9._-]{1,64}$/i;
 const MAX_ITEMS_PER_MONTH = 500;
 const MAX_CUSTOM_ITEMS = 200;
+const MAX_CATEGORIES = 24;
 const MAX_NAME_LENGTH = 80;
 const MAX_BUDGET = 1_000_000_000_000;
+
+const BUCKETS = new Set(["needs", "wants", "savings"]);
+const CURRENCY_RE = /^[A-Z]{3}$/;
+const ICON_RE = /^[a-z0-9:_-]{1,48}$/i;
+const COLOR_RE = /^#[0-9a-f]{6}$/i;
 
 /** Keep stored keys as inert data, never inherited-object machinery. */
 function isSafeItemKey(key) {
@@ -332,6 +338,52 @@ function cleanLabel(value) {
  */
 export function sanitizeSettingsPayload(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const has = (key) => Object.prototype.hasOwnProperty.call(source, key);
+
+  const categories = [];
+  if (has("categories") && Array.isArray(source.categories)) {
+    const seen = new Set();
+    for (const raw of source.categories) {
+      if (categories.length >= MAX_CATEGORIES) break;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const name = cleanLabel(raw.name);
+      const lowered = name.toLowerCase();
+      if (!name || seen.has(lowered)) continue;
+      seen.add(lowered);
+      categories.push({
+        name,
+        bucket: BUCKETS.has(raw.bucket) ? raw.bucket : "needs",
+        icon: ICON_RE.test(String(raw.icon || "")) ? String(raw.icon) : "ph:tag-bold",
+        color: COLOR_RE.test(String(raw.color || "")) ? String(raw.color) : "#0B3D2E",
+      });
+    }
+  }
+  const allowedCategories = new Set(categories.map((category) => category.name));
+
+  const items = [];
+  if (has("items") && Array.isArray(source.items)) {
+    const seen = new Set();
+    for (const raw of source.items) {
+      if (items.length >= MAX_CUSTOM_ITEMS) break;
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const key = String(raw.key ?? "");
+      const name = cleanLabel(raw.name);
+      const category = cleanLabel(raw.category);
+      if (!isSafeItemKey(key) || !name || !category || seen.has(key)) continue;
+      // Items are grouped by category name, so an item that points at no
+      // declared category would vanish from the screen. Drop it instead of
+      // storing a half-visible line.
+      if (categories.length && !allowedCategories.has(category)) continue;
+      seen.add(key);
+      items.push({
+        key,
+        name,
+        category,
+        kind: raw.kind === "investment" ? "investment" : "expense",
+        fixed: raw.fixed === true,
+      });
+    }
+  }
 
   const customItems = [];
   if (Array.isArray(source.customItems)) {
@@ -388,6 +440,9 @@ export function sanitizeSettingsPayload(value) {
       const category = cleanLabel(rawCategory);
       const lowered = category.toLowerCase();
       if (!category || lowered === "__proto__" || lowered === "constructor" || lowered === "prototype") continue;
+      // When the client sends its category list, a budget for a category that
+      // is no longer in it is stale and must not come back.
+      if (categories.length && !allowedCategories.has(category)) continue;
       const budget = Number(rawValue);
       if (!Number.isFinite(budget) || budget < 0 || budget > MAX_BUDGET) continue;
       categoryBudgets[category] = Math.round(budget);
@@ -395,5 +450,18 @@ export function sanitizeSettingsPayload(value) {
     }
   }
 
-  return { customItems, hiddenItems, nameOverrides, categoryBudgets };
+  const clean = { customItems, hiddenItems, nameOverrides, categoryBudgets };
+
+  // Phase 3 fields. They are added only when the request carried them, so an
+  // older cached client cannot blank an account's categories by omission; the
+  // settings route carries the stored value forward for absent keys.
+  if (has("currency")) {
+    const currency = String(source.currency || "").trim().toUpperCase();
+    clean.currency = CURRENCY_RE.test(currency) ? currency : "";
+  }
+  if (has("categories")) clean.categories = categories;
+  if (has("items")) clean.items = items;
+  if (has("onboarded")) clean.onboarded = source.onboarded === true;
+
+  return clean;
 }

@@ -714,3 +714,106 @@ test("a request with no owner header keeps working for older clients", async () 
   assert.equal(month.status, 200);
   assert.equal(env.DB.months.length, 1);
 });
+
+test("settings keep account-owned categories, items and currency", () => {
+  const clean = sanitizeSettingsPayload({
+    currency: "usd",
+    onboarded: true,
+    categories: [
+      { name: " Bills ", bucket: "needs", icon: "ph:tag-bold", color: "#18815A" },
+      { name: "bills", bucket: "wants" },
+      { name: "Fun", bucket: "nonsense", icon: "<script>", color: "red" },
+    ],
+    items: [
+      { key: "rent", name: "Rent", category: "Bills", kind: "investment", fixed: true },
+      { key: "bad key", name: "Bad", category: "Bills" },
+      { key: "orphan", name: "Orphan", category: "Nowhere" },
+      { key: "nameless", name: "  ", category: "Bills" },
+    ],
+  });
+
+  assert.equal(clean.currency, "USD");
+  assert.equal(clean.onboarded, true);
+  assert.deepEqual(clean.categories, [
+    { name: "Bills", bucket: "needs", icon: "ph:tag-bold", color: "#18815A" },
+    { name: "Fun", bucket: "needs", icon: "ph:tag-bold", color: "#0B3D2E" },
+  ]);
+  assert.deepEqual(clean.items, [
+    { key: "rent", name: "Rent", category: "Bills", kind: "investment", fixed: true },
+  ]);
+});
+
+test("settings omit Phase 3 fields the client did not send", () => {
+  const clean = sanitizeSettingsPayload({ categoryBudgets: { Food: 100 } });
+
+  assert.equal(Object.prototype.hasOwnProperty.call(clean, "currency"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(clean, "categories"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(clean, "items"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(clean, "onboarded"), false);
+});
+
+test("an older tab cannot blank account categories by saving a budget", async () => {
+  const env = await makeEnv();
+
+  await writeSettings({
+    env,
+    request: settingsRequest("PUT", {
+      settings: {
+        currency: "USD",
+        onboarded: true,
+        categories: [{ name: "Bills", bucket: "needs", icon: "ph:tag-bold", color: "#18815A" }],
+        items: [{ key: "rent", name: "Rent", category: "Bills", kind: "expense", fixed: true }],
+      },
+      baseVersion: 0,
+    }),
+  });
+
+  // Phase 2 client: only the legacy keys, no Phase 3 keys at all.
+  const write = await writeSettings({
+    env,
+    request: settingsRequest("PUT", {
+      settings: { categoryBudgets: { Bills: 500 } },
+      baseVersion: 1,
+    }),
+  });
+  assert.equal(write.status, 200);
+
+  const stored = JSON.parse(env.DB.settings.get(USER).json);
+  assert.equal(stored.currency, "USD");
+  assert.equal(stored.onboarded, true);
+  assert.deepEqual(stored.categories, [
+    { name: "Bills", bucket: "needs", icon: "ph:tag-bold", color: "#18815A" },
+  ]);
+  assert.deepEqual(stored.items, [
+    { key: "rent", name: "Rent", category: "Bills", kind: "expense", fixed: true },
+  ]);
+  assert.deepEqual(stored.categoryBudgets, { Bills: 500 });
+});
+
+test("an explicit empty ledger clears it", async () => {
+  const env = await makeEnv();
+
+  await writeSettings({
+    env,
+    request: settingsRequest("PUT", {
+      settings: {
+        categories: [{ name: "Bills", bucket: "needs", icon: "ph:tag-bold", color: "#18815A" }],
+        items: [{ key: "rent", name: "Rent", category: "Bills" }],
+      },
+      baseVersion: 0,
+    }),
+  });
+
+  await writeSettings({
+    env,
+    request: settingsRequest("PUT", {
+      settings: { categories: [], items: [], onboarded: true },
+      baseVersion: 1,
+    }),
+  });
+
+  const stored = JSON.parse(env.DB.settings.get(USER).json);
+  assert.deepEqual(stored.categories, []);
+  assert.deepEqual(stored.items, []);
+  assert.equal(stored.onboarded, true);
+});
