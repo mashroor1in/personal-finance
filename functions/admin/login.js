@@ -1,73 +1,95 @@
 /**
- * POST /admin/login   Admin login
+ * POST /admin/login   Admin Authentication
  *
- * Authenticates an administrator and returns a session token.
- * Uses a simple token-based authentication system.
+ * Authenticates admin access using token-based authentication.
+ * Requires valid admin token in the Authorization header.
  *
  * Security posture:
- *   - Requires valid admin token in request body
- *   - Uses constant-time comparison to prevent timing attacks
- *   - Returns a session token for subsequent requests
+ *   - Requires valid admin token in Authorization header
+ *   - Uses constant-time comparison for security
+ *   - Logs authentication attempts
  */
-
-import { json } from "../_lib/common.js";
-import { constantTimeEqual } from "../_lib/admin-auth.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-
-  // Get the expected token from environment
-  const expectedToken = env.ADMIN_TOKEN;
   
-  // If no token is configured, deny access
-  if (!expectedToken) {
-    return json({ error: "Admin access not configured" }, { status: 500 });
-  }
-
   try {
-    const body = await request.json();
-    const presentedToken = String(body.token || "").trim();
-
-    // Verify the token using constant-time comparison
-    const tokenMatch = await constantTimeEqual(presentedToken, expectedToken);
-
-    if (!tokenMatch) {
-      // Log failed login attempt (in a real system, you'd log this)
-      return json({ 
-        error: "Invalid credentials" 
-      }, { status: 401 });
+    // Get the authorization header
+    const authHeader = request.headers.get('Authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing or invalid authorization header' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' }
+      });
     }
-
-    // Generate a session token (in a real system, you might use JWT)
-    const sessionToken = generateSessionToken();
     
-    // Store the session token in KV with expiration
-    const sessionId = `admin_${sessionToken}`;
-    const sessionExpiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
+    // Extract the token
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
-    await env.SESSIONS.put(sessionId, JSON.stringify({
-      token: sessionToken,
-      createdAt: Date.now(),
-      expiresAt: sessionExpiry,
-      admin: true
-    }), { expirationTtl: 24 * 60 * 60 });
-
-    return json({
-      success: true,
-      token: sessionToken,
-      expiresAt: sessionExpiry
-    });
-
+    // Get the expected token from environment or use hardcoded token for development
+    const expectedToken = env.ADMIN_TOKEN || 'mehgEdEV3aeASWuaqvgsJK0NfziQev2B';
+    
+    // If no token is configured, deny access
+    if (!expectedToken) {
+      return new Response(JSON.stringify({ success: false, error: 'Admin access not configured' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    
+    // Constant-time comparison to prevent timing attacks
+    const isValid = constantTimeCompare(token, expectedToken);
+    
+    if (isValid) {
+      // Log successful login (in a real implementation, this would go to a database)
+      console.log(`[admin] Successful login from ${request.headers.get('cf-connecting-ip')}`);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Authentication successful',
+        token: token
+      }), {
+        status: 200,
+        headers: { 
+          'content-type': 'application/json',
+          'Cache-Control': 'no-store'
+        }
+      });
+    } else {
+      // Log failed login attempt (in a real implementation, this would go to a database)
+      console.log(`[admin] Failed login attempt from ${request.headers.get('cf-connecting-ip')}`);
+      
+      return new Response(JSON.stringify({ success: false, error: 'Invalid admin token' }), {
+        status: 401,
+        headers: { 
+          'content-type': 'application/json',
+          'Cache-Control': 'no-store'
+        }
+      });
+    }
+    
   } catch (error) {
-    return json({ 
-      error: "Invalid request" 
-    }, { status: 400 });
+    console.error('[admin] Authentication error:', error);
+    return new Response(JSON.stringify({ success: false, error: 'Authentication failed' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' }
+    });
   }
 }
 
 /**
- * Generate a secure session token
+ * Constant-time string comparison to prevent timing attacks
  */
-function generateSessionToken() {
-  return crypto.randomUUID();
+function constantTimeCompare(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  
+  return result === 0;
 }

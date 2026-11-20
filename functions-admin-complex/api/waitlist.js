@@ -32,6 +32,9 @@ export async function onRequestGet(context) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '50');
     
+    // Get database
+    const db = getDatabaseFromEnv(env);
+    
     // Build the base query
     let query = `
       SELECT 
@@ -73,7 +76,7 @@ export async function onRequestGet(context) {
     
     // Get total count for pagination
     const countQuery = query.replace('SELECT id, email, name, country, status, created_at, updated_at, joined_at, referred_by, referral_code', 'SELECT COUNT(*) as count');
-    const totalResult = await env.DB.prepare(countQuery).bind(...params).first();
+    const totalResult = await queryFirstD1(db, countQuery, params);
     const total = totalResult.count;
     
     // Add pagination and sorting to the main query
@@ -81,10 +84,10 @@ export async function onRequestGet(context) {
     params.push(limit, (page - 1) * limit);
     
     // Get waitlist data
-    const result = await env.DB.prepare(query).bind(...params).all();
+    const result = await queryD1(db, query, params);
     
     // Process results
-    const users = result.results.map(row => ({
+    const users = result.map(row => ({
       id: row.id,
       name: row.name || '',
       email: row.email,
@@ -143,19 +146,22 @@ export async function onRequestPost(context) {
     // Get admin info for logging
     const adminInfo = getAdminInfo(request);
     
+    // Get database
+    const db = getDatabaseFromEnv(env);
+    
     // Perform the requested action
     let result;
     switch (action) {
       case 'send_invitations':
-        result = await sendBulkInvitations(env, userIds, options, adminInfo);
+        result = await sendBulkInvitations(db, userIds, options, adminInfo);
         break;
         
       case 'resend_verification':
-        result = await resendBulkVerification(env, userIds, adminInfo);
+        result = await resendBulkVerification(db, userIds, adminInfo);
         break;
         
       case 'export':
-        result = await exportBulkData(env, userIds);
+        result = await exportBulkData(db, userIds);
         break;
         
       default:
@@ -163,7 +169,7 @@ export async function onRequestPost(context) {
     }
     
     // Log the action
-    await logAdminAction(env, adminInfo, `Bulk ${action} on ${userIds.length} users`, userIds);
+    await logAdminAction(db, adminInfo, `Bulk ${action} on ${userIds.length} users`, userIds);
     
     return json(result);
     
@@ -176,15 +182,15 @@ export async function onRequestPost(context) {
 /**
  * Send bulk invitations
  */
-async function sendBulkInvitations(env, userIds, options, adminInfo) {
+async function sendBulkInvitations(db, userIds, options, adminInfo) {
   const expiryDays = options.expiryDays || 14;
-  const sentCount = 0;
+  let sentCount = 0;
   const errors = [];
   
   for (const userId of userIds) {
     try {
       // Get user info
-      const user = await env.DB.prepare("SELECT * FROM waitlist WHERE id = ?").bind(userId).first();
+      const user = await queryFirstD1(db, "SELECT * FROM waitlist WHERE id = ?", [userId]);
       if (!user || user.status !== 'verified') {
         errors.push({ userId, error: "User not eligible for invitation" });
         continue;
@@ -197,7 +203,7 @@ async function sendBulkInvitations(env, userIds, options, adminInfo) {
       
       // Update user with invitation
       const now = Date.now();
-      await env.DB.prepare(`
+      await runD1(db, `
         UPDATE waitlist
         SET status = 'invited',
             verification_token_hash = ?,
@@ -205,7 +211,7 @@ async function sendBulkInvitations(env, userIds, options, adminInfo) {
             invited_at = ?,
             updated_at = ?
         WHERE id = ?
-      `).bind(tokenHash, now, now, now, now, userId).run();
+      `, [tokenHash, now, now, now, userId]);
       
       // Send invitation email (using the email system)
       const invitationLink = `https://bucksy.life/early-access/invite?email=${encodeURIComponent(user.email)}&token=${encodeURIComponent(token)}`;
@@ -230,14 +236,14 @@ async function sendBulkInvitations(env, userIds, options, adminInfo) {
 /**
  * Resend bulk verification emails
  */
-async function resendBulkVerification(env, userIds, adminInfo) {
-  const sentCount = 0;
+async function resendBulkVerification(db, userIds, adminInfo) {
+  let sentCount = 0;
   const errors = [];
   
   for (const userId of userIds) {
     try {
       // Get user info
-      const user = await env.DB.prepare("SELECT * FROM waitlist WHERE id = ?").bind(userId).first();
+      const user = await queryFirstD1(db, "SELECT * FROM waitlist WHERE id = ?", [userId]);
       if (!user || user.status !== 'pending') {
         errors.push({ userId, error: "User not pending verification" });
         continue;
@@ -250,13 +256,13 @@ async function resendBulkVerification(env, userIds, adminInfo) {
       
       // Update user with new token
       const now = Date.now();
-      await env.DB.prepare(`
+      await runD1(db, `
         UPDATE waitlist
         SET verification_token_hash = ?,
             verification_sent_at = ?,
             updated_at = ?
         WHERE id = ?
-      `).bind(tokenHash, now, now, userId).run();
+      `, [tokenHash, now, userId]);
       
       // Send verification email
       const verificationLink = `https://bucksy.life/early-access/api/verify?email=${encodeURIComponent(user.email)}&token=${encodeURIComponent(token)}`;
@@ -281,19 +287,19 @@ async function resendBulkVerification(env, userIds, adminInfo) {
 /**
  * Export bulk data
  */
-async function exportBulkData(env, userIds) {
+async function exportBulkData(db, userIds) {
   // Get user data for export
   const placeholders = userIds.map(() => '?').join(',');
-  const result = await env.DB.prepare(`
+  const result = await queryD1(db, `
     SELECT id, email, name, country, status, created_at, joined_at, referral_code
     FROM waitlist
     WHERE id IN (${placeholders})
-  `).bind(...userIds).all();
+  `, userIds);
   
   return {
     success: true,
-    count: result.results.length,
-    data: result.results
+    count: result.length,
+    data: result
   };
 }
 
@@ -336,19 +342,19 @@ function getAdminInfo(request) {
 /**
  * Log admin action
  */
-async function logAdminAction(env, adminInfo, action, userIds) {
+async function logAdminAction(db, adminInfo, action, userIds) {
   try {
-    await env.DB.prepare(`
+    await runD1(db, `
       INSERT INTO admin_actions (id, admin_id, admin_email, action, user_ids, created_at)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(
+    `, [
       crypto.randomUUID(),
       adminInfo.id,
       adminInfo.email,
       action,
       JSON.stringify(userIds),
       Date.now()
-    ).run();
+    ]);
   } catch (error) {
     console.error("[admin] Error logging admin action:", error);
   }

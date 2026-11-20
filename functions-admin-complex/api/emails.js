@@ -99,9 +99,6 @@ export async function onRequestGet(context) {
       createdAt: row.created_at
     }));
     
-    // Get database
-    const db = getDatabaseFromEnv(env);
-    
     // Get delivery statistics
     const stats = await getEmailStats(db);
     
@@ -235,7 +232,7 @@ async function getEmailStats(db) {
  * Resend emails
  */
 async function resendEmails(db, env, emailIds, adminInfo) {
-  const resentCount = 0;
+  let resentCount = 0;
   const errors = [];
   
   for (const emailId of emailIds) {
