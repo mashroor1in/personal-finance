@@ -86,10 +86,26 @@ Adding a `functions/index.js` would claim `/` and shadow `index.html`. Don't.
 
 | Binding | Kind | Purpose |
 |---|---|---|
-| `DB` | D1 database | users, months, user_settings, auth_throttle, recovery_codes, deleted_months |
+| `DB` | D1 database | users, months, user_settings, auth_throttle, recovery_codes, deleted_months, waitlist, waitlist_events, email_logs |
 | `SESSIONS` | KV namespace | `sess:<token>` session records |
 | `TURNSTILE_SITE_KEY` | variable | client widget key |
 | `TURNSTILE_SECRET` | secret | server-side verification |
+
+### Email Delivery System
+
+The email system requires additional environment variables for sending verification emails, invitations, and launch announcements:
+
+| Variable | Provider | Required | Purpose |
+|---|---|---|---|
+| `WAITLIST_EMAIL_PROVIDER` | All | Yes | Email provider (`resend`, `sendgrid`, or `mailgun`) |
+| `RESEND_API_KEY` | Resend | Yes | Resend API key |
+| `SENDGRID_API_KEY` | SendGrid | Yes | SendGrid API key |
+| `MAILGUN_API_KEY` | Mailgun | Yes | Mailgun API key |
+| `MAILGUN_DOMAIN` | Mailgun | Yes | Mailgun domain |
+| `WAITLIST_FROM_EMAIL` | All | No | Default from address (default: `noreply@bucksy.life`) |
+| `WAITLIST_ADMIN_TOKEN` | All | No | Admin token for protected endpoints |
+
+The email system logs all delivery attempts to the `email_logs` table and includes analytics views (`email_stats`, `recent_failures`).
 
 Turnstile is all-or-nothing: set both or neither. With only one set, every
 login and registration is refused (fail closed) and `/api/auth/status` reports
@@ -117,6 +133,7 @@ wrangler d1 execute personal-expenses-db --file migrations/0003_recovery_codes.s
 wrangler d1 execute personal-expenses-db --file migrations/0004_deleted_months.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0005_ledger_durability.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0006_waitlist.sql --remote
+wrangler d1 execute personal-expenses-db --file migrations/0008_email_logs.sql --remote
 ```
 
 `0002`–`0004` are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT
@@ -188,6 +205,8 @@ node --test tests/deletion.test.mjs
 node --test tests/middleware.test.mjs
 node --test tests/ledger.test.js
 node --test tests/waitlist-schema.test.js
+node --test tests/email.test.js
+node --test tests/waitlist-api.test.js
 ```
 
 `node --test tests/` does not work; pass the files.

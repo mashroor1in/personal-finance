@@ -1,0 +1,28 @@
+{
+  "name": "bucksy",
+  "version": "1.0.0",
+  "description": "Bucksy - Personal Finance Management",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "migrate": "node scripts/migrate-database.js",
+    "test": "node --test tests/**/*.test.js",
+    "setup": "node scripts/setup-database.js"
+  },
+  "keywords": [
+    "finance",
+    "budget",
+    "personal-finance",
+    "cloudflare",
+    "pages"
+  ],
+  "author": "Bucksy Team",
+  "license": "MIT",
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

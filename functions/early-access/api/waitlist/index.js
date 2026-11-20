@@ -23,6 +23,7 @@ import {
   generateReferralCode,
   logEvent,
 } from "../../../_lib/waitlist.js";
+import { sendVerification } from "../../../_lib/email.js";
 
 const SIGNUP_SCOPE = "waitlist";
 const STATUS_SCOPE = "waitlist_status";
@@ -238,11 +239,10 @@ export async function onRequestGet(context) {
 }
 
 /**
- * Hand the token to the mailer.
+ * Hand the token to the email system.
  *
- * Email delivery is not wired yet, so this records the attempt and logs the
- * token to the worker console in non-production. It returns nothing: a mail
- * failure must not roll back a registration that already committed.
+ * Uses the Bucksy email service with proper branding, logging, and error handling.
+ * Email delivery failures are logged but don't roll back the registration.
  */
 async function deliverVerification(env, { id, email, name, token, request }) {
   const link = `https://bucksy.life/early-access/api/verify?email=${encodeURIComponent(
@@ -256,29 +256,21 @@ async function deliverVerification(env, { id, email, name, token, request }) {
     request,
   });
 
-  if (!env.WAITLIST_EMAIL_ENDPOINT) {
-    // No mailer configured. Leave a breadcrumb for the operator running
-    // `wrangler pages deployment tail`, never the token in a response body.
-    console.log(`[waitlist] verification link for ${email}: ${link}`);
-    return;
-  }
-
   try {
-    const res = await fetch(env.WAITLIST_EMAIL_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(env.WAITLIST_EMAIL_TOKEN ? { authorization: `Bearer ${env.WAITLIST_EMAIL_TOKEN}` } : {}),
-      },
-      body: JSON.stringify({ to: email, name, link, template: "waitlist_verify" }),
-    });
-    if (!res.ok) throw new Error(`mailer responded ${res.status}`);
+    await sendVerification(env, email, name, link);
   } catch (err) {
+    // In production, don't fail the entire API call if email fails
+    // Log the error but continue with the successful registration
     await logEvent(env, {
       waitlistId: id,
       type: EVENT.EMAIL_FAILED,
       detail: { reason: String(err?.message || "unknown").slice(0, 200) },
       request,
     });
+    
+    if (env.NODE_ENV !== "production") {
+      // In development, rethrow to catch configuration issues
+      throw err;
+    }
   }
 }

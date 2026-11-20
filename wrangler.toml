@@ -1,0 +1,20 @@
+# Wrangler configuration for Bucksy project
+
+name = "bucksy"
+main = "index.js"
+compatibility_date = "2023-12-01"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "bucksy_db" # <--- IMPORTANT: This should match the binding name in your functions
+database_name = "bucksy-db"
+database_id = "42b0531c-400b-4afc-ab45-4d442b0e131f" # <--- Database ID from your creation
+
+# Environment variables
+[env.production]
+vars = { 
+  ADMIN_TOKEN = "your_secure_admin_token_here",
+  WAITLIST_EMAIL_PROVIDER = "resend",
+  RESEND_API_KEY = "your_resend_api_key_here",
+  WAITLIST_FROM_EMAIL = "noreply@bucksy.life"
+}

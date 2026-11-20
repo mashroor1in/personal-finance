@@ -57,6 +57,33 @@ Last updated: 22 Nov 2026
   - [x] Added 19 new API tests and 15 new library tests (58 total passing)
   - [x] Fixed verification link expiration logic (migration `0007_waitlist_verification_sent_at.sql`)
   - [x] Fixed event logging to handle orphaned events gracefully
+- [x] **Step 3 — Email delivery** (22 Nov 2026):
+  - [x] Implemented comprehensive email delivery system with provider abstraction
+  - [x] Created Bucksy-branded email templates for all workflows
+  - [x] Connected verification emails to real delivery service
+  - [x] Added admin endpoints for invitations and launch announcements
+  - [x] Implemented email delivery logging and error handling
+  - [x] Created comprehensive test suite for email functionality
+  - [x] Added email configuration documentation
+  - [x] Applied email_logs migration to database schema
+
+- [x] **Step 4 — Admin dashboard** (22 Nov 2026):
+  - [x] Created secure admin authentication system with token-based access
+  - [x] Built comprehensive admin dashboard interface
+  - [x] Implemented waitlist management with search, filter, and export
+  - [x] Added invitation management with bulk actions
+  - [x] Created email communication management interface
+  - [x] Implemented audit logging system for all administrative actions
+  - [x] Added referral analytics dashboard
+  - [x] Created comprehensive test suite for admin functionality
+  - [x] Added admin configuration documentation
+  - [x] Created Pages-compatible database client and helper functions
+  - [x] Updated all admin functions to work with Cloudflare Pages D1 binding
+  - [x] Generated admin token and updated configuration files
+  - [x] Created comprehensive setup guide and documentation
+  - [x] Applied all database migrations including admin tables
+  - [x] Added sample data for testing
+  - [x] Created automated test script for admin dashboard
 - [ ] Phase 4 — identity.
 - [x] Phase 5 — waitlist and launch (Early Access system complete).
 - [ ] Phase 6 — billing (last, by design).

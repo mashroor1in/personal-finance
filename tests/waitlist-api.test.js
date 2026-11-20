@@ -30,6 +30,7 @@ const read = (name) => readFileSync(join(here, "..", "migrations", name), "utf8"
 
 const WAITLIST_SQL = read("0006_waitlist.sql");
 const ADDENDUM_SQL = read("0007_waitlist_verification_sent_at.sql");
+const EMAIL_LOGS_SQL = read("0008_email_logs.sql");
 const THROTTLE_SQL = read("0002_auth_throttle.sql");
 
 /* ------------------------------------------------------------ D1 shim -- */
@@ -79,6 +80,7 @@ function harness({ turnstileSucceeds = true } = {}) {
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec(WAITLIST_SQL);
   db.exec(ADDENDUM_SQL);
+  db.exec(EMAIL_LOGS_SQL);
   db.exec(THROTTLE_SQL);
 
   const mail = [];
@@ -93,6 +95,30 @@ function harness({ turnstileSucceeds = true } = {}) {
     if (String(url).includes("mailer.test")) {
       mail.push(JSON.parse(String(init?.body || "{}")));
       return { ok: true, json: async () => ({ ok: true }) };
+    }
+    if (String(url).includes("resend.com")) {
+      // Mock email delivery for new email system
+      const body = JSON.parse(String(init?.body || "{}"));
+      mail.push({
+        to: body.to,
+        subject: body.subject,
+        html: body.html,
+        text: body.text,
+        link: `https://bucksy.life/early-access/api/verify?email=${encodeURIComponent(body.to)}&token=mock-token`,
+      });
+      return { ok: true, json: async () => ({ id: "msg-123" }) };
+    }
+    if (String(url).includes("sendgrid.com") || String(url).includes("mailgun.net")) {
+      // Mock email delivery for other providers
+      const body = JSON.parse(String(init?.body || "{}"));
+      mail.push({
+        to: body.to,
+        subject: body.subject,
+        html: body.html,
+        text: body.text,
+        link: `https://bucksy.life/early-access/api/verify?email=${encodeURIComponent(body.to)}&token=mock-token`,
+      });
+      return { ok: true, json: async () => ({ id: "msg-123" }) };
     }
     throw new Error(`unexpected fetch ${url}`);
   };
@@ -365,7 +391,6 @@ test("an expired link is refused with a way forward", () =>
       .run(agedTime, agedTime, "ada@example.com");
 
     const row = h.row("ada@example.com");
-    console.log("created_at:", row.created_at, "verification_sent_at:", row.verification_sent_at);
 
     const res = await verifyGet({
       request: request({

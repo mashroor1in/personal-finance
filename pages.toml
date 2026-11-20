@@ -1,0 +1,16 @@
+# Cloudflare Pages configuration for Bucksy project
+
+[build]
+command = "npm run build"  # Or your build command if you have one
+
+[build.environment]
+NODE_VERSION = "18"
+
+# Environment variables
+[env.production]
+vars = { 
+  ADMIN_TOKEN = "mehgEdEV3aeASWuaqvgsJK0NfziQev2B",
+  WAITLIST_EMAIL_PROVIDER = "resend",
+  RESEND_API_KEY = "your_resend_api_key_here",
+  WAITLIST_FROM_EMAIL = "noreply@bucksy.life"
+}

@@ -212,8 +212,11 @@ export async function hashVerificationToken(email, token) {
  */
 export function isTokenExpired(sentAt, now = Date.now()) {
   const issued = Number(sentAt);
+  console.log("[isTokenExpired] Debug:", { sentAt, issued, now, TOKEN_TTL_MS });
   if (!Number.isFinite(issued) || issued <= 0) return true;
-  return now - issued > TOKEN_TTL_MS;
+  const expired = now - issued > TOKEN_TTL_MS;
+  console.log("[isTokenExpired] Result:", expired);
+  return expired;
 }
 
 /**

@@ -19,6 +19,7 @@ import {
   isTokenExpired,
   logEvent,
 } from "../../../_lib/waitlist.js";
+import { sendVerificationConfirmation } from "../../../_lib/email.js";
 
 const VERIFY_SCOPE = "waitlist_verify";
 const RESEND_SCOPE = "waitlist_resend";
@@ -75,7 +76,9 @@ export async function onRequestGet(context) {
     return renderError(400, "This verification link is not valid.");
   }
 
-  if (isTokenExpired(row.verification_sent_at ?? row.created_at)) {
+  const tokenTime = row.verification_sent_at ?? row.created_at;
+  
+  if (isTokenExpired(tokenTime)) {
     return renderError(410, "This verification link has expired. Request a new one below.", {
       canResend: true,
       email,
@@ -101,6 +104,14 @@ export async function onRequestGet(context) {
     detail: { email },
     request,
   });
+
+  // Send confirmation email
+  try {
+    await sendVerificationConfirmation(env, email, name);
+  } catch (err) {
+    // Log but don't fail the verification if email fails
+    console.error("[verify] Failed to send confirmation email:", err);
+  }
 
   await releaseAuthFailure(env, ip, VERIFY_SCOPE);
 
