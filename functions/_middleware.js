@@ -16,8 +16,11 @@
  * denied even though it matches `.pages.dev`: it is the production alias, not
  * a preview.
  *
- * This file only runs for the paths listed in `_routes.json` (`/api/*` and
- * `/app`), so static files never invoke a Function just to be served.
+ * This file only runs for the paths listed in `_routes.json` (`/api/*`,
+ * `/app`, `/early-access/api/*`), so static files never invoke a Function just
+ * to be served. The waitlist API is included so the allowlist also covers it:
+ * otherwise the production alias would accept signups the canonical domain
+ * owns.
  */
 
 const CANONICAL_HOSTS = new Set(["bucksy.life", "www.bucksy.life"]);
@@ -125,10 +128,10 @@ export async function onRequest(context) {
 
   if (isAllowedHost(requestHost(context.request))) return context.next();
 
-  // Allow early-access page and API on all hosts
-  if (pathname === "/early-access" || pathname.startsWith("/early-access/api/")) return context.next();
-
-  if (pathname.startsWith("/api/")) return jsonNotFound();
+  // The waitlist API is JSON, so answer in JSON rather than with the HTML page.
+  if (pathname.startsWith("/api/") || pathname.startsWith("/early-access/api/")) {
+    return jsonNotFound();
+  }
 
   return new Response(NOT_FOUND_HTML, {
     status: 404,

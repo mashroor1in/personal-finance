@@ -1,350 +1,284 @@
 /**
- * Bucksy Early Access Waitlist API
- * 
- * Main endpoint for waitlist registration with comprehensive security measures.
- * 
- * Features:
- * - Server-side Turnstile validation
- * - Email validation and normalization
- * - Rate limiting
- * - Disposable email detection
- * - Security logging
- * - Database integration
+ * POST /early-access/api/waitlist   register (or re-send verification)
+ * GET  /early-access/api/waitlist   check one registration's status
+ *
+ * Security posture:
+ *   - same-origin JSON only (`guardJsonMutation`)
+ *   - one atomic D1 throttle per IP, shared with nothing else
+ *   - Turnstile verified server-side; the client result is ignored
+ *   - only a token *hash* is stored, bound to the address
+ *   - a successful call refunds its throttle slot, so only failures accumulate
  */
 
-import { validateWaitlistData, normalizeEmail, generateUUID, generateReferralCode, 
-         hashToken, createSuccessResponse, createErrorResponse, logSecurityEvent,
-         validateTurnstileToken, isRateLimitExceeded, getRateLimitKey, sanitizeInput } from '../../utils.js';
+import { json, guardJsonMutation, readJson } from "../../../_lib/common.js";
+import { reserveCredentialAttempt, releaseAuthFailure, tooManyAttempts } from "../../../_lib/throttle.js";
+import { verifyTurnstile, clientIp } from "../../../_lib/turnstile.js";
+import {
+  EVENT,
+  validateSignup,
+  normalizeEmail,
+  isValidEmail,
+  generateVerificationToken,
+  hashVerificationToken,
+  generateReferralCode,
+  logEvent,
+} from "../../../_lib/waitlist.js";
 
-export async function onRequest(context) {
-  // Handle CORS
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
-  };
+const SIGNUP_SCOPE = "waitlist";
+const STATUS_SCOPE = "waitlist_status";
+const MAX_REFERRAL_ATTEMPTS = 5;
 
-  // Handle preflight requests
-  if (context.request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders,
-      status: 204
-    });
-  }
+const GENERIC_SENT =
+  "Check your inbox — if that address can join, a verification link is on its way.";
 
-  // Security headers
-  const securityHeaders = {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;"
-  };
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-  // Handle POST requests (waitlist registration)
-  if (context.request.method === 'POST') {
-    try {
-      const clientIP = getClientIP(context);
-      const userAgent = context.request.headers.get('user-agent') || '';
-      
-      // Check for suspicious user agent
-      if (isSuspiciousUserAgent(userAgent)) {
-        logSecurityEvent(context, 'SUSPICIOUS_USER_AGENT', { userAgent });
-        return new Response(JSON.stringify(createErrorResponse('Invalid request', 'INVALID_USER_AGENT')), {
-          status: 400,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+  const badRequest = guardJsonMutation(request);
+  if (badRequest) return badRequest;
 
-      // Rate limiting check
-      const rateLimitKey = getRateLimitKey(clientIP);
-      const rateLimitData = context.env.WAITLIST_RATE_LIMIT?.get(rateLimitKey);
-      if (isRateLimitExceeded(rateLimitData)) {
-        logSecurityEvent(context, 'RATE_LIMIT_EXCEEDED', { ip: clientIP });
-        return new Response(JSON.stringify(createErrorResponse('Too many attempts. Please try again later.', 'RATE_LIMIT_EXCEEDED')), {
-          status: 429,
-          headers: { 
-            ...corsHeaders, 
-            ...securityHeaders, 
-            'Content-Type': 'application/json',
-            'Retry-After': '900'
-          }
-        });
-      }
+  const ip = clientIp(request);
+  const lock = await reserveCredentialAttempt(env, ip, SIGNUP_SCOPE);
+  if (lock.blocked) return tooManyAttempts(lock);
 
-      // Validate content type
-      const contentType = context.request.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        logSecurityEvent(context, 'INVALID_CONTENT_TYPE', { contentType });
-        return new Response(JSON.stringify(createErrorResponse('Content-Type must be application/json', 'INVALID_CONTENT_TYPE')), {
-          status: 415,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
+  const body = await readJson(request);
 
-      // Parse and validate request data
-      const rawData = await context.request.json();
-      const data = {
-        email: sanitizeInput(rawData.email),
-        name: sanitizeInput(rawData.name),
-        country: sanitizeInput(rawData.country),
-        referral_code: sanitizeInput(rawData.referral_code),
-        referred_by: sanitizeInput(rawData.referred_by),
-        signup_source: sanitizeInput(rawData.signup_source) || 'early-access',
-        turnstile_token: sanitizeInput(rawData.turnstile_token)
-      };
+  // Accept both spellings: the landing page sends `turnstileToken`, older
+  // callers may send `turnstile_token`.
+  const turnstileToken = String(body.turnstileToken || body.turnstile_token || "").trim();
 
-      // Validate input data
-      const validation = validateWaitlistData(data);
-      if (!validation.isValid) {
-        logSecurityEvent(context, 'VALIDATION_ERROR', { errors: validation.errors, email: data.email });
-        return new Response(JSON.stringify(createErrorResponse(validation.errors.join(', '), 'VALIDATION_ERROR')), {
-          status: 400,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Validate Turnstile token
-      if (!await validateTurnstileToken(data.turnstile_token)) {
-        logSecurityEvent(context, 'TURNSTILE_FAILED', { email: data.email });
-        return new Response(JSON.stringify(createErrorResponse('Security verification failed', 'TURNSTILE_FAILED')), {
-          status: 400,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      // Check for existing registration
-      const existingUser = await context.env.DB.prepare('SELECT id, email, status FROM waitlist WHERE email = ?')
-        .bind(data.email)
-        .first();
-      
-      if (existingUser) {
-        if (existingUser.status === 'verified') {
-          logSecurityEvent(context, 'DUPLICATE_REGISTRATION', { email: data.email, status: existingUser.status });
-          return new Response(JSON.stringify(createErrorResponse('This email is already registered', 'DUPLICATE_REGISTRATION')), {
-            status: 409,
-            headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-          });
-        } else {
-          // Update existing pending registration
-          const verificationToken = generateVerificationToken();
-          const tokenHash = await hashToken(verificationToken);
-          const now = Date.now();
-          
-          await context.env.DB.prepare(`
-            UPDATE waitlist 
-            SET name = ?, country = ?, referral_code = ?, referred_by = ?, 
-                signup_source = ?, verification_token_hash = ?, updated_at = ?
-            WHERE email = ?
-          `).bind(
-            data.name || null,
-            data.country || null,
-            data.referral_code || null,
-            data.referred_by || null,
-            data.signup_source,
-            tokenHash,
-            now,
-            data.email
-          ).run();
-          
-          // Log the update
-          await logWaitlistEvent(context.env.DB, existingUser.id, 'REGISTRATION_UPDATE', {
-            email: data.email,
-            name: data.name,
-            country: data.country,
-            referral_code: data.referral_code,
-            referred_by: data.referred_by
-          });
-          
-          // In production, send verification email
-          // await sendVerificationEmail(data.email, verificationToken);
-          
-          logSecurityEvent(context, 'REGISTRATION_UPDATED', { email: data.email });
-          return new Response(JSON.stringify(createSuccessResponse({
-            id: existingUser.id,
-            email: data.email,
-            status: 'pending',
-            message: 'Registration updated. Please check your email for verification.'
-          })), {
-            status: 200,
-            headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-      }
-
-      // Create new registration
-      const id = generateUUID();
-      const verificationToken = generateVerificationToken();
-      const tokenHash = await hashToken(verificationToken);
-      const now = Date.now();
-      
-      // Generate referral code if not provided
-      const referralCode = data.referral_code || generateReferralCode();
-      
-      // Insert new waitlist entry
-      await context.env.DB.prepare(`
-        INSERT INTO waitlist (
-          id, email, name, country, referral_code, referred_by, 
-          signup_source, verification_token_hash, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        id,
-        data.email,
-        data.name || null,
-        data.country || null,
-        referralCode,
-        data.referred_by || null,
-        data.signup_source,
-        tokenHash,
-        now
-      ).run();
-      
-      // Log the registration event
-      await logWaitlistEvent(context.env.DB, id, 'REGISTRATION', {
-        email: data.email,
-        name: data.name,
-        country: data.country,
-        referral_code: referralCode,
-        referred_by: data.referred_by,
-        signup_source: data.signup_source,
-        ip: clientIP,
-        userAgent: userAgent
-      });
-      
-      // In production, send verification email
-      // await sendVerificationEmail(data.email, verificationToken);
-      
-      // Update rate limit
-      await updateRateLimit(context.env.WAITLIST_RATE_LIMIT, rateLimitKey);
-      
-      logSecurityEvent(context, 'REGISTRATION_SUCCESS', { email: data.email, id });
-      
-      return new Response(JSON.stringify(createSuccessResponse({
-        id,
-        email: data.email,
-        referral_code: referralCode,
-        status: 'pending',
-        message: 'Registration successful. Please check your email for verification.'
-      })), {
-        status: 201,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-      
-    } catch (error) {
-      console.error('Waitlist registration error:', error);
-      logSecurityEvent(context, 'REGISTRATION_ERROR', { error: error.message });
-      
-      return new Response(JSON.stringify(createErrorResponse('An error occurred while processing your request', 'INTERNAL_ERROR')), {
-        status: 500,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-  }
-
-  // Handle GET requests (check registration status)
-  if (context.request.method === 'GET') {
-    try {
-      const email = normalizeEmail(new URL(context.request.url).searchParams.get('email'));
-      
-      if (!email) {
-        return new Response(JSON.stringify(createErrorResponse('Email parameter is required', 'MISSING_EMAIL')), {
-          status: 400,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      
-      const user = await context.env.DB.prepare('SELECT id, email, name, country, status, created_at, invited_at FROM waitlist WHERE email = ?')
-        .bind(email)
-        .first();
-      
-      if (!user) {
-        return new Response(JSON.stringify(createErrorResponse('No registration found', 'NOT_FOUND')), {
-          status: 404,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      
-      return new Response(JSON.stringify(createSuccessResponse({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        country: user.country,
-        status: user.status,
-        created_at: user.created_at,
-        invited_at: user.invited_at
-      })), {
-        status: 200,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-      
-    } catch (error) {
-      console.error('Error checking registration status:', error);
-      
-      return new Response(JSON.stringify(createErrorResponse('An error occurred while checking registration status', 'INTERNAL_ERROR')), {
-        status: 500,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-  }
-
-  // Handle other methods
-  return new Response(JSON.stringify(createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED')), {
-    status: 405,
-    headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
+  const human = await verifyTurnstile({
+    secret: env.TURNSTILE_SECRET,
+    siteKey: env.TURNSTILE_SITE_KEY,
+    token: turnstileToken,
+    ip: ip === "unknown" ? "" : ip,
   });
-}
-
-// Helper functions
-function getClientIP(context) {
-  return context.request.cf?.ip || 
-         context.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-         context.request.headers.get('x-real-ip')?.trim() ||
-         'unknown';
-}
-
-function isSuspiciousUserAgent(userAgent) {
-  if (!userAgent) return false;
-  
-  const suspiciousPatterns = [
-    /bot/i, /crawler/i, /spider/i, /scraper/i,
-    /curl/i, /wget/i, /python/i, /phantomjs/i,
-    /headless/i, /test/i, /automation/i,
-    /scrapy/i, /selenium/i, /puppeteer/i
-  ];
-  
-  return suspiciousPatterns.some(pattern => pattern.test(userAgent));
-}
-
-async function updateRateLimit(rateLimitKV, key) {
-  try {
-    const now = Date.now();
-    const existing = await rateLimitKV.get(key);
-    const attempts = existing ? JSON.parse(existing) : [];
-    attempts.push(now);
-    await rateLimitKV.put(key, JSON.stringify(attempts));
-  } catch (error) {
-    console.error('Error updating rate limit:', error);
+  if (!human) {
+    await logEvent(env, {
+      waitlistId: "unknown",
+      type: EVENT.ERROR,
+      detail: { stage: "turnstile", ip },
+      request,
+    });
+    return json({ ok: false, error: "Please complete human verification." }, { status: 403 });
   }
+
+  const checked = validateSignup({
+    email: body.email,
+    name: body.name,
+    country: body.country,
+    referralCode: body.referralCode || body.referral_code,
+  });
+  if (!checked.ok) {
+    return json({ ok: false, code: checked.code, error: checked.error }, { status: 400 });
+  }
+
+  const { email, name, country, referralCode } = checked.value;
+  const now = Date.now();
+
+  let referrerId = null;
+  if (referralCode) {
+    // An unknown code must not block the signup; it just does not credit anyone.
+    const referrer = await env.DB.prepare("SELECT id FROM waitlist WHERE referral_code = ?")
+      .bind(referralCode)
+      .first();
+    referrerId = referrer?.id || null;
+  }
+
+  const existing = await env.DB.prepare(
+    "SELECT id, status FROM waitlist WHERE email = ?"
+  )
+    .bind(email)
+    .first();
+
+  if (existing) {
+    if (existing.status === "verified" || existing.status === "invited") {
+      // Explicit and safe: the caller already knows this address, and silence
+      // here reads as a broken form.
+      return json(
+        { ok: false, code: "ALREADY_REGISTERED", error: "This email is already on the waitlist." },
+        { status: 409 }
+      );
+    }
+
+    const token = generateVerificationToken();
+    const tokenHash = await hashVerificationToken(email, token);
+
+    await env.DB.prepare(
+      `UPDATE waitlist
+          SET name = COALESCE(?, name),
+              country = COALESCE(?, country),
+              referred_by = COALESCE(referred_by, ?),
+              verification_token_hash = ?,
+              verification_sent_at = ?,
+              updated_at = ?
+        WHERE id = ?`
+    )
+      .bind(name, country, referrerId, tokenHash, now, now, existing.id)
+      .run();
+
+    await logEvent(env, {
+      waitlistId: existing.id,
+      type: EVENT.SIGNUP_UPDATED,
+      detail: { email, hasReferral: !!referrerId },
+      request,
+    });
+
+    await deliverVerification(env, { id: existing.id, email, name, token, request });
+
+    await releaseAuthFailure(env, ip, SIGNUP_SCOPE);
+    return json({ ok: true, status: "pending", message: GENERIC_SENT }, { status: 202 });
+  }
+
+  const id = crypto.randomUUID();
+  const token = generateVerificationToken();
+  const tokenHash = await hashVerificationToken(email, token);
+
+  // A collision on the 8-char referral code is unlikely but not impossible, so
+  // retry with a fresh code instead of surfacing a 500.
+  let issuedCode = null;
+  for (let attempt = 0; attempt < MAX_REFERRAL_ATTEMPTS; attempt += 1) {
+    const candidate = generateReferralCode();
+    try {
+      await env.DB.prepare(
+        `INSERT INTO waitlist
+           (id, email, name, country, referral_code, referred_by, signup_source,
+            status, email_verified, verification_token_hash, verification_sent_at,
+            created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'early-access', 'pending', 0, ?, ?, ?, ?)`
+      )
+        .bind(id, email, name, country, candidate, referrerId, tokenHash, now, now, now)
+        .run();
+      issuedCode = candidate;
+      break;
+    } catch (err) {
+      const message = String(err?.message || "");
+      // Someone else claimed the address in the same instant.
+      if (message.includes("waitlist.email")) {
+        return json(
+          { ok: false, code: "ALREADY_REGISTERED", error: "This email is already on the waitlist." },
+          { status: 409 }
+        );
+      }
+      // Different referral code, try again.
+      if (message.includes("referral_code") && attempt < MAX_REFERRAL_ATTEMPTS - 1) continue;
+      throw err;
+    }
+  }
+
+  if (!issuedCode) {
+    return json({ ok: false, error: "Could not complete registration. Please retry." }, { status: 503 });
+  }
+
+  await logEvent(env, {
+    waitlistId: id,
+    type: EVENT.SIGNUP,
+    detail: { email, hasName: !!name, country, referredBy: referrerId },
+    request,
+  });
+
+  await deliverVerification(env, { id, email, name, token, request });
+
+  await releaseAuthFailure(env, ip, SIGNUP_SCOPE);
+
+  return json(
+    {
+      ok: true,
+      status: "pending",
+      referralCode: issuedCode,
+      message: GENERIC_SENT,
+    },
+    { status: 201 }
+  );
 }
 
-async function logWaitlistEvent(DB, waitlistId, eventType, eventData = {}) {
+export async function onRequestGet(context) {
+  const { request, env } = context;
+
+  const ip = clientIp(request);
+  const lock = await reserveCredentialAttempt(env, ip, STATUS_SCOPE);
+  if (lock.blocked) return tooManyAttempts(lock);
+
+  let email = "";
   try {
-    const id = generateUUID();
-    const now = Date.now();
-    
-    await DB.prepare(`
-      INSERT INTO waitlist_events (id, waitlist_id, event_type, event_data, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      id,
-      waitlistId,
-      eventType,
-      JSON.stringify(eventData),
-      now
-    ).run();
-  } catch (error) {
-    console.error('Error logging waitlist event:', error);
+    email = normalizeEmail(new URL(request.url).searchParams.get("email"));
+  } catch {
+    email = "";
+  }
+
+  if (!isValidEmail(email)) {
+    return json({ ok: false, error: "A valid email parameter is required." }, { status: 400 });
+  }
+
+  const row = await env.DB.prepare(
+    `SELECT status, created_at, verified_at, invited_at, referral_code
+       FROM waitlist WHERE email = ?`
+  )
+    .bind(email)
+    .first();
+
+  await releaseAuthFailure(env, ip, STATUS_SCOPE);
+
+  if (!row) {
+    return json({ ok: true, registered: false }, { status: 200 });
+  }
+
+  return json(
+    {
+      ok: true,
+      registered: true,
+      status: row.status,
+      createdAt: row.created_at ?? null,
+      verifiedAt: row.verified_at ?? null,
+      invitedAt: row.invited_at ?? null,
+      referralCode: row.referral_code ?? null,
+    },
+    { status: 200 }
+  );
+}
+
+/**
+ * Hand the token to the mailer.
+ *
+ * Email delivery is not wired yet, so this records the attempt and logs the
+ * token to the worker console in non-production. It returns nothing: a mail
+ * failure must not roll back a registration that already committed.
+ */
+async function deliverVerification(env, { id, email, name, token, request }) {
+  const link = `https://bucksy.life/early-access/api/verify?email=${encodeURIComponent(
+    email
+  )}&token=${encodeURIComponent(token)}`;
+
+  await logEvent(env, {
+    waitlistId: id,
+    type: EVENT.EMAIL_SENT,
+    detail: { to: "redacted", linkIssued: true },
+    request,
+  });
+
+  if (!env.WAITLIST_EMAIL_ENDPOINT) {
+    // No mailer configured. Leave a breadcrumb for the operator running
+    // `wrangler pages deployment tail`, never the token in a response body.
+    console.log(`[waitlist] verification link for ${email}: ${link}`);
+    return;
+  }
+
+  try {
+    const res = await fetch(env.WAITLIST_EMAIL_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(env.WAITLIST_EMAIL_TOKEN ? { authorization: `Bearer ${env.WAITLIST_EMAIL_TOKEN}` } : {}),
+      },
+      body: JSON.stringify({ to: email, name, link, template: "waitlist_verify" }),
+    });
+    if (!res.ok) throw new Error(`mailer responded ${res.status}`);
+  } catch (err) {
+    await logEvent(env, {
+      waitlistId: id,
+      type: EVENT.EMAIL_FAILED,
+      detail: { reason: String(err?.message || "unknown").slice(0, 200) },
+      request,
+    });
   }
 }

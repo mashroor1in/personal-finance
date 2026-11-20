@@ -1,254 +1,93 @@
 /**
- * Waitlist Analytics Endpoint
- * 
- * Provides analytics and statistics for the waitlist program.
- * 
- * Features:
- * - Registration statistics
- * - Referral analytics
- * - Geographic distribution
- * - Time-based analytics
- * - Security monitoring
+ * GET /early-access/api/analytics
+ *
+ * Operator-only. Returns aggregate lifecycle numbers, never a full address.
+ *
+ * Access is by shared secret in the `x-admin-token` header. If
+ * WAITLIST_ADMIN_TOKEN is not configured the route answers 404, so a
+ * misconfigured deployment hides the endpoint instead of publishing it.
  */
 
-import { generateUUID, createSuccessResponse, createErrorResponse, 
-         logSecurityEvent } from '../../utils.js';
+import { json, constantTimeEqual } from "../../../_lib/common.js";
 
-export async function onRequest(context) {
-  // Handle CORS
-  const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400'
-  };
+export async function onRequestGet(context) {
+  const { request, env } = context;
 
-  // Handle preflight requests
-  if (context.request.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders,
-      status: 204
-    });
+  const expected = String(env.WAITLIST_ADMIN_TOKEN || "");
+  if (!expected) {
+    return json({ ok: false, error: "Not found" }, { status: 404 });
   }
 
-  // Security headers
-  const securityHeaders = {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;"
-  };
-
-  // Handle GET requests (analytics data)
-  if (context.request.method === 'GET') {
-    try {
-      const clientIP = context.request.cf?.ip || 'unknown';
-      
-      // Check if client is authorized (in production, implement proper auth)
-      if (!isAuthorizedRequest(context)) {
-        logSecurityEvent(context, 'UNAUTHORIZED_ANALYTICS_ACCESS', { ip: clientIP });
-        return new Response(JSON.stringify(createErrorResponse('Unauthorized access', 'UNAUTHORIZED')), {
-          status: 401,
-          headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // Get analytics data
-      const analytics = await getWaitlistAnalytics(context.env.DB);
-      
-      return new Response(JSON.stringify(createSuccessResponse(analytics)), {
-        status: 200,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-      
-    } catch (error) {
-      console.error('Analytics error:', error);
-      logSecurityEvent(context, 'ANALYTICS_ERROR', { error: error.message });
-      
-      return new Response(JSON.stringify(createErrorResponse('An error occurred while retrieving analytics', 'INTERNAL_ERROR')), {
-        status: 500,
-        headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+  const presented = String(request.headers.get("x-admin-token") || "");
+  const allowed = presented && (await constantTimeEqual(presented, expected));
+  if (!allowed) {
+    // Slow the guesser down without telling them the route exists.
+    return json({ ok: false, error: "Not found" }, { status: 404 });
   }
 
-  // Handle other methods
-  return new Response(JSON.stringify(createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED')), {
-    status: 405,
-    headers: { ...corsHeaders, ...securityHeaders, 'Content-Type': 'application/json' }
-  });
-}
+  const [totals, recent, sources, countries] = await Promise.all([
+    env.DB.prepare(
+      `SELECT
+         COUNT(*) AS total,
+         SUM(CASE WHEN status = 'pending'  THEN 1 ELSE 0 END) AS pending,
+         SUM(CASE WHEN status = 'verified' THEN 1 ELSE 0 END) AS verified,
+         SUM(CASE WHEN status = 'invited'  THEN 1 ELSE 0 END) AS invited,
+         SUM(CASE WHEN referred_by IS NOT NULL THEN 1 ELSE 0 END) AS referred,
+         MIN(created_at) AS first_signup,
+         MAX(created_at) AS last_signup
+       FROM waitlist`
+    ).first(),
+    env.DB.prepare(
+      `SELECT
+         SUM(CASE WHEN created_at  > ? THEN 1 ELSE 0 END) AS signups_24h,
+         SUM(CASE WHEN created_at  > ? THEN 1 ELSE 0 END) AS signups_7d,
+         SUM(CASE WHEN verified_at > ? THEN 1 ELSE 0 END) AS verifications_7d
+       FROM waitlist`
+    )
+      .bind(Date.now() - 86400000, Date.now() - 604800000, Date.now() - 604800000)
+      .first(),
+    env.DB.prepare(
+      `SELECT signup_source AS source, COUNT(*) AS count
+         FROM waitlist GROUP BY signup_source ORDER BY count DESC`
+    ).all(),
+    env.DB.prepare(
+      `SELECT country, COUNT(*) AS count
+         FROM waitlist WHERE country IS NOT NULL
+         GROUP BY country ORDER BY count DESC LIMIT 10`
+    ).all(),
+  ]);
 
-// Helper functions
-async function getWaitlistAnalytics(DB) {
-  try {
-    const now = Date.now();
-    const yesterday = now - (24 * 60 * 60 * 1000);
-    const lastWeek = now - (7 * 24 * 60 * 60 * 1000);
-    const lastMonth = now - (30 * 24 * 60 * 60 * 1000);
-    
-    // Basic statistics
-    const totalStats = await DB.prepare(`
-      SELECT 
-        COUNT(*) as total_registrations,
-        COUNT(CASE WHEN status = 'verified' THEN 1 END) as verified_registrations,
-        COUNT(CASE WHEN status = 'invited' THEN 1 END) as invited_registrations,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_registrations,
-        COUNT(CASE WHEN email_verified = 1 THEN 1 END) as email_verified_count
-      FROM waitlist
-    `).first();
-    
-    // Time-based statistics
-    const timeStats = await DB.prepare(`
-      SELECT 
-        COUNT(CASE WHEN created_at > ? THEN 1 END) as registrations_last_24h,
-        COUNT(CASE WHEN created_at > ? THEN 1 END) as registrations_last_7d,
-        COUNT(CASE WHEN created_at > ? THEN 1 END) as registrations_last_30d,
-        COUNT(CASE WHEN verified_at > ? THEN 1 END) as verifications_last_24h,
-        COUNT(CASE WHEN verified_at > ? THEN 1 END) as verifications_last_7d,
-        COUNT(CASE WHEN verified_at > ? THEN 1 END) as verifications_last_30d
-      FROM waitlist
-    `).bind(
-      yesterday, yesterday, yesterday,
-      yesterday, lastWeek, lastMonth
-    ).first();
-    
-    // Geographic distribution
-    const geoStats = await DB.prepare(`
-      SELECT 
-        country,
-        COUNT(*) as count
-      FROM waitlist
-      WHERE country IS NOT NULL AND country != ''
-      GROUP BY country
-      ORDER BY count DESC
-      LIMIT 10
-    `).all();
-    
-    // Signup source distribution
-    const sourceStats = await DB.prepare(`
-      SELECT 
-        signup_source,
-        COUNT(*) as count
-      FROM waitlist
-      GROUP BY signup_source
-      ORDER BY count DESC
-    `).all();
-    
-    // Referral statistics
-    const referralStats = await DB.prepare(`
-      SELECT 
-        COUNT(CASE WHEN referral_code IS NOT NULL THEN 1 END) as total_with_referral,
-        COUNT(CASE WHEN referred_by IS NOT NULL THEN 1 END) as total_referred,
-        COUNT(CASE WHEN status = 'verified' AND referred_by IS NOT NULL THEN 1 END) as verified_referred
-      FROM waitlist
-    `).first();
-    
-    // Top referrers
-    const topReferrers = await DB.prepare(`
-      SELECT 
-        w.email,
-        w.name,
-        COUNT(r.id) as referral_count,
-        COUNT(CASE WHEN r.status = 'verified' THEN 1 END) as verified_referrals
-      FROM waitlist w
-      LEFT JOIN waitlist r ON w.id = r.referred_by
-      WHERE w.referral_code IS NOT NULL
-      GROUP BY w.id, w.email, w.name
-      ORDER BY referral_count DESC
-      LIMIT 10
-    `).all();
-    
-    // Event statistics
-    const eventStats = await DB.prepare(`
-      SELECT 
-        event_type,
-        COUNT(*) as count
-      FROM waitlist_events
-      GROUP BY event_type
-      ORDER BY count DESC
-    `).all();
-    
-    // Recent activity
-    const recentActivity = await DB.prepare(`
-      SELECT 
-        event_type,
-        event_data,
-        created_at
-      FROM waitlist_events
-      ORDER BY created_at DESC
-      LIMIT 20
-    `).all();
-    
-    return {
-      overview: {
-        total_registrations: parseInt(totalStats.total_registrations) || 0,
-        verified_registrations: parseInt(totalStats.verified_registrations) || 0,
-        invited_registrations: parseInt(totalStats.invited_registrations) || 0,
-        pending_registrations: parseInt(totalStats.pending_registrations) || 0,
-        email_verified_count: parseInt(totalStats.email_verified_count) || 0,
-        verification_rate: calculateRate(totalStats.email_verified_count, totalStats.total_registrations)
+  const total = Number(totals?.total || 0);
+  const verified = Number(totals?.verified || 0);
+
+  return json(
+    {
+      ok: true,
+      totals: {
+        all: total,
+        pending: Number(totals?.pending || 0),
+        verified,
+        invited: Number(totals?.invited || 0),
+        referred: Number(totals?.referred || 0),
+        verificationRate: total ? Math.round((verified / total) * 100) : 0,
+        firstSignup: totals?.first_signup ?? null,
+        lastSignup: totals?.last_signup ?? null,
       },
-      time_series: {
-        registrations_last_24h: parseInt(timeStats.registrations_last_24h) || 0,
-        registrations_last_7d: parseInt(timeStats.registrations_last_7d) || 0,
-        registrations_last_30d: parseInt(timeStats.registrations_last_30d) || 0,
-        verifications_last_24h: parseInt(timeStats.verifications_last_24h) || 0,
-        verifications_last_7d: parseInt(timeStats.verifications_last_7d) || 0,
-        verifications_last_30d: parseInt(timeStats.verifications_last_30d) || 0
+      recent: {
+        signups24h: Number(recent?.signups_24h || 0),
+        signups7d: Number(recent?.signups_7d || 0),
+        verifications7d: Number(recent?.verifications_7d || 0),
       },
-      geographic_distribution: geoStats.results.map(row => ({
+      sources: (sources?.results || []).map((row) => ({
+        source: row.source,
+        count: Number(row.count),
+      })),
+      countries: (countries?.results || []).map((row) => ({
         country: row.country,
-        count: parseInt(row.count)
+        count: Number(row.count),
       })),
-      signup_sources: sourceStats.results.map(row => ({
-        source: row.signup_source,
-        count: parseInt(row.count)
-      })),
-      referral_statistics: {
-        total_with_referral: parseInt(referralStats.total_with_referral) || 0,
-        total_referred: parseInt(referralStats.total_referred) || 0,
-        verified_referred: parseInt(referralStats.verified_referred) || 0,
-        referral_rate: calculateRate(referralStats.total_referred, totalStats.total_registrations),
-        verified_referral_rate: calculateRate(referralStats.verified_referred, referralStats.total_referred)
-      },
-      top_referrers: topReferrers.results.map(row => ({
-        email: row.email,
-        name: row.name,
-        referral_count: parseInt(row.referral_count),
-        verified_referrals: parseInt(row.verified_referrals)
-      })),
-      event_statistics: eventStats.results.map(row => ({
-        event_type: row.event_type,
-        count: parseInt(row.count)
-      })),
-      recent_activity: recentActivity.results.map(row => ({
-        event_type: row.event_type,
-        event_data: JSON.parse(row.event_data || '{}'),
-        created_at: row.created_at
-      })),
-      generated_at: now
-    };
-    
-  } catch (error) {
-    console.error('Error getting waitlist analytics:', error);
-    throw error;
-  }
-}
-
-function calculateRate(numerator, denominator) {
-  if (!denominator || denominator === 0) return 0;
-  return Math.round((numerator / denominator) * 100);
-}
-
-function isAuthorizedRequest(context) {
-  // In production, implement proper authorization
-  // For now, allow all requests for development
-  return true;
-  
-  // Example implementation:
-  // const authHeader = context.request.headers.get('authorization');
-  // return authHeader === 'Bearer ' + process.env.ANALYTICS_API_KEY;
+      generatedAt: Date.now(),
+    },
+    { status: 200 }
+  );
 }

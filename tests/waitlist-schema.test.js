@@ -1,10 +1,10 @@
 /**
- * Schema tests for the Early Access waitlist (migration 0006).
+ * Schema tests for the Early Access waitlist (migrations 0006 and 0007).
  *
- * These run the migration against an in-memory SQLite database (Node's
+ * These run the migrations against an in-memory SQLite database (Node's
  * built-in `node:sqlite`) and assert three things:
  *
- *   1. It applies cleanly, and re-applying it is a no-op.
+ *   1. They apply cleanly, and re-applying `0006` is a no-op.
  *   2. The constraints that protect the data model actually fire.
  *   3. The views the API reads from return what they claim to.
  *
@@ -19,7 +19,9 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const MIGRATION_PATH = join(here, "..", "migrations", "0006_waitlist.sql");
+const ADDENDUM_PATH = join(here, "..", "migrations", "0007_waitlist_verification_sent_at.sql");
 const SQL = readFileSync(MIGRATION_PATH, "utf8");
+const ADDENDUM = readFileSync(ADDENDUM_PATH, "utf8");
 
 /**
  * SQLite is only available from Node 22.5 onwards. On an older runtime the
@@ -37,6 +39,7 @@ function freshDb() {
   const db = new DatabaseSync(":memory:");
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec(SQL);
+  db.exec(ADDENDUM);
   return db;
 }
 
@@ -136,6 +139,27 @@ test("referral codes are unique but may be NULL", { skip }, () => {
   // Two rows without a code are fine.
   db.prepare("INSERT INTO waitlist (id, email) VALUES (?, ?)").run("w3", "c@example.com");
   db.prepare("INSERT INTO waitlist (id, email) VALUES (?, ?)").run("w4", "d@example.com");
+});
+
+test("verification_sent_at column exists and is populated on insert", { skip }, () => {
+  const db = freshDb();
+  db.prepare("INSERT INTO waitlist (id, email, referral_code) VALUES (?, ?, ?)").run(
+    "w1",
+    "alice@example.com",
+    "CODE1234"
+  );
+  const row = db.prepare("SELECT verification_sent_at FROM waitlist WHERE email = ?").get("alice@example.com");
+  assert.equal(row.verification_sent_at, null);
+});
+
+test("foreign key rejects null waitlist_id", { skip }, () => {
+  const db = freshDb();
+  assert.throws(
+    () =>
+      db
+        .prepare("INSERT INTO waitlist_events (id, waitlist_id, event_type) VALUES (?, ?, ?)")
+        .run("e1", null, "error")
+  );
 });
 
 test("status and email_verified are constrained", { skip }, () => {

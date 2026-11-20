@@ -145,6 +145,26 @@ test("production alias gets a JSON 404 for the API", async () => {
   assert.deepEqual(await response.json(), { ok: false, error: "Not found" });
 });
 
+test("the waitlist API is subject to the same host allowlist", async () => {
+  const canonical = makeContext("https://bucksy.life/early-access/api/waitlist");
+  assert.equal((await onRequest(canonical)).status, 200);
+  assert.equal(canonical.state.nextCalls, 1);
+
+  const preview = makeContext("https://abc123.personal-finance.pages.dev/early-access/api/waitlist");
+  assert.equal((await onRequest(preview)).status, 200);
+  assert.equal(preview.state.nextCalls, 1);
+
+  const alias = makeContext("https://personal-finance-8ch.pages.dev/early-access/api/waitlist");
+  const blocked = await onRequest(alias);
+  assert.equal(blocked.status, 404);
+  assert.equal(alias.state.nextCalls, 0);
+  assert.match(blocked.headers.get("content-type"), /application\/json/);
+
+  const stranger = makeContext("https://evil.example.com/early-access/api/waitlist");
+  assert.equal((await onRequest(stranger)).status, 404);
+  assert.equal(stranger.state.nextCalls, 0);
+});
+
 test("unknown hosts are blocked on both app and API paths", async () => {
   const app = makeContext("https://evil.example.com/app");
   assert.equal((await onRequest(app)).status, 404);

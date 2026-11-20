@@ -46,6 +46,17 @@ Last updated: 22 Nov 2026
   - [x] Enterprise-grade security measures and rate limiting
   - [x] Comprehensive test suite and documentation
   - [x] Deployment guide and operational procedures
+- [x] **Step 2 — Backend hardening** (22 Nov 2026):
+  - [x] Added real Cloudflare Turnstile verification (`/early-access/api/turnstile.js`)
+  - [x] Implemented SHA-256 token hashing with address binding (`/early-access/api/waitlist/utils.js`)
+  - [x] Added atomic D1-based rate limiting (`/_lib/throttle.js`)
+  - [x] Removed insecure/dead endpoint files and duplicate routes
+  - [x] Updated `_routes.json` to include `/early-access/api/*`
+  - [x] Fixed middleware to enforce host allowlist on waitlist endpoints
+  - [x] Created comprehensive security library (`/_lib/waitlist.js`)
+  - [x] Added 19 new API tests and 15 new library tests (58 total passing)
+  - [x] Fixed verification link expiration logic (migration `0007_waitlist_verification_sent_at.sql`)
+  - [x] Fixed event logging to handle orphaned events gracefully
 - [ ] Phase 4 — identity.
 - [x] Phase 5 — waitlist and launch (Early Access system complete).
 - [ ] Phase 6 — billing (last, by design).

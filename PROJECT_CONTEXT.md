@@ -1,6 +1,6 @@
 # Project Context
 
-Last updated: 21 Nov 2026
+Last updated: 22 Nov 2026
 
 ## What it is
 
@@ -31,19 +31,16 @@ There is no framework, bundler, or `package.json`.
 | `/early-access/api/verify` | email verification with token validation |
 | `/early-access/api/referral` | referral tracking and information |
 | `/early-access/api/analytics` | waitlist analytics and statistics |
-| `/early-access/api/rate-limit` | rate limit status monitoring |
-| `/early-access/api/monitoring` | system health and security monitoring |
-| `/early-access/api/security-log` | security event logging |
 | `/app` | main application |
 | `/api/auth/*` | login, logout, me, status, recovery-codes |
 | `/api/data` | bulk ledger read; unconditional import write |
 | `/api/data/month/:month` | one month, versioned GET/PUT |
 | `/api/settings` | account `__meta`, versioned GET/PUT |
-| `/app`, `/api/*` | wrapped by `functions/_middleware.js` |
+| `/app`, `/api/*`, `/early-access/api/*` | wrapped by `functions/_middleware.js` |
 
-Migrations `0001`–`0006` are applied to production. `0005` adds
+Migrations `0001`–`0007` are applied to production. `0005` adds
 `months.version` and `user_settings`; `0006` adds `waitlist` and
-`waitlist_events`. See `DEPLOY.md`.
+`waitlist_events`; `0007` adds `verification_sent_at`. See `DEPLOY.md`.
 
 ## Data model
 
