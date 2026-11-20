@@ -103,6 +103,14 @@ Last updated: 22 Nov 2026
   - [ ] Configure custom domain (optional)
   - [ ] Set up monitoring and alerts
 
+### Next Steps (After Deployment)
+- [ ] Implement server-side authentication
+- [ ] Connect to D1 database for real data
+- [ ] Add user management interface
+- [ ] Implement email management system
+- [ ] Add analytics and reporting features
+- [ ] Enhance security with proper token management
+
 ## Known issues / notes
 
 - Turnstile is enabled and its widget lists only `bucksy.life`. A scripted
