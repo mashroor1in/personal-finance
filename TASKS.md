@@ -84,11 +84,24 @@ Last updated: 22 Nov 2026
   - [x] Applied all database migrations including admin tables
   - [x] Added sample data for testing
   - [x] Created automated test script for admin dashboard
+  - [x] Simplified admin functions for production deployment
+  - [x] Created deployment guide for Cloudflare Pages
+  - [x] Tested local development environment
 - [ ] Phase 4 — identity.
 - [x] Phase 5 — waitlist and launch (Early Access system complete).
 - [ ] Phase 6 — billing (last, by design).
 - [ ] Phase 7 — hardening.
 - [ ] Phase 8 — operate and comply.
+
+## Deployment Tasks
+
+- [ ] **Deploy Admin Dashboard to Cloudflare Pages** (Current Task)
+  - [ ] Connect GitHub repository to Cloudflare Pages
+  - [ ] Configure build settings and environment variables
+  - [ ] Deploy to production
+  - [ ] Test admin dashboard functionality
+  - [ ] Configure custom domain (optional)
+  - [ ] Set up monitoring and alerts
 
 ## Known issues / notes
 
