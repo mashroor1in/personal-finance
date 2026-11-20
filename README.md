@@ -65,7 +65,7 @@ and `$1,234,567` both come from the same code path.
 ## Tests
 
 ```powershell
-node --test tests/auth-session.test.mjs tests/data-sanitize.test.mjs tests/middleware.test.mjs tests/overlays.test.js tests/persistence.test.js tests/recovery.test.mjs tests/totals.test.js tests/deletion.test.mjs tests/ledger.test.js
+node --test tests/auth-session.test.mjs tests/data-sanitize.test.mjs tests/middleware.test.mjs tests/overlays.test.js tests/persistence.test.js tests/recovery.test.mjs tests/totals.test.js tests/deletion.test.mjs tests/ledger.test.js tests/waitlist-schema.test.js
 ```
 
 `node --test tests/` does not work — pass the files explicitly. CI runs the same

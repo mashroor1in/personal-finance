@@ -41,8 +41,9 @@ There is no framework, bundler, or `package.json`.
 | `/api/settings` | account `__meta`, versioned GET/PUT |
 | `/app`, `/api/*` | wrapped by `functions/_middleware.js` |
 
-Migrations `0001`–`0005` are applied to production. `0005` adds
-`months.version` and `user_settings`. See `DEPLOY.md`.
+Migrations `0001`–`0006` are applied to production. `0005` adds
+`months.version` and `user_settings`; `0006` adds `waitlist` and
+`waitlist_events`. See `DEPLOY.md`.
 
 ## Data model
 
@@ -51,6 +52,9 @@ Migrations `0001`–`0005` are applied to production. `0005` adds
   plus `version`.
 - `deleted_months`: 30-day archive of a deleted account's months.
 - `users`, `recovery_codes`, `auth_throttle`: auth state.
+- `waitlist`, `waitlist_events`: early-access signups and their audit log
+  (migration `0006`). `email` is lower-case and unique; only a token *hash* is
+  stored; `referral_code` is unique.
 
 ## Current state
 

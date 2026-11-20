@@ -116,6 +116,7 @@ wrangler d1 execute personal-expenses-db --file migrations/0002_auth_throttle.sq
 wrangler d1 execute personal-expenses-db --file migrations/0003_recovery_codes.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0004_deleted_months.sql --remote
 wrangler d1 execute personal-expenses-db --file migrations/0005_ledger_durability.sql --remote
+wrangler d1 execute personal-expenses-db --file migrations/0006_waitlist.sql --remote
 ```
 
 `0002`–`0004` are idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT
@@ -124,6 +125,19 @@ EXISTS`), so re-running them is safe.
 `0005` is different: it adds `months.version` with `ALTER TABLE`, which fails if
 the column already exists. Run it once. It also creates `user_settings`. Apply it
 before pushing any code that sends `baseVersion` or reads `version`.
+
+`0006` creates the waitlist tables, views and indexes. It is fully idempotent
+(`CREATE ... IF NOT EXISTS`, no `ALTER TABLE`), so re-running it is safe. It
+touches nothing outside `waitlist` / `waitlist_events`. Apply it before the
+waitlist endpoints go live; without it every `/early-access/api/*` call fails
+with "no such table".
+
+Validate `0006` locally before applying; this runs the migration against an
+in-memory SQLite database and asserts the constraints fire:
+
+```powershell
+node --test tests/waitlist-schema.test.js
+```
 
 > `0003_recovery_codes.sql` must be applied before pushing the recovery-code
 > feature. Registration degrades gracefully without it (the account is created,
@@ -172,6 +186,8 @@ node --test tests/overlays.test.js
 node --test tests/recovery.test.mjs
 node --test tests/deletion.test.mjs
 node --test tests/middleware.test.mjs
+node --test tests/ledger.test.js
+node --test tests/waitlist-schema.test.js
 ```
 
 `node --test tests/` does not work; pass the files.
