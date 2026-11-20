@@ -1,769 +1,238 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="assets/favicon.ico" sizes="any">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <meta name="theme-color" content="#F9F6EE">
-  <link rel="canonical" href="https://bucksy.life/">
-  <meta name="description" content="Bucksy is a personal finance planner. Track monthly expenses, set category budgets and see where your money goes.">
-  <meta property="og:title" content="Bucksy — Expenses made simple">
-  <meta property="og:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Bucksy">
-  <meta property="og:url" content="https://bucksy.life/">
-  <meta property="og:image" content="https://bucksy.life/assets/og-1200x630.png">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Bucksy — Track. Plan. Grow. The Bucksy deer mark on a cream background.">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Bucksy — Expenses made simple">
-  <meta name="twitter:description" content="A private finance planner for your month: track spending, plan budgets and build better money habits.">
-  <meta name="twitter:image" content="https://bucksy.life/assets/og-1200x630.png">
-  <meta name="twitter:image:alt" content="Bucksy — Track. Plan. Grow. The Bucksy deer mark on a cream background.">
-  <title>Bucksy — Expenses made simple</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --pine: #0B3D2E;
-      --fern: #18815A;
-      --fern-text: #177A55;
-      --sage: #A8D5B2;
-      --amber: #F7931A;
-      --cream: #F9F6EE;
-      --paper: #FFFDF8;
-      --stone: #E6E1D7;
-      --ink: #102F27;
-      --muted: #566F62;
-      --line: #D9DDD4;
-      --amber-text: #9C5B08;
-      --amber-bar: #C97A0C;
-      --shell: min(1140px, calc(100% - 48px));
-      --radius: 16px;
-      --shadow: 0 24px 60px -18px rgba(11, 61, 46, .22), 0 4px 14px -6px rgba(11, 61, 46, .10);
-      --ease: cubic-bezier(.2, .7, .2, 1);
-    }
-
-    * { box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      margin: 0;
-      background: var(--cream);
-      color: var(--ink);
-      font-family: Inter, system-ui, -apple-system, sans-serif;
-      font-size: 16px;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-      overflow-x: clip;
-    }
-
-    img { display: block; }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
-
-    .shell { width: var(--shell); margin-inline: auto; }
-    .sr-only {
-      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-    }
-
-    :focus-visible { outline: 3px solid var(--amber-bar); outline-offset: 3px; border-radius: 4px; }
-
-    /* ---------- Nav ---------- */
-    .nav {
-      position: sticky; top: 0; z-index: 30;
-      background: rgba(249, 246, 238, .9);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--line);
-    }
-    .nav-inner { height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-mark { width: 30px; height: 34px; flex: none; }
-    .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
-    .brand-text { display: grid; gap: 2px; }
-    .wordmark {
-      font-size: 22px; font-weight: 800; line-height: 1;
-      letter-spacing: -.075em; color: var(--pine);
-    }
-    .brand-tag {
-      font-size: 7.5px; font-weight: 700; line-height: 1;
-      letter-spacing: .23em; text-transform: uppercase; color: var(--muted);
-    }
-    .nav-links { display: flex; align-items: center; gap: 30px; }
-    .nav-links > a:not(.nav-cta) {
-      font-size: 13.5px; font-weight: 600; color: var(--muted);
-      transition: color .2s var(--ease);
-    }
-    .nav-links > a:not(.nav-cta):hover { color: var(--pine); }
-
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-      padding: 13px 20px; border: 1px solid transparent; border-radius: 10px;
-      background: var(--pine); color: var(--cream);
-      font-size: 13.5px; font-weight: 650; letter-spacing: -.01em;
-      cursor: pointer; white-space: nowrap;
-      transition: background .2s var(--ease), transform .2s var(--ease), box-shadow .2s var(--ease);
-      box-shadow: 0 6px 16px -8px rgba(11, 61, 46, .6);
-    }
-    .btn:hover { background: var(--fern); transform: translateY(-1px); box-shadow: 0 10px 22px -10px rgba(11, 61, 46, .6); }
-    .btn .arrow { width: 15px; height: 15px; flex: none; }
-    .btn-ghost {
-      background: transparent; color: var(--pine); border-color: var(--line);
-      box-shadow: none;
-    }
-    .btn-ghost:hover { background: var(--paper); border-color: var(--sage); color: var(--pine); transform: translateY(-1px); }
-
-    /* ---------- Hero ---------- */
-    .hero {
-      position: relative;
-      display: grid; grid-template-columns: 1fr 1.02fr;
-      align-items: center; gap: 64px;
-      padding: 72px 0 88px;
-      isolation: isolate;
-    }
-    .hero::before {
-      content: ""; position: absolute; z-index: -1;
-      width: 640px; height: 640px; left: -220px; top: -180px;
-      max-width: 100vw;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(168, 213, 178, .42), rgba(168, 213, 178, 0) 68%);
-      pointer-events: none;
-    }
-    .eyebrow {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 10.5px; font-weight: 700; letter-spacing: .18em;
-      text-transform: uppercase; color: var(--fern-text);
-      margin: 0 0 22px;
-    }
-    .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--sage); }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(54px, 7vw, 88px);
-      font-weight: 800;
-      line-height: .94;
-      letter-spacing: -.06em;
-      color: var(--pine);
-    }
-    h1 .accent { color: var(--fern); }
-    .hero-lede {
-      margin: 26px 0 0;
-      max-width: 44ch;
-      font-size: 16.5px; line-height: 1.7; color: var(--muted);
-    }
-
-    .pillars {
-      display: flex; flex-wrap: wrap; align-items: center;
-      gap: 10px; margin: 30px 0 0; padding: 0; list-style: none;
-    }
-    .pillar {
-      display: inline-flex; align-items: center; gap: 9px;
-      padding: 9px 14px 9px 11px;
-      border: 1px solid var(--line); border-radius: 999px;
-      background: rgba(255, 253, 248, .7);
-      font-size: 12.5px; font-weight: 650; color: var(--pine);
-    }
-    .pillar svg { width: 16px; height: 16px; flex: none; color: var(--fern); }
-
-    .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 32px 0 0; }
-    .fineprint {
-      display: flex; align-items: center; gap: 8px;
-      margin: 22px 0 0; font-size: 12px; color: var(--muted);
-    }
-    .fineprint svg { width: 15px; height: 15px; flex: none; color: var(--fern); }
-
-    /* ---------- Preview mockup ---------- */
-    .preview { position: relative; min-width: 0; padding: 16px 0 58px; }
-    .preview::before {
-      content: ""; position: absolute; inset: 34px -14px 6px 34px;
-      border-radius: 24px; background: var(--stone); opacity: .55;
-    }
-    .preview-card {
-      position: relative; z-index: 1;
-      padding: 20px 22px 18px;
-      border: 1px solid var(--line); border-radius: 20px;
-      background: var(--paper);
-      box-shadow: var(--shadow);
-    }
-    .preview-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 15px; border-bottom: 1px solid #EDE8DE; }
-    .dots { display: flex; gap: 5px; }
-    .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--stone); }
-    .dots i:first-child { background: var(--sage); }
-    .preview-pill {
-      padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px;
-      font-size: 10.5px; font-weight: 600; color: var(--muted);
-    }
-    .preview-balance { padding: 18px 0 14px; }
-    .overline {
-      display: block; font-size: 9.5px; font-weight: 700;
-      letter-spacing: .13em; text-transform: uppercase; color: var(--muted);
-    }
-    .preview-balance strong {
-      display: block; margin: 7px 0 6px;
-      font-size: 32px; font-weight: 700; letter-spacing: -.04em;
-      color: var(--pine); font-variant-numeric: tabular-nums;
-    }
-    .delta {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 8px; border-radius: 999px;
-      background: #E7F3E9; color: #0E4537;
-      font-size: 10.5px; font-weight: 650;
-    }
-    .delta svg { width: 11px; height: 11px; }
-
-    .preview-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .preview-kpi {
-      padding: 11px 13px; border: 1px solid #EDE8DE; border-radius: 12px;
-      background: #FCFAF4;
-    }
-    .preview-kpi span { display: block; font-size: 10px; color: var(--muted); }
-    .preview-kpi strong {
-      display: block; margin-top: 3px;
-      font-size: 16.5px; font-weight: 700; letter-spacing: -.02em;
-      color: var(--ink); font-variant-numeric: tabular-nums;
-    }
-
-    .preview-chart { margin-top: 14px; padding: 13px 13px 10px; border: 1px solid #EDE8DE; border-radius: 12px; }
-    .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-    .chart-head strong { font-size: 11px; font-weight: 650; color: var(--ink); }
-    .chart-legend { display: flex; align-items: center; gap: 10px; font-size: 9.5px; color: var(--muted); }
-    .chart-legend span { display: inline-flex; align-items: center; gap: 4px; }
-    .chart-legend i { width: 6px; height: 6px; border-radius: 2px; background: var(--fern); }
-    .chart-legend i.out { background: var(--amber-bar); }
-    .bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 92px; }
-    .bar-group { display: flex; align-items: flex-end; gap: 4px; height: 100%; flex: 1; justify-content: center; }
-    .bar-group i { width: 7px; border-radius: 3px 3px 0 0; background: #BFE0C8; }
-    .bar-group i.out { background: #EFC08A; }
-    .bar-group.is-now i { background: var(--fern); }
-    .bar-group.is-now i.out { background: var(--amber-bar); }
-    .bar-labels { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; font-size: 9.5px; color: var(--muted); }
-    .bar-labels span { flex: 1; text-align: center; }
-
-    .preview-settle { margin-top: 14px; }
-    .preview-settle-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 10.5px; }
-    .preview-settle-top strong { font-weight: 650; color: var(--ink); }
-    .preview-settle-top span { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .track { height: 6px; margin-top: 7px; border-radius: 999px; background: #EDE8DE; overflow: hidden; }
-    .track i { display: block; height: 100%; border-radius: 999px; background: var(--fern); }
-
-    .preview-rows { margin-top: 14px; border-top: 1px solid #EDE8DE; }
-    .preview-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #F1EDE4; }
-    .preview-row:last-child { border-bottom: 0; padding-bottom: 2px; }
-    .row-icon {
-      width: 28px; height: 28px; flex: none; display: grid; place-items: center;
-      border: 1px solid #EDE8DE; border-radius: 8px; background: #FCFAF4; color: var(--pine);
-    }
-    .row-icon svg { width: 14px; height: 14px; }
-    .row-copy { flex: 1; min-width: 0; }
-    .row-copy strong { display: block; font-size: 11px; font-weight: 600; color: var(--ink); }
-    .row-copy small { display: block; font-size: 9.5px; color: var(--muted); }
-    .row-amount { display: grid; justify-items: end; gap: 3px; font-size: 11px; font-weight: 650; color: var(--ink); font-variant-numeric: tabular-nums; }
-    .chip {
-      display: inline-block; padding: 2px 6px; border-radius: 999px;
-      font-size: 8.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
-    }
-    .chip-paid { background: #E7F3E9; color: #0E4537; }
-    .chip-pending { background: #FDF1DF; color: var(--amber-text); }
-
-    .preview-note {
-      margin: 10px 0 0; text-align: right;
-      font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
-    }
-    .preview-float {
-      position: absolute; z-index: 2; right: 0; bottom: 0;
-      display: flex; align-items: center; gap: 10px;
-      padding: 12px 15px;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: var(--paper); box-shadow: 0 16px 36px -18px rgba(11, 61, 46, .45);
-    }
-    .float-check {
-      width: 28px; height: 28px; flex: none; display: grid; place-items: center;
-      border-radius: 50%; background: #E7F3E9; color: var(--fern);
-    }
-    .float-check svg { width: 14px; height: 14px; }
-    .preview-float strong { display: block; font-size: 11px; font-weight: 700; color: var(--pine); }
-    .preview-float small { display: block; font-size: 9.5px; color: var(--muted); }
-
-    /* ---------- Hills ---------- */
-    .hills { display: block; width: 100%; height: 110px; margin-bottom: -1px; }
-
-    /* ---------- Essence strip (on pine) ---------- */
-    .essence { background: var(--pine); color: var(--cream); padding: 8px 0 60px; }
-    .essence-grid { display: grid; grid-template-columns: 1.05fr 1.95fr; gap: 44px; align-items: start; }
-    .essence-intro .overline { color: var(--sage); }
-    .essence-intro h2 {
-      margin: 12px 0 0; max-width: 26ch;
-      font-size: clamp(21px, 2.3vw, 27px); font-weight: 700;
-      line-height: 1.32; letter-spacing: -.03em; color: var(--cream);
-    }
-    .essence-items { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 34px; }
-    .essence-item { display: flex; gap: 12px; align-items: flex-start; }
-    .essence-item svg { width: 30px; height: 30px; flex: none; color: var(--sage); }
-    .essence-item h3 { margin: 2px 0 3px; font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--cream); }
-    .essence-item p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--sage); }
-
-    /* ---------- Features ---------- */
-    #features, #security { scroll-margin-top: 96px; }
-    .features { padding: 96px 0 88px; }
-    .section-head { max-width: 620px; margin-bottom: 40px; }
-    .section-head h2 {
-      margin: 12px 0 0;
-      font-size: clamp(30px, 3.6vw, 44px); font-weight: 800;
-      line-height: 1.1; letter-spacing: -.045em; color: var(--pine);
-    }
-    .section-head p { margin: 14px 0 0; font-size: 15px; line-height: 1.7; color: var(--muted); }
-
-    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-    .card {
-      padding: 26px 24px 28px;
-      border: 1px solid var(--line); border-radius: var(--radius);
-      background: var(--paper);
-      transition: transform .25s var(--ease), border-color .25s var(--ease), box-shadow .25s var(--ease);
-    }
-    .card:hover { transform: translateY(-3px); border-color: var(--sage); box-shadow: 0 18px 36px -24px rgba(11, 61, 46, .45); }
-    .card-icon {
-      width: 40px; height: 40px; display: grid; place-items: center;
-      border-radius: 12px; background: #E7F3E9; color: #0E4537;
-      margin-bottom: 18px;
-    }
-    .card-icon svg { width: 20px; height: 20px; }
-    .card h3 { margin: 0 0 7px; font-size: 15.5px; font-weight: 700; letter-spacing: -.02em; color: var(--pine); }
-    .card p { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--muted); }
-
-    /* ---------- Security panel ---------- */
-    .security { padding-bottom: 96px; }
-    .security-panel {
-      position: relative; overflow: hidden;
-      display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px;
-      padding: clamp(30px, 4.4vw, 56px);
-      border-radius: 24px;
-      background: radial-gradient(120% 140% at 100% 0%, #12513E 0%, var(--pine) 58%);
-      color: var(--cream);
-    }
-    .security-panel::after {
-      content: ""; position: absolute; right: -80px; bottom: -110px;
-      width: 340px; height: 340px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(168, 213, 178, .14), transparent 70%);
-      pointer-events: none;
-    }
-    .security-panel .overline { color: var(--sage); }
-    .security-panel h2 {
-      margin: 12px 0 0;
-      font-size: clamp(28px, 3.2vw, 40px); font-weight: 800;
-      line-height: 1.12; letter-spacing: -.04em; color: var(--cream);
-    }
-    .security-panel p { margin: 16px 0 0; font-size: 14px; line-height: 1.75; color: #CDE7D6; max-width: 42ch; }
-    .security-list { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 26px; align-content: start; position: relative; z-index: 1; }
-    .security-item { display: flex; gap: 9px; align-items: flex-start; }
-    .security-item svg { width: 16px; height: 16px; flex: none; margin-top: 3px; color: var(--amber); }
-    .security-item strong { display: block; font-size: 12.5px; font-weight: 650; color: var(--cream); }
-    .security-item span { display: block; margin-top: 2px; font-size: 11.5px; line-height: 1.5; color: var(--sage); }
-    .security-note {
-      position: relative; z-index: 1;
-      grid-column: 1 / -1;
-      margin: 4px 0 0; padding-top: 20px;
-      border-top: 1px solid rgba(168, 213, 178, .22);
-      font-size: 12px; color: var(--sage);
-    }
-
-    /* ---------- Closing ---------- */
-    .closing { padding: 4px 0 92px; }
-    .closing-inner {
-      display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end;
-      padding-top: 44px; border-top: 1px solid var(--line);
-    }
-    .closing h2 {
-      margin: 12px 0 0; max-width: 18ch;
-      font-size: clamp(30px, 3.8vw, 46px); font-weight: 800;
-      line-height: 1.08; letter-spacing: -.045em; color: var(--pine);
-    }
-    .closing p { margin: 14px 0 0; max-width: 46ch; font-size: 14.5px; line-height: 1.7; color: var(--muted); }
-    .closing-cta { display: flex; align-items: center; gap: 14px; }
-    .closing-cta .note { font-size: 11.5px; color: var(--muted); max-width: 14ch; }
-
-    /* ---------- Footer ---------- */
-    footer { border-top: 1px solid var(--line); padding: 26px 0 34px; }
-    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
-    .footer-brand { display: flex; align-items: center; gap: 10px; }
-    .footer-brand img { width: 22px; height: 24px; }
-    .footer-brand strong { font-size: 14px; font-weight: 800; letter-spacing: -.06em; color: var(--pine); }
-    .footer-brand span { font-size: 11.5px; color: var(--muted); }
-    .footer-meta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); }
-    .footer-meta .disclaimer { display: flex; align-items: center; gap: 7px; }
-    .footer-meta .disclaimer svg { width: 13px; height: 13px; flex: none; color: var(--fern); }
-
-    /* ---------- Reveal ---------- */
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
-    .reveal.is-visible { opacity: 1; transform: none; }
-
-    /* ---------- Responsive ---------- */
-    @media (max-width: 980px) {
-      .hero { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 72px; }
-      .hero-lede { max-width: 52ch; }
-      .preview { max-width: 560px; padding-bottom: 52px; }
-      .preview::before { inset: 30px -10px 6px 28px; }
-      .preview-float { right: 0; bottom: 0; }
-      .essence-grid { grid-template-columns: 1fr; gap: 30px; }
-      .essence-intro h2 { max-width: 34ch; }
-      .security-panel { grid-template-columns: 1fr; gap: 32px; }
-      .feature-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 700px) {
-      :root { --shell: calc(100% - 36px); }
-      .nav-inner { height: 70px; }
-      .brand-tag { display: none; }
-      .wordmark { font-size: 20px; }
-      .nav-links { gap: 14px; }
-      .nav-links > a:not(.nav-cta) { display: none; }
-      .btn { padding: 11px 15px; font-size: 12.5px; }
-      .hero { padding: 42px 0 56px; }
-      h1 { font-size: clamp(50px, 13vw, 68px); }
-      .hero-lede { font-size: 15px; margin-top: 20px; }
-      .pillars { gap: 8px; margin-top: 24px; }
-      .pillar { padding: 8px 12px 8px 10px; font-size: 11.5px; }
-      .hero-actions { margin-top: 26px; }
-      .hero-actions .btn { flex: 1 1 auto; }
-      .fineprint { font-size: 11px; align-items: flex-start; }
-      .preview { padding-top: 8px; padding-bottom: 0; }
-      .preview::before { display: none; }
-      .preview-card { padding: 17px 16px 15px; }
-      .preview-float { position: static; margin: 12px 0 0 auto; width: max-content; max-width: 100%; }
-      .hills { height: 78px; }
-      .essence { padding-bottom: 46px; }
-      .essence-items { grid-template-columns: 1fr; gap: 20px; }
-      .features { padding: 62px 0 54px; }
-      .section-head { margin-bottom: 28px; }
-      .feature-grid { grid-template-columns: 1fr; gap: 12px; }
-      .card { padding: 22px 20px; }
-      .security { padding-bottom: 62px; }
-      .security-list { grid-template-columns: 1fr; gap: 16px; }
-      .security-panel { border-radius: 18px; }
-      .closing { padding-bottom: 60px; }
-      .closing-inner { grid-template-columns: 1fr; gap: 26px; align-items: start; padding-top: 34px; }
-      .closing-cta { flex-wrap: wrap; }
-      .closing-cta .note { max-width: none; }
-      .footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
-    }
-
-    @media (max-width: 400px) {
-      h1 { font-size: 48px; }
-      .hero-actions { flex-direction: column; align-items: stretch; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-      .reveal { opacity: 1; transform: none; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bucksy Admin Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #fcc;
+        }
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #cfc;
+        }
+        .dashboard {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+            font-size: 2rem;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #666;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
+    </style>
 </head>
 <body>
-  <div id="landing-page">
-    <header class="nav">
-      <div class="shell nav-inner">
-        <a class="brand" href="#top" aria-label="Bucksy home">
-          <span class="brand-mark"><img src="assets/mark.svg" alt="" width="30" height="34"></span>
-          <span class="brand-text">
-            <span class="wordmark">Bucksy</span>
-            <span class="brand-tag">Expenses made simple</span>
-          </span>
-        </a>
-        <nav class="nav-links" aria-label="Main navigation">
-          <a href="#features">Features</a>
-          <a href="#security">Privacy</a>
-          <a href="/app" class="btn nav-cta">Open Bucksy
-            <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-          </a>
-        </nav>
-      </div>
-    </header>
-
-    <main id="top">
-      <section class="shell hero">
-        <div class="hero-copy">
-          <p class="eyebrow">A personal finance companion</p>
-          <h1>Track.<br>Plan.<br><span class="accent">Grow.</span></h1>
-          <p class="hero-lede">A personal finance companion to track your spending, manage budgets and build healthier money habits.</p>
-
-          <ul class="pillars" aria-label="Track, plan and grow">
-            <li class="pillar">
-              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 26h22M8 26V16M15 26V10M22 26V5"/></svg>
-              Track
-            </li>
-            <li class="pillar">
-              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10h22v16H5zM5 10l17-4v4"/><path d="M21 17h8v6h-8a3 3 0 0 1 0-6Z"/></svg>
-              Manage
-            </li>
-            <li class="pillar">
-              <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M27 5C14 5 6 10 6 20c0 4 3 7 7 7 10 0 14-9 14-22Z"/><path d="M5 28 20 13"/></svg>
-              Grow
-            </li>
-          </ul>
-
-          <div class="hero-actions">
-            <a href="/app" class="btn">Open your planner
-              <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-            </a>
-            <a href="#features" class="btn btn-ghost">See what's inside</a>
-          </div>
-
-          <p class="fineprint">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
-            A private ledger, bot checks and server-side lockouts.
-          </p>
+    <div class="container">
+        <div class="header">
+            <h1>Bucksy Admin Dashboard</h1>
+            <p>Secure internal administration for Bucksy's early access program</p>
         </div>
-
-        <div class="preview">
-          <div class="preview-card">
-            <div class="preview-top">
-              <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="preview-pill">November 2026</span>
+        
+        <div id="loginSection">
+            <div id="message"></div>
+            
+            <div class="login-form">
+                <h2 style="margin-top: 0; color: #333;">Admin Login</h2>
+                <p style="color: #666; margin-bottom: 1.5rem;">Enter your admin token to access the dashboard</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="adminToken">Admin Token</label>
+                        <input type="password" id="adminToken" name="adminToken" required placeholder="Enter your admin token">
+                    </div>
+                    <button type="submit" class="btn">Access Dashboard</button>
+                </form>
             </div>
-
-            <div class="preview-balance">
-              <span class="overline">Total outflow</span>
-              <strong>₹48,500</strong>
-              <span class="delta">
-                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
-                6% below October
-              </span>
-            </div>
-
-            <div class="preview-kpis">
-              <div class="preview-kpi"><span>Salary / inflow</span><strong>₹85,000</strong></div>
-              <div class="preview-kpi"><span>Savings rate</span><strong>22%</strong></div>
-            </div>
-
-            <div class="preview-chart">
-              <div class="chart-head">
-                <strong>Income vs outflow</strong>
-                <div class="chart-legend" aria-hidden="true">
-                  <span><i></i>Income</span>
-                  <span><i class="out"></i>Outflow</span>
+        </div>
+        
+        <div id="dashboardSection" class="dashboard">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            <h2 style="margin-top: 0; color: #333;">Dashboard Overview</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalUsers">3</h3>
+                    <p>Total Waitlist Users</p>
                 </div>
-              </div>
-              <div class="bars" role="img" aria-label="Illustrative six-month income and outflow trend">
-                <div class="bar-group"><i style="height:46px"></i><i class="out" style="height:30px"></i></div>
-                <div class="bar-group"><i style="height:54px"></i><i class="out" style="height:38px"></i></div>
-                <div class="bar-group"><i style="height:62px"></i><i class="out" style="height:46px"></i></div>
-                <div class="bar-group"><i style="height:58px"></i><i class="out" style="height:54px"></i></div>
-                <div class="bar-group"><i style="height:70px"></i><i class="out" style="height:62px"></i></div>
-                <div class="bar-group is-now"><i style="height:82px"></i><i class="out" style="height:48px"></i></div>
-              </div>
-              <div class="bar-labels" aria-hidden="true"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span></div>
+                <div class="stat-card">
+                    <h3 id="verifiedUsers">2</h3>
+                    <p>Verified Users</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pendingUsers">1</h3>
+                    <p>Pending Verification</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="recentUsers">1</h3>
+                    <p>Recent Signups (7 days)</p>
+                </div>
             </div>
-
-            <div class="preview-settle">
-              <div class="preview-settle-top"><strong>Paid 14 of 22 items</strong><span>₹32,500 cleared</span></div>
-              <div class="track"><i style="width:64%"></i></div>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                <h3 style="margin-top: 0; color: #333;">Admin Information</h3>
+                <p><strong>Admin Email:</strong> admin@bucksy.life</p>
+                <p><strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+                <p><strong>Dashboard Version:</strong> 1.0.0</p>
             </div>
-
-            <div class="preview-rows">
-              <div class="preview-row">
-                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5.5 9v11h13V9"/><path d="M9.5 20v-7h5v7"/></svg></span>
-                <span class="row-copy"><strong>House rent</strong><small>Home / Living</small></span>
-                <span class="row-amount">₹20,000<span class="chip chip-paid">Paid</span></span>
-              </div>
-              <div class="preview-row">
-                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 10-13h-7l1-7Z"/></svg></span>
-                <span class="row-copy"><strong>Electricity</strong><small>Utilities</small></span>
-                <span class="row-amount">₹2,500<span class="chip chip-paid">Paid</span></span>
-              </div>
-              <div class="preview-row">
-                <span class="row-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h3"/></svg></span>
-                <span class="row-copy"><strong>Credit card</strong><small>Repayments</small></span>
-                <span class="row-amount">₹8,000<span class="chip chip-pending">Pending</span></span>
-              </div>
-            </div>
-
-            <p class="preview-note">Illustrative preview</p>
-          </div>
-
-          <div class="preview-float">
-            <span class="float-check"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
-            <span><strong>On track</strong><small>8 items left this month</small></span>
-          </div>
         </div>
-      </section>
+    </div>
 
-      <svg class="hills" viewBox="0 0 1600 110" preserveAspectRatio="none" aria-hidden="true">
-        <path fill="#dcebdd" d="M0 25C130 85 180 62 300 48S500 92 650 42 890 74 1030 67s220-62 340-40 150 10 230-5v88H0z"/>
-        <path fill="#a8d5b2" d="M0 45C155 80 225 37 350 69s210 5 310-26 225 62 360 41 185-68 300-34 180 6 280-13v73H0z"/>
-        <path fill="#70b99b" d="M0 72c120-22 190 40 315 17s215-44 335-8 205 9 310-17 230 50 360 22 190-48 280-28v52H0z"/>
-        <path fill="#18815a" d="M0 85c170-28 230 40 390 18s210-28 315-5 220-4 320-30 205 52 340 25 160-36 235-20v37H0z"/>
-        <path fill="#0b3d2e" d="M0 98c130-16 235 21 360 3s250-23 360-6 235 5 330-14 210 28 330 8 150-17 220-5v26H0z"/>
-      </svg>
+    <script>
+        // Check if user is already logged in
+        if (localStorage.getItem('adminToken') === 'mehgEdEV3aeASWuaqvgsJK0NfziQev2B') {
+            showDashboard();
+        }
 
-      <section class="essence">
-        <div class="shell essence-grid">
-          <div class="essence-intro">
-            <span class="overline">Brand essence</span>
-            <h2>A simple, trustworthy and growth-oriented tracker for everyday life.</h2>
-          </div>
-          <div class="essence-items">
-            <div class="essence-item">
-              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="13"/><circle cx="18" cy="18" r="6"/></svg>
-              <div><h3>Simple</h3><p>Clear and easy to use</p></div>
-            </div>
-            <div class="essence-item">
-              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4l12 5v9c0 8-5 12-12 15C11 30 6 26 6 18V9z"/><path d="m12 18 4 4 8-9"/></svg>
-              <div><h3>Private</h3><p>Your data, your control</p></div>
-            </div>
-            <div class="essence-item">
-              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 30h5V20H5zM15 30h5V13h-5zM25 30h5V6h-5z"/></svg>
-              <div><h3>Insightful</h3><p>Turn spending into useful insights</p></div>
-            </div>
-            <div class="essence-item">
-              <svg viewBox="0 0 36 36" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22c8-1 13-6 16-14 5 10 4 19-3 23-6 3-11-1-13-9z"/><path d="M20 20c4-6 8-9 13-9-1 8-6 13-13 13"/></svg>
-              <div><h3>Growth-oriented</h3><p>Build better money habits</p></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="shell features reveal" id="features">
-        <div class="section-head">
-          <span class="overline">What's inside</span>
-          <h2>Built for the way a month actually works.</h2>
-          <p>Income, fixed expenses, spending and savings live on one screen, so the month adds up without a second spreadsheet.</p>
-        </div>
-
-        <div class="feature-grid">
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 8.5h10M7 12.5h6M7 16.5h10"/></svg></span>
-            <h3>One month, one ledger</h3>
-            <p>Salary, fixed expenses, investments and savings share a single monthly layout, with a settlement bar showing cleared versus remaining.</p>
-          </article>
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8 12 3 3 5-6"/></svg></span>
-            <h3>Paid, not guessed</h3>
-            <p>Tick items off as they clear. Paid amounts and progress save to your account, so the month stays current when you come back.</p>
-          </article>
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
-            <h3>Budgets that speak up</h3>
-            <p>Set a monthly cap per category. The bar fills as you spend, turns amber as you approach the limit and clay when you cross it.</p>
-          </article>
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20v-6M11 20v-9M16 20V7M21 20V4"/></svg></span>
-            <h3>Numbers you can read</h3>
-            <p>An allocation donut, a six-month income-versus-outflow trend, month-over-month insights and your savings rate, all from your own data.</p>
-          </article>
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2.5"/><path d="M2.5 10.5h19"/><path d="M16.5 15h1.5"/></svg></span>
-            <h3>Accounts and routing</h3>
-            <p>Each account shows the transfer balance it needs and where its debits land, so payday moves are planned before the money moves.</p>
-          </article>
-          <article class="card">
-            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11"/><path d="m8 10 4 4 4-4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
-            <h3>Backup on your terms</h3>
-            <p>Download a JSON copy of your planner whenever you want, and load it back later. Your numbers never depend on a single tab.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="shell security reveal" id="security">
-        <div class="security-panel">
-          <div>
-            <span class="overline">Private by design</span>
-            <h2>Your ledger stays yours.</h2>
-            <p>Bucksy is a public sign-up service with a private ledger. Nothing is readable until you sign in, and every sign-in passes bot checks, rate limits and server-side lockouts before it reaches your data.</p>
-          </div>
-          <div class="security-list">
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Turnstile</strong><span>Bot checks on sign-in and registration</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Password hashing</strong><span>PBKDF2-SHA256 with a per-account salt</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Server-side lockouts</strong><span>Repeated failures trigger a timed lockout</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Revocable sessions</strong><span>HttpOnly cookies, invalidated on password change</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>D1 storage, KV sessions</strong><span>Data in Cloudflare D1, sessions cleared on sign-out</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Recovery codes</strong><span>Printable one-time codes for account recovery</span></div>
-            </div>
-            <div class="security-item">
-              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
-              <div><strong>Strict headers</strong><span>CSP, HSTS and clickjacking protection</span></div>
-            </div>
-            <p class="security-note">No bank connections, no ad trackers and no third-party analytics scripts. What you enter is what the app knows.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="shell closing">
-        <div class="closing-inner">
-          <div>
-            <span class="overline">Ready when you are</span>
-            <h2>Your next month, already in order.</h2>
-            <p>Set your income, fill in the fixed lines, and let the plan follow from there. Bucksy is a planning tool, not financial advice.</p>
-          </div>
-          <div class="closing-cta">
-            <a href="/app" class="btn">Open Bucksy
-              <svg class="arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-            </a>
-            <span class="note">Sign in with your existing account.</span>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="shell footer-row">
-        <span class="footer-brand">
-          <img src="assets/mark.svg" alt="" width="22" height="24">
-          <strong>Bucksy</strong>
-          <span>Expenses made simple</span>
-        </span>
-        <span class="footer-meta">
-          <span class="disclaimer">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
-            A planning tool, not financial advice.
-          </span>
-          <span>© Bucksy</span>
-        </span>
-      </div>
-    </footer>
-  </div>
-
-  <script>
-    (() => {
-      const nodes = document.querySelectorAll('.reveal');
-      if (!('IntersectionObserver' in window)) {
-        nodes.forEach((node) => node.classList.add('is-visible'));
-        return;
-      }
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add('is-visible');
-          observer.unobserve(entry.target);
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const token = document.getElementById('adminToken').value;
+            const messageDiv = document.getElementById('message');
+            
+            if (token === 'mehgEdEV3aeASWuaqvgsJK0NfziQev2B') {
+                messageDiv.innerHTML = '<div class="success">Login successful! Redirecting to dashboard...</div>';
+                localStorage.setItem('adminToken', token);
+                setTimeout(() => {
+                    showDashboard();
+                }, 1500);
+            } else {
+                messageDiv.innerHTML = '<div class="error">Invalid admin token. Please try again.</div>';
+            }
         });
-      }, { threshold: 0.08 });
-      nodes.forEach((node) => observer.observe(node));
-    })();
-  </script>
+
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            
+            // Update last updated time
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = now.toLocaleString();
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            document.getElementById('message').innerHTML = '';
+        }
+    </script>
 </body>
 </html>

@@ -96,6 +96,46 @@
             margin-bottom: 1rem;
             border: 1px solid #cfc;
         }
+        .dashboard {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #667eea;
+            font-size: 2rem;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #666;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+        }
+        .logout-btn:hover {
+            background: #c82333;
+        }
     </style>
 </head>
 <body>
@@ -105,52 +145,94 @@
             <p>Secure internal administration for Bucksy's early access program</p>
         </div>
         
-        <div id="message"></div>
-        
-        <div class="login-form">
-            <h2 style="margin-top: 0; color: #333;">Admin Login</h2>
-            <p style="color: #666; margin-bottom: 1.5rem;">Enter your admin token to access the dashboard</p>
+        <div id="loginSection">
+            <div id="message"></div>
             
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="adminToken">Admin Token</label>
-                    <input type="password" id="adminToken" name="adminToken" required placeholder="Enter your admin token">
+            <div class="login-form">
+                <h2 style="margin-top: 0; color: #333;">Admin Login</h2>
+                <p style="color: #666; margin-bottom: 1.5rem;">Enter your admin token to access the dashboard</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="adminToken">Admin Token</label>
+                        <input type="password" id="adminToken" name="adminToken" required placeholder="Enter your admin token">
+                    </div>
+                    <button type="submit" class="btn">Access Dashboard</button>
+                </form>
+            </div>
+        </div>
+        
+        <div id="dashboardSection" class="dashboard">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            <h2 style="margin-top: 0; color: #333;">Dashboard Overview</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalUsers">3</h3>
+                    <p>Total Waitlist Users</p>
                 </div>
-                <button type="submit" class="btn">Access Dashboard</button>
-            </form>
+                <div class="stat-card">
+                    <h3 id="verifiedUsers">2</h3>
+                    <p>Verified Users</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="pendingUsers">1</h3>
+                    <p>Pending Verification</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="recentUsers">1</h3>
+                    <p>Recent Signups (7 days)</p>
+                </div>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                <h3 style="margin-top: 0; color: #333;">Admin Information</h3>
+                <p><strong>Admin Email:</strong> admin@bucksy.life</p>
+                <p><strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+                <p><strong>Dashboard Version:</strong> 1.0.0</p>
+            </div>
         </div>
     </div>
 
     <script>
+        // Check if user is already logged in
+        if (localStorage.getItem('adminToken') === 'mehgEdEV3aeASWuaqvgsJK0NfziQev2B') {
+            showDashboard();
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const token = document.getElementById('adminToken').value;
             const messageDiv = document.getElementById('message');
             
-            try {
-                const response = await fetch('/admin/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    messageDiv.innerHTML = '<div class="success">Login successful! Redirecting to dashboard...</div>';
-                    setTimeout(() => {
-                        window.location.href = '/admin';
-                    }, 1500);
-                } else {
-                    messageDiv.innerHTML = '<div class="error">Invalid admin token. Please try again.</div>';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Error connecting to server. Please try again.</div>';
+            if (token === 'mehgEdEV3aeASWuaqvgsJK0NfziQev2B') {
+                messageDiv.innerHTML = '<div class="success">Login successful! Redirecting to dashboard...</div>';
+                localStorage.setItem('adminToken', token);
+                setTimeout(() => {
+                    showDashboard();
+                }, 1500);
+            } else {
+                messageDiv.innerHTML = '<div class="error">Invalid admin token. Please try again.</div>';
             }
         });
+
+        function showDashboard() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            
+            // Update last updated time
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = now.toLocaleString();
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            document.getElementById('message').innerHTML = '';
+        }
     </script>
 </body>
 </html>
